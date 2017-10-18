@@ -27,10 +27,8 @@ class OMXPlayerDBusManager(object):
             os.environ['LD_LIBRARY_PATH'] = new_ld_lib_path
 
         self.log = logger.Logger(namespace='omx-dbus-mgr')
-        self.name_prefix = 'com.example.player'
 
         self._dbus_conn = None
-        self._player_names = set()
         self._players_starting = {}
         self._players_stopping = {}
 
@@ -43,18 +41,11 @@ class OMXPlayerDBusManager(object):
         return self._dbus_conn
 
 
-    def generate_player_name(self):
+    def generate_player_name(self, filename):
 
-        attempts = 256
-        while attempts > 0:
-            rand_name = '%s-%04x' % (self.name_prefix, random.getrandbits(16))
-            if rand_name not in self._player_names:
-                self._player_names.add(rand_name)
-                break
-            attempts -= 1
-        else:
-            raise ValueError('Failed generating name.')
-        return rand_name
+        return 'com.nunogodinho.vela2017-%s' % (
+            os.path.splitext(os.path.basename(filename))[0],
+        )
 
 
     @defer.inlineCallbacks

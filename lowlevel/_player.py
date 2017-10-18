@@ -43,7 +43,7 @@ class OMXPlayer(object):
         self.loop = loop
         self.alpha = alpha
 
-        self.dbus_player_name = self.dbus_mgr.generate_player_name()
+        self.dbus_player_name = self.dbus_mgr.generate_player_name(filename)
         self.log = logger.Logger(namespace=self.dbus_player_name)
 
         self._reactor = self.dbus_mgr.reactor
