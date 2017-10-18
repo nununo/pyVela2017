@@ -2,10 +2,16 @@
 # vim: ts=4:sw=4:et
 
 
+from time import time
+
+
 from twisted.internet import defer, protocol
 from twisted import logger
 
 from txdbus import interface as txdbus_interface
+
+
+from ._misc import sleep
 
 
 
@@ -35,13 +41,16 @@ class _TrackStartStopProcessProtocol(protocol.ProcessProtocol):
 
 class OMXPlayer(object):
 
-    def __init__(self, filename, dbus_mgr, *, layer=0, loop=False, alpha=255):
+    def __init__(self, filename, dbus_mgr, *, layer=0, loop=False, alpha=255,
+                 fadein=0, fadeout=0):
 
         self.filename = filename
         self.dbus_mgr = dbus_mgr
         self.layer = layer
         self.loop = loop
         self.alpha = alpha
+        self._fadein = fadein
+        self._fadeout = fadeout
 
         self.dbus_player_name = self.dbus_mgr.generate_player_name(filename)
         self.log = logger.Logger(namespace=self.dbus_player_name)
@@ -162,12 +171,53 @@ class OMXPlayer(object):
     @defer.inlineCallbacks
     def set_alpha(self, int64):
 
-        self.log.debug('asking player to set alpha')
         result = yield self._dbus_player.callRemote(
             'SetAlpha', '/not/used', int64,
             interface='org.mpris.MediaPlayer2.Player'
         )
-        self.log.debug('asked player to set alpha')
+        defer.returnValue(result)
+
+
+    # fadein/fadeout notes:
+    # - assume 25fps
+    # - attributes represent time in seconds
+    # - use delay < 20ms which is 2x framerate
+
+    @defer.inlineCallbacks
+    def _fade(self, duration, from_, to_):
+
+        if duration:
+            delay = 0.019
+            start_time = time()
+            finish_secs = start_time + duration
+            delta_alpha = to_ - from_
+            relative_time = 0
+            while relative_time < 1:
+                alpha = from_ + delta_alpha * relative_time
+                self.log.debug('alpha {s}', s=alpha)
+                yield self.set_alpha(round(alpha))
+                yield sleep(delay, self._reactor)
+                relative_time = (time() - start_time) / duration
+
+        result = yield self.set_alpha(round(to_))
+        defer.returnValue(result)
+
+
+    @defer.inlineCallbacks
+    def fadein(self):
+
+        self.log.info('fade in starting')
+        result = yield self._fade(self._fadein, 0, 255)
+        self.log.info('fade in completed')
+        defer.returnValue(result)
+
+
+    @defer.inlineCallbacks
+    def fadeout(self):
+
+        self.log.info('fade out starting')
+        result = yield self._fade(self._fadeout, 255, 0)
+        self.log.info('fade out completed')
         defer.returnValue(result)
 
 

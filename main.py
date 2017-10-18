@@ -5,16 +5,7 @@ import os
 
 from twisted.internet import task, defer
 
-from lowlevel import OMXPlayerDBusManager, OMXPlayer
-
-
-
-
-def sleep(seconds, reactor):
-
-    d = defer.Deferred()
-    reactor.callLater(seconds, d.callback, None)
-    return d
+from lowlevel import OMXPlayerDBusManager, OMXPlayer, sleep
 
 
 
@@ -49,49 +40,21 @@ if __name__ == '__main__':
         yield dbus_mgr.connect_to_dbus()
 
         player1 = OMXPlayer('../videos/0-00.mkv', dbus_mgr, layer=10)
-        player2 = OMXPlayer('../videos/2-01.mkv', dbus_mgr, layer=20, alpha=0)
-        player3 = OMXPlayer('../videos/3-01.mkv', dbus_mgr, layer=30, alpha=0)
+        player2 = OMXPlayer('../videos/2-01.mkv', dbus_mgr, layer=20, alpha=0, fadein=0.5, fadeout=0.2)
+#        player3 = OMXPlayer('../videos/3-01.mkv', dbus_mgr, layer=30, alpha=0, fadein=0.1, fadeout=1)
 
         yield player1.spawn()
 
-        yield sleep(5, reactor)
+        yield sleep(3, reactor)
 
         yield player2.spawn()
-
-        delay = 0.01
-        for alpha in range(1, 256, 15):
-            yield player2.set_alpha(alpha)
-            yield sleep(delay, reactor)
-
+        yield player2.fadein()
         yield sleep(2, reactor)
-
-        for alpha in range(254, -1, -15):
-            yield player2.set_alpha(alpha)
-            yield sleep(delay, reactor)
-
+        yield player2.fadeout()
         yield player2.stop(ignore_failures=False)
-
 
         yield sleep(5, reactor)
 
-
-        yield player3.spawn()
-
-        delay = 0.01
-        for alpha in range(1, 256, 15):
-            yield player3.set_alpha(alpha)
-            yield sleep(delay, reactor)
-
-        yield sleep(4, reactor)
-
-        for alpha in range(254, -1, -5):
-            yield player3.set_alpha(alpha)
-            yield sleep(delay, reactor)
-
-
-        yield player3.stop(ignore_failures=False)
-
-        yield sleep(5000, reactor)
 
         yield player1.stop(ignore_failures=False)
 
