@@ -5,7 +5,7 @@ import os
 
 from twisted.internet import task, defer
 
-from lowlevel import OMXPlayerDBusManager, OMXPlayer, sleep
+from player import OMXPlayerDBusManager, OMXPlayer, sleep
 
 
 
