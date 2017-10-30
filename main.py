@@ -6,28 +6,12 @@ import os
 from twisted.internet import task, defer
 
 from player import OMXPlayerDBusManager, OMXPlayer, sleep
-
+import utils
 
 
 if __name__ == '__main__':
 
     import sys
-
-    from twisted.logger import (globalLogBeginner, textFileLogObserver,
-        LogLevelFilterPredicate, FilteringLogObserver, LogLevel)
-
-
-    def setup_logging(debug=False):
-
-        observer = textFileLogObserver(sys.stderr, timeFormat='%H:%M:%S.%f')
-        loglevel = LogLevel.debug if debug else LogLevel.info
-        predicate = LogLevelFilterPredicate(defaultLogLevel=loglevel)
-        predicate.setLogLevelForNamespace(
-            'txdbus.client.DBusClientFactory',
-            LogLevel.warn,
-        )
-        observers = [FilteringLogObserver(observer, [predicate])]
-        globalLogBeginner.beginLoggingTo(observers)
 
 
     @defer.inlineCallbacks
@@ -69,6 +53,6 @@ if __name__ == '__main__':
         'ld_lib_path': '/usr/lib/omxplayer',
     }
 
-    setup_logging(debug='-d' in sys.argv)
+    utils.setup_logging(debug='-d' in sys.argv)
     task.react(start_things, (SETTINGS,))
 
