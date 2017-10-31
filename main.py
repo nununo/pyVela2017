@@ -6,6 +6,7 @@ import os
 from twisted.internet import task, defer
 
 from player import OMXPlayerDBusManager, OMXPlayer, sleep
+import sensor
 import utils
 
 
@@ -16,6 +17,15 @@ if __name__ == '__main__':
 
     @defer.inlineCallbacks
     def start_things(reactor, settings):
+
+        arduinoFIFO = defer.DeferredQueue()
+
+        arduinoPort = sensor.createSerialPort(
+            reactor,
+            settings['deviceFilename'],
+            settings['baudrate'],
+            lambda value: arduinoFIFO.put(value),
+        )
 
         executable = settings['executable']
         ld_lib_path = settings['ld_lib_path']
@@ -51,6 +61,8 @@ if __name__ == '__main__':
     SETTINGS = {
         'executable': '/usr/bin/omxplayer.bin',
         'ld_lib_path': '/usr/lib/omxplayer',
+        'deviceFilename': '/dev/ttyACM0',
+        'baudrate': 9600,
     }
 
     utils.setup_logging(debug='-d' in sys.argv)
