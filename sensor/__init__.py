@@ -6,9 +6,10 @@ from twisted import logger
 
 class _ArduinoProtocol(protocol.Protocol):
 
-    def __init__(self, name):
+    def __init__(self, pduReceivedCallable):
         self._buffer = []
-        self._log = logger.Logger(namespace='{}-arduino-proto'.format(name))
+        self._log = logger.Logger(namespace='arduino-proto')
+        self._pduReceivedCallable = pduReceivedCallable
 
     def connectionMade(self):
         self._log.info('connection made')
@@ -33,21 +34,21 @@ class _ArduinoProtocol(protocol.Protocol):
         for pduBuffer in pduBuffers:
             if self._isValidPDUBuffer(pduBuffer):
                 pdu = self._decodePDUBuffer(pduBuffer)
-                self.pduReceived(pdu)
+                try:
+                    self._pduReceivedCallable(pdu)
+                except Exception as e:
+                    self.log.warn('callable exception: {e!s}', e=e)
         if pduBuffers and not self._isValidPDUBuffer(pduBuffers[-1]):
             self._buffer = [pduBuffers[-1]]
         
-    def pduReceived(self, pdu):
-        print('pdu received:', repr(pdu))
-
     def connectionLost(self, reason):
         self._log.info('connection lost')
 
 
 
-def createSerialPort(reactor, deviceFilename, baudrate, name='default'):
+def createSerialPort(reactor, deviceFilename, baudrate, pduReceivedCallable):
 
-    proto = _ArduinoProtocol(name)
+    proto = _ArduinoProtocol(pduReceivedCallable)
     sp = serialport.SerialPort(proto, deviceFilename, reactor, baudrate=baudrate)
     return sp
 
