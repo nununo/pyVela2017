@@ -5,7 +5,7 @@ import os
 
 from twisted.internet import task, defer
 
-from player import OMXPlayerDBusManager, OMXPlayer, sleep
+import player
 import sensor
 import utils
 
@@ -29,28 +29,28 @@ if __name__ == '__main__':
 
         executable = settings['executable']
         ld_lib_path = settings['ld_lib_path']
-        dbus_mgr = OMXPlayerDBusManager(reactor, executable, ld_lib_path)
+        dbus_mgr = player.OMXPlayerDBusManager(reactor, executable, ld_lib_path)
 
         yield dbus_mgr.connect_to_dbus()
 
-        player1 = OMXPlayer('../videos/0-00.mkv', dbus_mgr, layer=10)
-        player2 = OMXPlayer('../videos/2-01.mkv', dbus_mgr, layer=20, alpha=0, fadein=0.5, fadeout=0.2)
-#        player3 = OMXPlayer('../videos/3-01.mkv', dbus_mgr, layer=30, alpha=0, fadein=0.1, fadeout=1)
+        p1 = player.OMXPlayer('../videos/0-00.mkv', dbus_mgr, layer=10)
+        p2 = player.OMXPlayer('../videos/2-01.mkv', dbus_mgr, layer=20, alpha=0, fadein=0.5, fadeout=0.2)
+#        p3 = player.OMXPlayer('../videos/3-01.mkv', dbus_mgr, layer=30, alpha=0, fadein=0.1, fadeout=1)
 
-        yield player1.spawn()
+        yield p1.spawn()
 
-        yield sleep(3, reactor)
+        yield player.sleep(3, reactor)
 
-        yield player2.spawn()
-        yield player2.fadein()
-        yield sleep(2, reactor)
-        yield player2.fadeout()
-        yield player2.stop(ignore_failures=False)
+        yield p2.spawn()
+        yield p2.fadein()
+        yield player.sleep(2, reactor)
+        yield p2.fadeout()
+        yield p2.stop(ignore_failures=False)
 
-        yield sleep(5, reactor)
+        yield player.sleep(5, reactor)
 
 
-        yield player1.stop(ignore_failures=False)
+        yield p1.stop(ignore_failures=False)
 
 
     _DBUS_ENV_VAR_NAME = 'DBUS_SESSION_BUS_ADDRESS'
