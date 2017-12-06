@@ -3,6 +3,8 @@ from twisted.internet import protocol, serialport
 from twisted import logger
 
 
+_log = logger.Logger(namespace='sensor')
+
 
 class _ArduinoProtocol(protocol.Protocol):
 
@@ -49,7 +51,11 @@ class _ArduinoProtocol(protocol.Protocol):
 def createSerialPort(reactor, deviceFilename, baudrate, pduReceivedCallable):
 
     proto = _ArduinoProtocol(pduReceivedCallable)
-    sp = serialport.SerialPort(proto, deviceFilename, reactor, baudrate=baudrate)
+    try:
+        sp = serialport.SerialPort(proto, deviceFilename, reactor, baudrate=baudrate)
+    except Exception as e:
+        _log.warn('serial port opening failed: {f}', f=e)
+        sp = None
     return sp
 
 
