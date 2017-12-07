@@ -72,6 +72,11 @@ class OMXPlayer(object):
         )
 
 
+    _OMX_DBUS_PLAYER_PROPERTIES = txdbus_interface.DBusInterface(
+        'org.freedesktop.DBus.Properties',
+        txdbus_interface.Method('Get', arguments='ss', returns='x'),
+    )
+
     _OMX_DBUS_PLAYER_INTERFACE = txdbus_interface.DBusInterface(
         'org.mpris.MediaPlayer2.Player',
         txdbus_interface.Method('PlayPause', arguments='', returns=''),
@@ -116,7 +121,7 @@ class OMXPlayer(object):
         self.log.debug('getting dbus player object')
         path = '/org/mpris/MediaPlayer2'
         ifaces = [
-            'org.freedesktop.DBus.Properties',
+            self._OMX_DBUS_PLAYER_PROPERTIES,
             self._OMX_DBUS_PLAYER_INTERFACE,
         ]
         self._dbus_player = yield self._dbus_conn.getRemoteObject(
@@ -125,6 +130,16 @@ class OMXPlayer(object):
             interfaces=ifaces,
         )
         self.log.debug('got dbus player object')
+
+        duration = yield self._dbus_player.callRemote(
+            'Get', 'org.mpris.MediaPlayer2.Player', 'Duration',
+        )
+        self.log.info('duration is {d}us', d=duration)
+
+        if not self.loop:
+            self._reactor.callLater(duration / 1000000 - self._fadeout - 0.1, self.fadeout)
+        yield self.fadein()
+
 
 
     @defer.inlineCallbacks
