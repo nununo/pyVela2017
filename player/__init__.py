@@ -1,5 +1,3 @@
 
-from ._dbus_manager import OMXPlayerDBusManager
-from ._player import OMXPlayer
+from ._player_manager import PlayerManager
 from ._misc import sleep
-
