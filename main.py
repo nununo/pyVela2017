@@ -6,6 +6,7 @@ from twisted.internet import task, defer
 import player
 import sensor
 import utils
+import network
 
 
 
@@ -24,10 +25,14 @@ def start_things(reactor, settings):
 
     player_manager = player.PlayerManager(reactor, settings)
 
+    f = network.ControlFactory(player_manager)
+    reactor.listenTCP(10000, f, interface='0.0.0.0')
+
+
     yield player_manager.start()
     yield player.sleep(3, reactor)
     yield player_manager.level(1)
-    yield player.sleep(5, reactor)
+    yield player.sleep(500, reactor)
     yield player_manager.stop()
 
 
