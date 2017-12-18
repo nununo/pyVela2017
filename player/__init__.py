@@ -1,3 +1,3 @@
 
-from ._player_manager import PlayerManager
-from ._misc import sleep
+from .player_manager import PlayerManager
+from .misc import sleep

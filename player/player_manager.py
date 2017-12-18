@@ -3,9 +3,9 @@
 
 from twisted.internet import defer
 
-from ._dbus_manager import OMXPlayerDBusManager
-from ._player import OMXPlayer
-from ._misc import sleep
+from .dbus_manager import OMXPlayerDBusManager
+from .player import OMXPlayer
+from .misc import sleep
 
 
 class PlayerManager(object):

@@ -11,7 +11,7 @@ from twisted import logger
 from txdbus import interface as txdbus_interface
 
 
-from ._misc import sleep
+from .misc import sleep
 
 
 
