@@ -87,7 +87,7 @@ class OMXPlayer(object):
 
 
     @defer.inlineCallbacks
-    def spawn(self):
+    def spawn(self, end_callable=None):
 
         player_name = self.dbus_player_name
         self.log.info('spawning player {p!r}', p=player_name)
@@ -117,8 +117,14 @@ class OMXPlayer(object):
         # Wait until the player shows up on DBus.
         yield self.dbus_mgr.wait_dbus_player_start(player_name)
 
+        # Optional notification of process termination.
+        if end_callable:
+            self._process_protocol.stopped.addCallback(end_callable)
+
         # Get the DBus object for this player.
         self.log.debug('getting dbus player object')
+
+        # Hardcoded data from OMXPlayer documentation.
         path = '/org/mpris/MediaPlayer2'
         ifaces = [
             self._OMX_DBUS_PLAYER_PROPERTIES,
