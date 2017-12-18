@@ -1,0 +1,30 @@
+{
+    "environment": {
+        "omxplayer_bin": "/usr/bin/omxplayer.bin",
+        "ld_library_path": "/usr/lib/omxplayer"
+    },
+    "arduino": {
+        "device_file": "/dev/ttyACM0",
+        "baud_rate": 9600
+    },
+    "levels": {
+        "0": {
+            "folder": "../videos/0"
+        },
+        "1": {
+            "folder": "../videos/1",
+            "fadein": 0.1,
+            "fadeout": 0.5
+        },
+        "2": {
+            "folder": "../videos/2",
+            "fadein": 1,
+            "fadeout": 1
+        },
+        "3": {
+            "folder": "../videos/3",
+            "fadein": 1,
+            "fadeout": 1
+        }
+    }
+}

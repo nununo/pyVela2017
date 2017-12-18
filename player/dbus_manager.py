@@ -2,9 +2,6 @@
 # vim: ts=4:sw=4:et
 
 
-import os
-import random
-
 from twisted.internet import defer
 from twisted import logger
 
@@ -14,18 +11,9 @@ from txdbus import client as txdbus_client
 
 class OMXPlayerDBusManager(object):
 
-    def __init__(self, reactor, executable, extra_ld_lib_path=None):
+    def __init__(self, reactor):
 
         self.reactor = reactor
-        self.executable = executable
-        if extra_ld_lib_path is not None:
-            ld_lib_path = os.environ.get('LD_LIBRARY_PATH', '')
-            if ld_lib_path:
-                new_ld_lib_path = '%s:%s' % (extra_ld_lib_path, ld_lib_path)
-            else:
-                new_ld_lib_path = extra_ld_lib_path
-            os.environ['LD_LIBRARY_PATH'] = new_ld_lib_path
-
         self.log = logger.Logger(namespace='omx-dbus-mgr')
 
         self._dbus_conn = None
@@ -39,13 +27,6 @@ class OMXPlayerDBusManager(object):
         if self._dbus_conn is None:
             raise RuntimeError('Not connected to DBus.')
         return self._dbus_conn
-
-
-    def generate_player_name(self, filename):
-
-        return 'com.nunogodinho.vela2017-%s' % (
-            os.path.splitext(os.path.basename(filename))[0],
-        )
 
 
     @defer.inlineCallbacks

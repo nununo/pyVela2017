@@ -41,21 +41,22 @@ class _TrackStartStopProcessProtocol(protocol.ProcessProtocol):
 
 class OMXPlayer(object):
 
-    def __init__(self, filename, dbus_mgr, *, layer=0, loop=False, alpha=255,
+    def __init__(self, filename, player_mgr, *, layer=0, loop=False, alpha=255,
                  fadein=0, fadeout=0):
 
         self.filename = filename
-        self.dbus_mgr = dbus_mgr
+        self.player_mgr = player_mgr
+        self.dbus_mgr = player_mgr.dbus_mgr
         self.layer = layer
         self.loop = loop
         self.alpha = alpha
         self._fadein = fadein
         self._fadeout = fadeout
 
-        self.dbus_player_name = self.dbus_mgr.generate_player_name(filename)
+        self.dbus_player_name = self.player_mgr.generate_player_name(filename)
         self.log = logger.Logger(namespace=self.dbus_player_name)
 
-        self._reactor = self.dbus_mgr.reactor
+        self._reactor = self.player_mgr.reactor
         self._dbus_conn = self.dbus_mgr.dbus_conn
 
         self._process_protocol = None
@@ -97,7 +98,7 @@ class OMXPlayer(object):
 
         # Spawn the omxplayer.bin process.
         self._process_protocol = _TrackStartStopProcessProtocol(player_name)
-        args = [self.dbus_mgr.executable]
+        args = [self.player_mgr.executable]
         if self.loop:
             args.append('--loop')
         args.extend(('--dbus_name', str(player_name)))
@@ -106,7 +107,7 @@ class OMXPlayer(object):
         args.append(str(self.filename))
         self._process_transport = self._reactor.spawnProcess(
             self._process_protocol,
-            self.dbus_mgr.executable,
+            self.player_mgr.executable,
             args,
             env=None,
         )
