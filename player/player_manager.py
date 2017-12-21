@@ -30,6 +30,8 @@ class PlayerManager(object):
         self._update_ld_lib_path()
         self._find_files()
 
+        self.done = defer.Deferred()
+
 
     def _update_ld_lib_path(self):
 
@@ -123,4 +125,6 @@ class PlayerManager(object):
             yield self.current_player.stop()
         self.log.info('stopping base player')
         yield self.base_player.stop()
+
+        self.done.callback(None)
 

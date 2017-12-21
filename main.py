@@ -30,10 +30,7 @@ def start_things(reactor, settings):
 
 
     yield player_manager.start()
-    yield player.sleep(3, reactor)
-    yield player_manager.level(1)
-    yield player.sleep(500, reactor)
-    yield player_manager.stop()
+    yield player_manager.done
 
 
 

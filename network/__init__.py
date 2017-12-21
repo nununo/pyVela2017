@@ -4,7 +4,7 @@ from twisted.protocols import basic
 from twisted import logger
 
 
-_log = logger.Logger(namespace='sensor')
+_log = logger.Logger(namespace='network')
 
 
 class ControlProtocol(basic.LineReceiver):
@@ -14,11 +14,14 @@ class ControlProtocol(basic.LineReceiver):
         _log.info('connection made!')
 
 
-    def dataReceived(self, data):
+    def lineReceived(self, line):
 
-        _log.info('received {d!r}', d=data)
+        _log.info('received {d!r}', d=line)
+        if line == b'stop':
+            self.factory.player_mgr.stop()
+            return
         try:
-            level = int(data.strip())
+            level = int(line.strip())
             self.factory.player_mgr.level(level)
         except:
             pass
