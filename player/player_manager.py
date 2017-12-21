@@ -23,9 +23,8 @@ class PlayerManager(object):
         self.dbus_mgr = OMXPlayerDBusManager(reactor)
 
         self.files = {}
-        self.base_player = None
+        self.players = {}
         self.current_level = 0
-        self.current_player = None
 
         self._update_ld_lib_path()
         self._find_files()
@@ -81,13 +80,27 @@ class PlayerManager(object):
     def start(self):
 
         yield self.dbus_mgr.connect_to_dbus()
-        self.base_player = OMXPlayer(
-            self._get_file_for_level(0),
+
+        for level in self.files.keys():
+            yield self._create_player(level)
+
+        yield self.players[0].play()
+
+
+    @defer.inlineCallbacks
+    def _create_player(self, level):
+
+        player = OMXPlayer(
+            self._get_file_for_level(level),
             self,
-            layer=0,
-            loop=True,
+            layer=level,
+            alpha=0,
+            loop=(level == 0),
+            fadein=self.settings['levels'][str(level)]['fadein'],
+            fadeout=self.settings['levels'][str(level)]['fadeout'],
         )
-        yield self.base_player.spawn()
+        self.players[level] = player
+        yield player.spawn(end_callable=lambda exit_code: self._player_ended(level))
 
 
     @defer.inlineCallbacks
@@ -96,35 +109,25 @@ class PlayerManager(object):
         if n < self.current_level:
             return
 
-        new_player = OMXPlayer(
-            self._get_file_for_level(n),
-            self,
-            layer=n,
-            fadein=self.settings['levels'][str(n)]['fadein'],
-            fadeout=self.settings['levels'][str(n)]['fadeout'],
-        )
-        yield new_player.spawn(end_callable=lambda exit_code: self._player_ended(n))
-        if self.current_player:
-            yield self.current_player.stop()
-        self.current_level = n
-        self.current_player = new_player
+        player = self.players.get(n)
+        if player:
+            self.current_level = n
+            player.play()
 
 
     def _player_ended(self, level):
 
         self.log.info('player level={l!r} ended', l=level)
+        self._create_player(level)
         self.current_level = 0
-        self.current_player = None
 
 
     @defer.inlineCallbacks
     def stop(self):
 
-        if self.current_player:
-            self.log.info('stopping player level={l!r}', l=self.current_level)
-            yield self.current_player.stop()
-        self.log.info('stopping base player')
-        yield self.base_player.stop()
+        for level, player in self.players.items():
+            self.log.info('stopping player level={l!r}', l=level)
+            yield player.stop()
 
         self.done.callback(None)
 

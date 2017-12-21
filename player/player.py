@@ -53,6 +53,8 @@ class OMXPlayer(object):
         self._fadein = fadein
         self._fadeout = fadeout
 
+        self._duration = None
+
         self.dbus_player_name = self.player_mgr.generate_player_name(filename)
         self.log = logger.Logger(namespace=self.dbus_player_name)
 
@@ -138,15 +140,13 @@ class OMXPlayer(object):
         )
         self.log.debug('got dbus player object')
 
-        duration = yield self._dbus_player.callRemote(
+        duration_microsecs = yield self._dbus_player.callRemote(
             'Get', 'org.mpris.MediaPlayer2.Player', 'Duration',
         )
-        self.log.info('duration is {d}us', d=duration)
+        self._duration = duration_microsecs / 1000000
+        self.log.info('duration is {d}s', d=self._duration)
 
-        if not self.loop:
-            self._reactor.callLater(duration / 1000000 - self._fadeout - 0.1, self.fadeout)
-        yield self.fadein()
-
+        yield self.play_pause()
 
 
     @defer.inlineCallbacks
@@ -188,6 +188,18 @@ class OMXPlayer(object):
             interface='org.mpris.MediaPlayer2.Player'
         )
         self.log.debug('asked player to play/pause')
+
+
+    @defer.inlineCallbacks
+    def play(self):
+
+        yield self.play_pause()
+
+        if not self.loop:
+            delta_t = self._duration - self._fadeout - 0.1
+            self._reactor.callLater(delta_t, self.fadeout)
+
+        yield self.fadein()
 
 
     @defer.inlineCallbacks

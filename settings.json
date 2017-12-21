@@ -9,7 +9,9 @@
     },
     "levels": {
         "0": {
-            "folder": "../videos/0"
+            "folder": "../videos/0",
+            "fadein": 1,
+            "fadeout": 1
         },
         "1": {
             "folder": "../videos/1",
