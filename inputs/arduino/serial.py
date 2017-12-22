@@ -33,7 +33,7 @@ class _ArduinoProtocol(protocol.Protocol):
 
     def _process_buffer(self):
         """
-        Consume buffered bytes and fire self.pduReceived() for each valid PDU.
+        Consume buffered bytes and fire the PDU received callable for each valid PDU.
         """
         buffer = b''.join(self._buffer)
         pdu_buffers = buffer.split(b' ')
