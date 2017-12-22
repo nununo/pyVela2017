@@ -71,7 +71,7 @@ if __name__ == '__main__':
     DEVICE = '/dev/ttyACM0'
     BAUD = 9600
 
-    sp = create_port(reactor, DEVICE, BAUD)
+    sp = create_port(reactor, DEVICE, BAUD, lambda pdu: print('pdu: %r' % (pdu,)))
 
     reactor.run()
 
