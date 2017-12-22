@@ -84,7 +84,7 @@ class PlayerManager(object):
 
         yield self.dbus_mgr.connect_to_dbus()
 
-        for level in self.files.keys():
+        for level in self.files:
             yield self._create_player(level)
 
         yield self.players[0].play()
