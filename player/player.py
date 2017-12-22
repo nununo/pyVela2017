@@ -226,7 +226,6 @@ class OMXPlayer(object):
         if duration:
             delay = 0.019
             start_time = time()
-            finish_secs = start_time + duration
             delta_alpha = to_ - from_
             relative_time = 0
             while relative_time < 1:
