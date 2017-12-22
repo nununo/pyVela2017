@@ -43,7 +43,7 @@ class _ArduinoProtocol(protocol.Protocol):
                 try:
                     self._pdu_received_callable(pdu)
                 except Exception as e:
-                    self.log.warn('callable exception: {e!s}', e=e)
+                    self._log.warn('callable exception: {e!s}', e=e)
         if pdu_buffers and not self._is_valid_pdu_buffer(pdu_buffers[-1]):
             self._buffer = [pdu_buffers[-1]]
 
