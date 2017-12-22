@@ -28,6 +28,7 @@ class PlayerManager(object):
         self._update_ld_lib_path()
         self._find_files()
 
+        self._stopping = False
         self.done = defer.Deferred()
 
 
@@ -117,6 +118,8 @@ class PlayerManager(object):
     def _player_ended(self, level):
 
         self.log.info('player level={l!r} ended', l=level)
+        if self._stopping:
+            return
         self._create_player(level)
         self.current_level = 0
 
@@ -124,6 +127,7 @@ class PlayerManager(object):
     @defer.inlineCallbacks
     def stop(self):
 
+        self._stopping = True
         for level, player in self.players.items():
             self.log.info('stopping player level={l!r}', l=level)
             yield player.stop()
