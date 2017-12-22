@@ -9,7 +9,6 @@ from twisted import logger
 
 from .dbus_manager import OMXPlayerDBusManager
 from .player import OMXPlayer
-from .misc import sleep
 
 
 class PlayerManager(object):
