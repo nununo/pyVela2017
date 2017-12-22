@@ -35,7 +35,7 @@ class _ArduinoProtocol(protocol.Protocol):
         """
         Consume buffered bytes and fire self.pduReceived() for each valid PDU.
         """
-        buffer  = b''.join(self._buffer)
+        buffer = b''.join(self._buffer)
         pduBuffers = buffer.split(b' ')
         for pduBuffer in pduBuffers:
             if self._isValidPDUBuffer(pduBuffer):
@@ -46,7 +46,7 @@ class _ArduinoProtocol(protocol.Protocol):
                     self.log.warn('callable exception: {e!s}', e=e)
         if pduBuffers and not self._isValidPDUBuffer(pduBuffers[-1]):
             self._buffer = [pduBuffers[-1]]
-        
+
     def connectionLost(self, reason):
         self._log.info('connection lost')
 
@@ -70,7 +70,7 @@ if __name__ == '__main__':
 
     DEVICE = '/dev/ttyACM0'
     BAUD = 9600
-    
+
     sp = create_port(reactor, DEVICE, BAUD)
 
     reactor.run()
