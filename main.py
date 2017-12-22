@@ -4,30 +4,17 @@
 from twisted.internet import task, defer
 
 import player
-import sensor
-import utils
-import network
+import log
+import inputs
 
 
 
 @defer.inlineCallbacks
 def start_things(reactor, settings):
 
-    arduinoFIFO = defer.DeferredQueue()
-
-    arduinoPort = sensor.createSerialPort(
-        reactor,
-        settings['arduino']['device_file'],
-        settings['arduino']['baud_rate'],
-        lambda value: arduinoFIFO.put(value),
-    )
-
 
     player_manager = player.PlayerManager(reactor, settings)
-
-    f = network.ControlFactory(player_manager)
-    reactor.listenTCP(10000, f, interface='0.0.0.0')
-
+    input_manager = inputs.InputManager(reactor, player_manager, settings)
 
     yield player_manager.start()
     yield player_manager.done
@@ -63,6 +50,6 @@ if __name__ == '__main__':
                 os.path.join(base_dir, level_info_folder)
             )
 
-    utils.setup_logging(debug='-d' in sys.argv)
+    log.setup(debug='-d' in sys.argv)
     task.react(start_things, (settings,))
 

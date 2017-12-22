@@ -5,7 +5,7 @@ from twisted.logger import (globalLogBeginner, textFileLogObserver,
     LogLevelFilterPredicate, FilteringLogObserver, LogLevel)
 
 
-def setup_logging(debug=False):
+def setup(debug=False):
 
     observer = textFileLogObserver(sys.stderr, timeFormat='%H:%M:%S.%f')
     loglevel = LogLevel.debug if debug else LogLevel.info

@@ -3,9 +3,14 @@
         "omxplayer_bin": "/usr/bin/omxplayer.bin",
         "ld_library_path": "/usr/lib/omxplayer"
     },
-    "arduino": {
-        "device_file": "/dev/ttyACM0",
-        "baud_rate": 9600
+    "inputs": {
+        "arduino": {
+            "device_file": "/dev/ttyACM0",
+            "baud_rate": 9600
+        },
+        "network": {
+            "port": 10000
+        }
     },
     "levels": {
         "0": {

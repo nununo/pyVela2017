@@ -3,7 +3,7 @@ from twisted.internet import protocol, serialport
 from twisted import logger
 
 
-_log = logger.Logger(namespace='sensor')
+_log = logger.Logger(namespace='arduino-serial')
 
 
 class _ArduinoProtocol(protocol.Protocol):
@@ -48,7 +48,7 @@ class _ArduinoProtocol(protocol.Protocol):
 
 
 
-def createSerialPort(reactor, deviceFilename, baudrate, pduReceivedCallable):
+def create_port(reactor, deviceFilename, baudrate, pduReceivedCallable):
 
     proto = _ArduinoProtocol(pduReceivedCallable)
     try:
@@ -67,7 +67,7 @@ if __name__ == '__main__':
     DEVICE = '/dev/ttyACM0'
     BAUD = 9600
     
-    sp = createSerialPort(reactor, DEVICE, BAUD)
+    sp = create_port(reactor, DEVICE, BAUD)
 
     reactor.run()
 
