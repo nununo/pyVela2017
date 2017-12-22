@@ -26,7 +26,7 @@ class ControlProtocol(basic.LineReceiver):
         try:
             level = int(line.strip())
             self.factory.player_mgr.level(level)
-        except:
+        except Exception:
             pass
 
     def connectionLost(self, reason):
