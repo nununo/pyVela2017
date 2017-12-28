@@ -1,0 +1,16 @@
+[MESSAGES CONTROL]
+
+disable=missing-docstring
+
+[BASIC]
+
+const-naming-style=UPPER_CASE
+
+good-names=i,
+           j,
+           k,
+           d,
+           e,
+           f,
+           _
+

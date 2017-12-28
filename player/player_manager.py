@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 # vim: ts=4:sw=4:et
+# ----------------------------------------------------------------------------
+# player/player_manager.py
+# ----------------------------------------------------------------------------
 
 import os
 import random
@@ -81,7 +84,7 @@ class PlayerManager(object):
 
         yield self.dbus_mgr.connect_to_dbus()
 
-        for level in self.files.keys():
+        for level in self.files:
             yield self._create_player(level)
 
         yield self.players[0].play()
@@ -104,14 +107,14 @@ class PlayerManager(object):
 
 
     @defer.inlineCallbacks
-    def level(self, n):
+    def level(self, new_level):
 
-        if n < self.current_level:
+        if new_level < self.current_level:
             return
 
-        player = self.players.get(n)
+        player = self.players.get(new_level)
         if player:
-            self.current_level = n
+            self.current_level = new_level
             player.play()
 
 
@@ -134,3 +137,7 @@ class PlayerManager(object):
 
         self.done.callback(None)
 
+
+# ----------------------------------------------------------------------------
+# player/player_manager.py
+# ----------------------------------------------------------------------------

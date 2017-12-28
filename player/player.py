@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 # vim: ts=4:sw=4:et
+# ----------------------------------------------------------------------------
+# player/player.py
+# ----------------------------------------------------------------------------
 
 
 from time import time
@@ -223,7 +226,6 @@ class OMXPlayer(object):
         if duration:
             delay = 0.019
             start_time = time()
-            finish_secs = start_time + duration
             delta_alpha = to_ - from_
             relative_time = 0
             while relative_time < 1:
@@ -266,3 +268,6 @@ class OMXPlayer(object):
         self.log.debug('asked player action')
 
 
+# ----------------------------------------------------------------------------
+# player/player.py
+# ----------------------------------------------------------------------------
