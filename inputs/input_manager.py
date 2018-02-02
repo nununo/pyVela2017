@@ -34,7 +34,7 @@ class InputManager(object):
         network.initialize(self._player_mgr, self._reactor, port)
 
 
-    def _create_input_arduino(self, device_file, baud_rate):
+    def _create_input_arduino(self, **kwargs):
 
-        arduino.initialize(self._player_mgr, self._reactor, device_file, baud_rate)
+        arduino.initialize(self._player_mgr, self._reactor, **kwargs)
 

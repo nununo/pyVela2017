@@ -6,7 +6,8 @@
     "inputs": {
         "arduino": {
             "device_file": "/dev/ttyACM0",
-            "baud_rate": 9600
+            "baud_rate": 9600,
+            "thresholds": [3, 7, 12]
         },
         "network": {
             "port": 10000

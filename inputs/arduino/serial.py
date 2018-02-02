@@ -24,7 +24,7 @@ class _ArduinoProtocol(basic.LineReceiver):
             pdu = self._decodePDUBuffer(data)
             self._pduReceivedCallable(pdu)
         except Exception as e:
-            self.log.warn('callable exception: {e!s}', e=e)
+            self._log.warn('callable exception: {e!s}', e=e)
 
     def _decodePDUBuffer(self, pduBuffer):
         return int.from_bytes(pduBuffer, byteorder='little')
