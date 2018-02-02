@@ -7,7 +7,7 @@ from twisted.protocols import basic
 from twisted import logger
 
 
-_log = logger.Logger(namespace='network')
+_log = logger.Logger(namespace='inputs.network')
 
 
 class ControlProtocol(basic.LineReceiver):

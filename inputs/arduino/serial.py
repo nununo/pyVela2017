@@ -4,7 +4,7 @@ from twisted.protocols import basic
 from twisted import logger
 
 
-_log = logger.Logger(namespace='arduino-serial')
+_log = logger.Logger(namespace='inputs.arduino.serial')
 
 
 class _ArduinoProtocol(basic.LineReceiver):
@@ -12,7 +12,7 @@ class _ArduinoProtocol(basic.LineReceiver):
     delimiter = b' '
 
     def __init__(self, pdu_received_callable):
-        self._log = logger.Logger(namespace='arduino-proto')
+        self._log = logger.Logger(namespace='inputs.arduino.proto')
         self._pdu_received_callable = pdu_received_callable
 
     def connectionMade(self):
