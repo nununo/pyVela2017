@@ -105,6 +105,8 @@ class OMXPlayer(object):
             args.append('--loop')
         args.extend(('--dbus_name', str(player_name)))
         args.extend(('--layer', str(self.layer)))
+        args.extend(('--orientation', str(180)))
+        args.append('--no-osd')
         args.extend(('--alpha', str(self.alpha)))
         args.append(str(self.filename))
         self._process_transport = self._reactor.spawnProcess(
