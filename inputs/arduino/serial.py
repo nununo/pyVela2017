@@ -21,9 +21,6 @@ class _ArduinoProtocol(protocol.Protocol):
         self._buffer.append(data)
         self._processBuffer()
 
-    def _isValidPDUBuffer(self, pduBuffer):
-        return len(pduBuffer) == 2
-
     def _decodePDUBuffer(self, pduBuffer):
         return int.from_bytes(pduBuffer, byteorder='little')
 
@@ -31,18 +28,37 @@ class _ArduinoProtocol(protocol.Protocol):
         """
         Consume buffered bytes and fire self.pduReceived() for each valid PDU.
         """
+        self._log.debug('process buffer start: buffer={b!r}', b=b''.join(self._buffer))
         buffer  = b''.join(self._buffer)
-        pduBuffers = buffer.split(b' ')
-        for pduBuffer in pduBuffers:
-            if self._isValidPDUBuffer(pduBuffer):
-                pdu = self._decodePDUBuffer(pduBuffer)
-                try:
-                    self._pduReceivedCallable(pdu)
-                except Exception as e:
-                    self.log.warn('callable exception: {e!s}', e=e)
-        if pduBuffers and not self._isValidPDUBuffer(pduBuffers[-1]):
-            self._buffer = [pduBuffers[-1]]
-        
+        wait_marker = True
+        bytes_pending = 0
+        pdu_buffer = b''
+        last_consumed_byte = 0
+        pdu = None
+        for i, byte in enumerate(buffer):
+            if byte == 32:
+                if not wait_marker:
+                    self._log.warn('unexpected space marker')
+                wait_marker = False
+                bytes_pending = 2
+                pdu_buffer = b''
+            else:
+                if bytes_pending <= 0:
+                    self._log.warn('unexpected data byte {b!r}', b=byte)
+                pdu_buffer += bytes((byte,))
+                bytes_pending -= 1
+                if bytes_pending == 0:
+                    pdu = self._decodePDUBuffer(pdu_buffer)
+                    last_consumed_byte = i
+                    wait_marker = True
+        if pdu:
+            try:
+                self._pduReceivedCallable(pdu)
+            except Exception as e:
+                self.log.warn('callable exception: {e!s}', e=e)
+            self._buffer = [buffer[last_consumed_byte+1:]]
+        self._log.debug('process buffer done: buffer={b!r}', b=b''.join(self._buffer))
+
     def connectionLost(self, reason):
         self._log.info('connection lost')
 
