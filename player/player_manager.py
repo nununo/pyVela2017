@@ -28,6 +28,7 @@ class PlayerManager(object):
         self._update_ld_lib_path()
         self._find_files()
 
+        self._ready = False
         self._stopping = False
         self.done = defer.Deferred()
 
@@ -85,6 +86,7 @@ class PlayerManager(object):
             yield self._create_player(level)
 
         yield self.players[0].play()
+        self._ready = True
 
 
     @defer.inlineCallbacks
@@ -103,10 +105,14 @@ class PlayerManager(object):
         yield player.spawn(end_callable=lambda exit_code: self._player_ended(level))
 
 
-    @defer.inlineCallbacks
     def level(self, n):
 
-        if n < self.current_level:
+        if not self._ready:
+            return
+
+        self.log.info('level set to {l!r}', l=n)
+
+        if n <= self.current_level:
             return
 
         player = self.players.get(n)
