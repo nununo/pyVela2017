@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 # vim: ts=4:sw=4:et
+# ----------------------------------------------------------------------------
+# player/dbus_manager.py
+# ----------------------------------------------------------------------------
 
 
 from twisted.internet import defer
@@ -100,4 +103,6 @@ class OMXPlayerDBusManager(object):
             raise RuntimeError('Player %r not tracked.' % (player_name,))
 
 
-
+# ----------------------------------------------------------------------------
+# player/dbus_manager.py
+# ----------------------------------------------------------------------------

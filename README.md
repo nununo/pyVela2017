@@ -7,3 +7,8 @@ Run with:
 $ dbus-run-session python main.py
 ```
 
+Lint with:
+
+```
+$ pylint main inputs/ player/
+```

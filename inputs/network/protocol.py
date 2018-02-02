@@ -1,3 +1,6 @@
+# ----------------------------------------------------------------------------
+# inputs/network/protocol.py
+# ----------------------------------------------------------------------------
 
 from twisted.internet import protocol
 from twisted.protocols import basic
@@ -24,7 +27,8 @@ class ControlProtocol(basic.LineReceiver):
             level = int(line.strip())
         except:
             pass
-        self.factory.player_mgr.level(level)
+        else:
+            self.factory.player_mgr.level(level)
 
     def connectionLost(self, reason):
 
@@ -40,3 +44,6 @@ class ControlFactory(protocol.Factory):
         self.player_mgr = player_mgr
 
 
+# ----------------------------------------------------------------------------
+# inputs/network/protocol.py
+# ----------------------------------------------------------------------------

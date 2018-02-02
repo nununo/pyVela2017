@@ -11,9 +11,9 @@ class _ArduinoProtocol(basic.LineReceiver):
 
     delimiter = b' '
 
-    def __init__(self, pduReceivedCallable):
+    def __init__(self, pdu_received_callable):
         self._log = logger.Logger(namespace='arduino-proto')
-        self._pduReceivedCallable = pduReceivedCallable
+        self._pdu_received_callable = pdu_received_callable
 
     def connectionMade(self):
         self._log.info('connection made')
@@ -21,24 +21,24 @@ class _ArduinoProtocol(basic.LineReceiver):
     def lineReceived(self, data):
         self._log.debug('data received: {d!r}', d=data)
         try:
-            pdu = self._decodePDUBuffer(data)
-            self._pduReceivedCallable(pdu)
+            pdu = self._decode_pdu_buffer(data)
+            self._pdu_received_callable(pdu)
         except Exception as e:
             self._log.warn('callable exception: {e!s}', e=e)
 
-    def _decodePDUBuffer(self, pduBuffer):
-        return int.from_bytes(pduBuffer, byteorder='little')
+    def _decode_pdu_buffer(self, pdu_buffer):
+        return int.from_bytes(pdu_buffer, byteorder='little')
 
     def connectionLost(self, reason):
         self._log.info('connection lost')
 
 
 
-def create_port(reactor, deviceFilename, baudrate, pduReceivedCallable):
+def create_port(reactor, device_filename, baudrate, pdu_received_callable):
 
-    proto = _ArduinoProtocol(pduReceivedCallable)
+    proto = _ArduinoProtocol(pdu_received_callable)
     try:
-        sp = serialport.SerialPort(proto, deviceFilename, reactor, baudrate=baudrate)
+        sp = serialport.SerialPort(proto, device_filename, reactor, baudrate=baudrate)
     except Exception as e:
         _log.warn('serial port opening failed: {f}', f=e)
         sp = None
@@ -52,8 +52,12 @@ if __name__ == '__main__':
 
     DEVICE = '/dev/ttyACM0'
     BAUD = 9600
-    
-    sp = create_port(reactor, DEVICE, BAUD)
+
+    sp = create_port(reactor, DEVICE, BAUD, lambda pdu: print('pdu: %r' % (pdu,)))
 
     reactor.run()
 
+
+# ----------------------------------------------------------------------------
+# inputs/arduio/serial.py
+# ----------------------------------------------------------------------------
