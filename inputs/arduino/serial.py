@@ -1,4 +1,5 @@
-from twisted.internet import protocol, serialport
+from twisted.internet import serialport
+from twisted.protocols import basic
 
 from twisted import logger
 
@@ -6,58 +7,27 @@ from twisted import logger
 _log = logger.Logger(namespace='arduino-serial')
 
 
-class _ArduinoProtocol(protocol.Protocol):
+class _ArduinoProtocol(basic.LineReceiver):
+
+    delimiter = b' '
 
     def __init__(self, pduReceivedCallable):
-        self._buffer = []
         self._log = logger.Logger(namespace='arduino-proto')
         self._pduReceivedCallable = pduReceivedCallable
 
     def connectionMade(self):
         self._log.info('connection made')
 
-    def dataReceived(self, data):
+    def lineReceived(self, data):
         self._log.debug('data received: {d!r}', d=data)
-        self._buffer.append(data)
-        self._processBuffer()
+        try:
+            pdu = self._decodePDUBuffer(data)
+            self._pduReceivedCallable(pdu)
+        except Exception as e:
+            self.log.warn('callable exception: {e!s}', e=e)
 
     def _decodePDUBuffer(self, pduBuffer):
         return int.from_bytes(pduBuffer, byteorder='little')
-
-    def _processBuffer(self):
-        """
-        Consume buffered bytes and fire self.pduReceived() for each valid PDU.
-        """
-        self._log.debug('process buffer start: buffer={b!r}', b=b''.join(self._buffer))
-        buffer  = b''.join(self._buffer)
-        wait_marker = True
-        bytes_pending = 0
-        pdu_buffer = b''
-        last_consumed_byte = 0
-        pdu = None
-        for i, byte in enumerate(buffer):
-            if byte == 32:
-                if not wait_marker:
-                    self._log.warn('unexpected space marker')
-                wait_marker = False
-                bytes_pending = 2
-                pdu_buffer = b''
-            else:
-                if bytes_pending <= 0:
-                    self._log.warn('unexpected data byte {b!r}', b=byte)
-                pdu_buffer += bytes((byte,))
-                bytes_pending -= 1
-                if bytes_pending == 0:
-                    pdu = self._decodePDUBuffer(pdu_buffer)
-                    last_consumed_byte = i
-                    wait_marker = True
-        if pdu:
-            try:
-                self._pduReceivedCallable(pdu)
-            except Exception as e:
-                self.log.warn('callable exception: {e!s}', e=e)
-            self._buffer = [buffer[last_consumed_byte+1:]]
-        self._log.debug('process buffer done: buffer={b!r}', b=b''.join(self._buffer))
 
     def connectionLost(self, reason):
         self._log.info('connection lost')
