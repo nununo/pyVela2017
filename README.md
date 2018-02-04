@@ -12,3 +12,9 @@ Lint with:
 ```
 $ pylint main inputs/ player/
 ```
+
+Network input with:
+
+```
+$ nc -c vela2017.local 10000
+```

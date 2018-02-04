@@ -21,7 +21,7 @@
         "arduino": {
             "device_file": "/dev/ttyACM0",
             "baud_rate": 9600,
-            "thresholds": [3, 7, 12]
+            "thresholds": [7, 20, 30]
         },
         "network": {
             "port": 10000

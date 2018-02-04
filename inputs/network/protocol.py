@@ -28,7 +28,7 @@ class ControlProtocol(basic.LineReceiver):
         except:
             pass
         else:
-            self.factory.player_mgr.level(level)
+            self.factory.player_mgr.level(level, "network")
 
     def connectionLost(self, reason):
 
