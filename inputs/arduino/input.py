@@ -9,7 +9,7 @@ from twisted import logger
 from . import serial
 
 
-_INPUT_SIZE = 10
+_INPUT_SIZE = 25
 
 _log = logger.Logger(namespace='inputs.arduino')
 
@@ -37,7 +37,7 @@ class ArduinoInput(object):
                 play_level = level
         if play_level != self._last_play_level:
             self._last_play_level = play_level
-            self._player_manager.level(play_level)
+            self._player_manager.level(play_level, "arduino %r" % (agg_d,))
 
 
     def _pairs_from(self, thing):

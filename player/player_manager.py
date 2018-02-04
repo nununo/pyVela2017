@@ -109,12 +109,12 @@ class PlayerManager(object):
         yield player.spawn(end_callable=lambda exit_code: self._player_ended(level))
 
 
-    def level(self, new_level):
+    def level(self, new_level, comment=''):
 
         if not self._ready:
             return
 
-        self.log.info('new_level={l!r}', l=new_level)
+        self.log.info('new_level={l!r} comment={c!r}', l=new_level, c=comment)
 
         if new_level <= self.current_level:
             return
