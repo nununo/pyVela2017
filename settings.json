@@ -3,6 +3,20 @@
         "omxplayer_bin": "/usr/bin/omxplayer.bin",
         "ld_library_path": "/usr/lib/omxplayer"
     },
+    "loglevel": "warn",
+    "loglevels": {
+        "txdbus": "warn",
+        "player": "warn",
+        "player.dbus": "warn",
+        "player.mngr": "info",
+        "player.proc": "warn",
+        "player.each": "warn",
+        "inputs": "warn",
+        "inputs.network": "warn",
+        "inputs.arduino": "warn",
+        "inputs.arduino.serial": "warn",
+        "inputs.arduino.proto": "warn"
+    },
     "inputs": {
         "arduino": {
             "device_file": "/dev/ttyACM0",

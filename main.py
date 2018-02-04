@@ -55,8 +55,12 @@ def main(argv, environ):
         print('%s not set. DBus session running?' % dbus_env_var_name)
         return -1
 
-    log.setup(debug='-d' in argv)
     settings = load_settings()
+
+    log_level = settings.get('loglevel', 'warn')
+    log_levels = settings.get('loglevels', {})
+    log.setup(level=log_level, namespace_levels=log_levels)
+
     task.react(start_things, (settings,))
 
     return 0

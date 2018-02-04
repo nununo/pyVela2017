@@ -21,7 +21,7 @@ from .misc import sleep
 class _TrackStartStopProcessProtocol(protocol.ProcessProtocol):
 
     def __init__(self, player_name):
-        self.log = logger.Logger(namespace='%s-process-proto' % (player_name,))
+        self.log = logger.Logger(namespace='player.proc.%s' % (player_name,))
         self.started = defer.Deferred()
         self.stopped = defer.Deferred()
 
@@ -59,7 +59,7 @@ class OMXPlayer(object):
         self._duration = None
 
         self.dbus_player_name = self.player_mgr.generate_player_name(filename)
-        self.log = logger.Logger(namespace=self.dbus_player_name)
+        self.log = logger.Logger(namespace='player.each.%s' % (self.dbus_player_name,))
 
         self._reactor = self.player_mgr.reactor
         self._dbus_conn = self.dbus_mgr.dbus_conn

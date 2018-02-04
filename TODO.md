@@ -1,4 +1,3 @@
-* Have configurable log levels, per logger.
 * Improve player manager level() call handling.
 * Fix arduino input: avoid spurious triggering.
 * Review code for consistency (naming, etc).

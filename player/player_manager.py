@@ -18,7 +18,7 @@ class PlayerManager(object):
 
     def __init__(self, reactor, settings):
 
-        self.log = logger.Logger(namespace='player-manager')
+        self.log = logger.Logger(namespace='player.mngr')
 
         self.reactor = reactor
         self.settings = settings
@@ -57,7 +57,7 @@ class PlayerManager(object):
                 os.path.join(level_folder, name)
                 for name in os.listdir(level_folder)
             ]
-        self.log.info('files found: {d!r}', d=self.files)
+        self.log.debug('files found: {d!r}', d=self.files)
 
 
     def generate_player_name(self, filename):
@@ -76,7 +76,7 @@ class PlayerManager(object):
     def executable(self):
 
         result = self.settings['environment']['omxplayer_bin']
-        self.log.info('executable is {e!r}', e=result)
+        self.log.debug('executable is {e!r}', e=result)
         return result
 
 
@@ -95,6 +95,7 @@ class PlayerManager(object):
     @defer.inlineCallbacks
     def _create_player(self, level):
 
+        self.log.info('creating player level={l!r}', l=level)
         player = OMXPlayer(
             self._get_file_for_level(level),
             self,

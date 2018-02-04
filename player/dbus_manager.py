@@ -17,7 +17,7 @@ class OMXPlayerDBusManager(object):
     def __init__(self, reactor):
 
         self.reactor = reactor
-        self.log = logger.Logger(namespace='omx-dbus-mgr')
+        self.log = logger.Logger(namespace='player.dbus')
 
         self._dbus_conn = None
         self._players_starting = {}

@@ -11,7 +11,7 @@ from . import serial
 
 _INPUT_SIZE = 10
 
-_log = logger.Logger(namespace='arduino-input')
+_log = logger.Logger(namespace='inputs.arduino')
 
 
 class ArduinoInput(object):
