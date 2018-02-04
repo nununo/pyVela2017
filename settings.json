@@ -15,7 +15,8 @@
         "inputs.network": "warn",
         "inputs.arduino": "warn",
         "inputs.arduino.serial": "warn",
-        "inputs.arduino.proto": "warn"
+        "inputs.arduino.proto": "warn",
+        "webserver": "debug"
     },
     "inputs": {
         "arduino": {
