@@ -34,13 +34,22 @@ class InputManager(object):
 
     def _create_input_network(self, port):
 
-        network.initialize(self._player_mgr, self._reactor, port)
+        network.initialize(self, self._reactor, port)
 
 
     def _create_input_arduino(self, **kwargs):
 
-        arduino.initialize(self._player_mgr, self._reactor, **kwargs)
+        arduino.initialize(self, self._reactor, **kwargs)
 
+
+    def level(self, level, comment):
+
+        self._player_mgr.level(level, comment)
+
+
+    def raw(self, *args):
+
+        pass
 
 # ----------------------------------------------------------------------------
 # inputs/input_manager.py
