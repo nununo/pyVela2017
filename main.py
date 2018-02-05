@@ -40,10 +40,12 @@ def load_settings(filename='settings.json'):
 @defer.inlineCallbacks
 def start_things(reactor, settings):
 
-    player_manager = player.PlayerManager(reactor, settings)
-    input_manager = inputs.InputManager(reactor, player_manager, settings)
     webserver.setup_webserver(reactor)
-    webserver.setup_websocket(reactor)
+    raw_listener = webserver.setup_websocket(reactor)
+    player_manager = player.PlayerManager(reactor, settings)
+    input_manager = inputs.InputManager(
+        reactor, player_manager, raw_listener, settings
+    )
 
     yield player_manager.start()
     yield player_manager.done

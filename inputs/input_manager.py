@@ -8,10 +8,11 @@ from . import arduino
 
 class InputManager(object):
 
-    def __init__(self, reactor, player_manager, settings):
+    def __init__(self, reactor, player_manager, raw_listener, settings):
 
         self._reactor = reactor
         self._player_mgr = player_manager
+        self._raw_listener = raw_listener
         self._settings = settings
 
         self._inputs = []
@@ -47,9 +48,10 @@ class InputManager(object):
         self._player_mgr.level(level, comment)
 
 
-    def raw(self, *args):
+    def raw(self, source, value): 
 
-        pass
+        self._raw_listener.raw(source, value)
+
 
 # ----------------------------------------------------------------------------
 # inputs/input_manager.py

@@ -27,6 +27,7 @@ class ArduinoInput(object):
 
     def _pdu_received(self, pdu):
 
+        self._input_manager.raw(source="arduino", value=pdu)
         self._pdus.append(pdu)
         _log.debug('pdus: {p!r}', p=self._pdus)
         agg_d = self._aggregated_derivative()
