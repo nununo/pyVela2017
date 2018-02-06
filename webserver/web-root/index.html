@@ -8,7 +8,12 @@
     </script>
 </head>
 <body>
-    <canvas id="chart"> </canvas>
+    <table width="100%">
+    <tr>
+    <td style="width:50%;"><canvas id="chart" /></td>
+    <td style="width:50%;vertical-align:top;"><div id="log">:::log:::</div></td>
+    </tr>
+    </table>
     <div>
         <input type="button" onclick="button_click('bigger');" value="Bigger"/>
         <input type="button" onclick="button_click('smaller');" value="Smaller"/>

@@ -5,7 +5,8 @@
 var chart = null;
 var chart_data = [];
 var socket = null;
-
+var log_count = 0;
+var log = null;
 
 const _data = {
     datasets: [{
@@ -73,12 +74,25 @@ function socket_open() {
 
 function socket_message(msg) {
     var obj = JSON.parse(msg.data);
-    obj.t = new Date(obj.t);
-    chart_data.push(obj);
-    if ( chart_data.length > 600 ) {
-        chart_data.shift();
+    if ( obj.hasOwnProperty("y") ) {
+        obj.t = new Date(obj.t);
+        chart_data.push(obj);
+        if ( chart_data.length > 600 ) {
+            chart_data.shift();
+        }
+        chart.update();
+    } else {
+        update_log(obj.text);
     }
-    chart.update();
+}
+
+function update_log(s) {
+    log.innerText += s + "\n";
+    log_count++;
+    if (log_count > 20) {
+        pos = log.innerText.indexOf("\n"); 
+        log.innerText = log.innerText.substring(pos+1);
+    }
 }
 
 function socket_close(e) {
@@ -88,6 +102,7 @@ function socket_close(e) {
 window.onload = function() {
     chart = create_chart();
     socket = create_websocket();
+    log = document.getElementById("log");
 }
 
 function button_click(arg) {
