@@ -10,7 +10,7 @@ var socket = null;
 const _data = {
     datasets: [{
         fill: false,
-        label: 'Nice Measurements',
+        label: 'Arduino raw',
         data: chart_data,
         borderColor: '#0080f0',
         backgroundColor: '#0080f0',
@@ -36,7 +36,7 @@ const _options = {
         }],
         yAxes: [{
             ticks: {
-                beginAtZero: true,
+//                beginAtZero: true,
             }
         }]
     },

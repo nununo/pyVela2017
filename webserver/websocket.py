@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+import datetime
+import json
+
 from twisted import logger
 
 from autobahn.twisted import websocket
@@ -31,7 +34,11 @@ class WSProto(websocket.WebSocketServerProtocol):
         self.factory.connected_protocol = None
 
     def raw(self, source, value):
-        self._log_state('ola')
+        msg = json.dumps({
+            't': datetime.datetime.now().isoformat(),
+            'y': value,
+        }).encode('utf8')
+        self.sendMessage(msg, False)
 
 
 
