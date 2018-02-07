@@ -20,15 +20,12 @@ class ControlProtocol(basic.LineReceiver):
     def lineReceived(self, line):
 
         _log.info('received {d!r}', d=line)
-        if line == b'stop':
-            self.factory.player_mgr.stop()
-            return
         try:
             level = int(line.strip())
         except:
             pass
         else:
-            self.factory.player_mgr.level(level)
+            self.factory.input_manager.level(level, "network")
 
     def connectionLost(self, reason):
 
@@ -39,9 +36,9 @@ class ControlFactory(protocol.Factory):
 
     protocol = ControlProtocol
 
-    def __init__(self, player_mgr):
+    def __init__(self, input_manager):
 
-        self.player_mgr = player_mgr
+        self.input_manager = input_manager
 
 
 # ----------------------------------------------------------------------------

@@ -9,16 +9,16 @@ from twisted import logger
 from . import serial
 
 
-_INPUT_SIZE = 10
+_INPUT_SIZE = 25
 
 _log = logger.Logger(namespace='inputs.arduino')
 
 
 class ArduinoInput(object):
 
-    def __init__(self, player_manager, reactor, device_file, baud_rate, thresholds):
+    def __init__(self, input_manager, reactor, device_file, baud_rate, thresholds):
 
-        self._player_manager = player_manager
+        self._input_manager = input_manager
         self._sp = serial.create_port(reactor, device_file, baud_rate, self._pdu_received)
         self._pdus = deque(maxlen=_INPUT_SIZE)
         self._thresholds = thresholds
@@ -27,6 +27,7 @@ class ArduinoInput(object):
 
     def _pdu_received(self, pdu):
 
+        self._input_manager.raw(source="arduino", value=pdu)
         self._pdus.append(pdu)
         _log.debug('pdus: {p!r}', p=self._pdus)
         agg_d = self._aggregated_derivative()
@@ -37,7 +38,7 @@ class ArduinoInput(object):
                 play_level = level
         if play_level != self._last_play_level:
             self._last_play_level = play_level
-            self._player_manager.level(play_level)
+            self._input_manager.level(play_level, "arduino %r" % (agg_d,))
 
 
     def _pairs_from(self, thing):

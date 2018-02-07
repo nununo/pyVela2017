@@ -8,10 +8,11 @@ from . import arduino
 
 class InputManager(object):
 
-    def __init__(self, reactor, player_manager, settings):
+    def __init__(self, reactor, player_manager, raw_listener, settings):
 
         self._reactor = reactor
         self._player_mgr = player_manager
+        self._raw_listener = raw_listener
         self._settings = settings
 
         self._inputs = []
@@ -34,12 +35,22 @@ class InputManager(object):
 
     def _create_input_network(self, port):
 
-        network.initialize(self._player_mgr, self._reactor, port)
+        network.initialize(self, self._reactor, port)
 
 
     def _create_input_arduino(self, **kwargs):
 
-        arduino.initialize(self._player_mgr, self._reactor, **kwargs)
+        arduino.initialize(self, self._reactor, **kwargs)
+
+
+    def level(self, level, comment):
+
+        self._player_mgr.level(level, comment)
+
+
+    def raw(self, source, value): 
+
+        self._raw_listener.raw(source, value)
 
 
 # ----------------------------------------------------------------------------
