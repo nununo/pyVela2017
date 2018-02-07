@@ -40,12 +40,21 @@ def load_settings(filename='settings.json'):
 @defer.inlineCallbacks
 def start_things(reactor, settings):
 
+    log_bridge = log.LogBridge()
+
+    log_level = settings.get('loglevel', 'warn')
+    log_levels = settings.get('loglevels', {})
+    log.setup(level=log_level, namespace_levels=log_levels,
+              observer=log_bridge)
+
     webserver.setup_webserver(reactor)
     raw_listener = webserver.setup_websocket(reactor)
     player_manager = player.PlayerManager(reactor, settings)
     input_manager = inputs.InputManager(
         reactor, player_manager, raw_listener, settings
     )
+
+    log_bridge.destination = raw_listener
 
     yield player_manager.start()
     yield player_manager.done
@@ -60,11 +69,6 @@ def main(argv, environ):
         return -1
 
     settings = load_settings()
-
-    log_level = settings.get('loglevel', 'warn')
-    log_levels = settings.get('loglevels', {})
-    log.setup(level=log_level, namespace_levels=log_levels)
-
     task.react(start_things, (settings,))
 
     return 0

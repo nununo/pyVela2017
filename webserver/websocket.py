@@ -33,12 +33,20 @@ class WSProto(websocket.WebSocketServerProtocol):
         self._log_state('ws clse')
         self.factory.connected_protocol = None
 
+    def _send(self, message_dict):
+        msg = json.dumps(message_dict).encode('utf8')
+        self.sendMessage(msg, False)
+
     def raw(self, source, value):
-        msg = json.dumps({
+        self._send({
             't': datetime.datetime.now().isoformat(),
             'y': value,
-        }).encode('utf8')
-        self.sendMessage(msg, False)
+        })
+
+    def log_message(self, text):
+        self._send({
+            'text': text,
+        })
 
 
 
@@ -47,15 +55,16 @@ class WSFactory(websocket.WebSocketServerFactory):
     protocol = WSProto
 
     def __init__(self, *args, **kwargs):
-
         super(WSFactory, self).__init__(*args, **kwargs)
         self.connected_protocol = None
 
     def raw(self, source, value):
-
         if self.connected_protocol:
             self.connected_protocol.raw(source, value)
 
+    def log_message(self, message):
+        if self.connected_protocol:
+            self.connected_protocol.log_message(message)
 
 
 def setup_websocket(reactor):
