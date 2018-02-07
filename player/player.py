@@ -25,9 +25,9 @@ class _TrackStartStopProcessProtocol(protocol.ProcessProtocol):
         self.started = defer.Deferred()
         self.stopped = defer.Deferred()
 
-    def makeConnection(self, process):
+    def connectionMade(self):
         self.log.debug('player process started')
-        self.started.callback(process)
+        self.started.callback(None)
 
     def outReceived(self, data):
         self.log.debug('stdout: {s!r}', s=data)
