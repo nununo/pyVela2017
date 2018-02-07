@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# ----------------------------------------------------------------------------
 # vim: ts=4:sw=4:et
 # ----------------------------------------------------------------------------
 # main.py
@@ -45,12 +45,12 @@ def start_things(reactor, settings):
     log_level = settings.get('loglevel', 'warn')
     log_levels = settings.get('loglevels', {})
     log.setup(level=log_level, namespace_levels=log_levels,
-              observer=log_bridge)
+              extra_observer=log_bridge)
 
     webserver.setup_webserver(reactor)
     raw_listener = webserver.setup_websocket(reactor)
     player_manager = player.PlayerManager(reactor, settings)
-    input_manager = inputs.InputManager(
+    _input_manager = inputs.InputManager(
         reactor, player_manager, raw_listener, settings
     )
 
@@ -61,7 +61,7 @@ def start_things(reactor, settings):
 
 
 
-def main(argv, environ):
+def main(environ):
 
     dbus_env_var_name = 'DBUS_SESSION_BUS_ADDRESS'
     if dbus_env_var_name not in environ:
@@ -76,7 +76,7 @@ def main(argv, environ):
 
 if __name__ == '__main__':
 
-    sys.exit(main(sys.argv, os.environ))
+    sys.exit(main(os.environ))
 
 
 # ----------------------------------------------------------------------------

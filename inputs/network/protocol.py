@@ -1,4 +1,6 @@
 # ----------------------------------------------------------------------------
+# vim: ts=4:sw=4:et
+# ----------------------------------------------------------------------------
 # inputs/network/protocol.py
 # ----------------------------------------------------------------------------
 
@@ -10,6 +12,7 @@ from twisted import logger
 _log = logger.Logger(namespace='inputs.network')
 
 
+
 class ControlProtocol(basic.LineReceiver):
 
     def connectionMade(self):
@@ -19,17 +22,24 @@ class ControlProtocol(basic.LineReceiver):
 
     def lineReceived(self, line):
 
-        _log.info('received {d!r}', d=line)
+        _log.info('received {l!r}', l=line)
         try:
             level = int(line.strip())
-        except:
-            pass
+        except Exception:
+            _log.warn('ignored {l!r}', l=line)
         else:
-            self.factory.input_manager.level(level, "network")
+            self.factory.input_manager.level(level, 'network')
 
-    def connectionLost(self, reason):
+
+    def rawDataReceived(self, data):
+
+        _log.warn('unexpected data: {d!r}', d=data)
+
+
+    def connectionLost(self, reason=protocol.connectionDone):
 
         _log.info('connection lost')
+
 
 
 class ControlFactory(protocol.Factory):

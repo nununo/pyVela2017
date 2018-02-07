@@ -4,7 +4,7 @@ disable=missing-docstring
 
 [BASIC]
 
-const-naming-style=UPPER_CASE
+const-rgx = (([A-Z_][A-Z0-9_]*)|(__.*__)|_log)$
 
 good-names=i,
            j,

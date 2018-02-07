@@ -10,7 +10,7 @@ $ dbus-run-session python main.py
 Lint with:
 
 ```
-$ pylint main inputs/ player/
+$ pylint main inputs/ player/ webserver/ log/
 ```
 
 Network input with:
