@@ -26,7 +26,7 @@ class _TrackStartStopProcessProtocol(protocol.ProcessProtocol):
         self.stopped = defer.Deferred()
 
     def connectionMade(self):
-        self.log.debug('player process started')
+        self.log.info('player process started')
         self.started.callback(None)
 
     def outReceived(self, data):
@@ -37,7 +37,7 @@ class _TrackStartStopProcessProtocol(protocol.ProcessProtocol):
 
     def processEnded(self, reason):
         exit_code = reason.value.exitCode
-        self.log.debug('player process ended; exit_code={ec!r}', ec=exit_code)
+        self.log.info('player process ended; exit_code={ec!r}', ec=exit_code)
         self.stopped.callback(exit_code)
 
 
