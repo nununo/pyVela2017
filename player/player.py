@@ -99,7 +99,7 @@ class OMXPlayer(object):
         self.log.info('spawning player {p!r}', p=player_name)
 
         # Delegate helps us track child process DBus presence.
-        self.dbus_mgr.track_dbus_player(player_name)
+        self.dbus_mgr.track_dbus_name(player_name)
 
         # Spawn the omxplayer.bin process.
         self._process_protocol = _TrackStartStopProcessProtocol(player_name)
@@ -123,7 +123,7 @@ class OMXPlayer(object):
         yield self._process_protocol.started
 
         # Wait until the player shows up on DBus.
-        yield self.dbus_mgr.wait_dbus_player_start(player_name)
+        yield self.dbus_mgr.wait_dbus_name_start(player_name)
 
         # Optional notification of process termination.
         if end_callable:
@@ -189,8 +189,8 @@ class OMXPlayer(object):
                 else:
                     self.log.debug('asked player to stop')
 
-        # Wait until the process disappears from DBus.
-        yield self.dbus_mgr.wait_dbus_player_stop(player_name)
+        # Wait until the player disappears from DBus.
+        yield self.dbus_mgr.wait_dbus_name_stop(player_name)
 
         # Wait for the actual process to end and get exit code.
         exit_code = yield self._process_protocol.stopped
