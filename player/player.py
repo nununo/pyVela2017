@@ -67,6 +67,7 @@ class OMXPlayer(object):
         self._process_transport = None
         self._dbus_player = None
         self._stop_in_progress = False
+        self._ready = defer.Deferred()
 
 
     def __repr__(self):
@@ -150,11 +151,25 @@ class OMXPlayer(object):
         self._duration = duration_microsecs / 1000000
         self.log.info('duration is {d}s', d=self._duration)
 
+        # now ready to be controlled
+        self.log.info('player ready')
+        self._ready.callback(None)
+
         yield self.play_pause()
 
 
     @defer.inlineCallbacks
+    def _wait_ready(self, action):
+
+        if not self._ready.called:
+            self.log.info('wait ready: {a}', a=action)
+        yield self._ready
+
+
+    @defer.inlineCallbacks
     def stop(self, ignore_failures=False):
+
+        yield self._wait_ready('stop')
 
         player_name = self.dbus_player_name
         self.log.info('stopping player {p!r}', p=player_name)
@@ -185,6 +200,8 @@ class OMXPlayer(object):
     @defer.inlineCallbacks
     def play_pause(self):
 
+        yield self._wait_ready('play/pause')
+
         # Based on https://github.com/popcornmix/omxplayer
         self.log.debug('asking player to play/pause')
         yield self._dbus_player.callRemote(
@@ -207,7 +224,7 @@ class OMXPlayer(object):
 
 
     @defer.inlineCallbacks
-    def set_alpha(self, int64):
+    def _set_alpha(self, int64):
 
         result = yield self._dbus_player.callRemote(
             'SetAlpha', '/not/used', int64,
@@ -232,16 +249,18 @@ class OMXPlayer(object):
             while relative_time < 1:
                 alpha = from_ + delta_alpha * relative_time
                 self.log.debug('alpha {s}', s=alpha)
-                yield self.set_alpha(round(alpha))
+                yield self._set_alpha(round(alpha))
                 yield sleep(delay, self._reactor)
                 relative_time = (time() - start_time) / duration
 
-        result = yield self.set_alpha(round(to_))
+        result = yield self._set_alpha(round(to_))
         defer.returnValue(result)
 
 
     @defer.inlineCallbacks
     def fadein(self):
+
+        yield self._wait_ready('fade in')
 
         self.log.info('fade in starting')
         result = yield self._fade(self._fadein, 0, 255)
@@ -252,6 +271,8 @@ class OMXPlayer(object):
     @defer.inlineCallbacks
     def fadeout(self):
 
+        yield self._wait_ready('fade out')
+
         self.log.info('fade out starting')
         result = yield self._fade(self._fadeout, 255, 0)
         self.log.info('fade out completed')
@@ -260,6 +281,8 @@ class OMXPlayer(object):
 
     @defer.inlineCallbacks
     def action(self, int32):
+
+        yield self._wait_ready('action')
 
         self.log.debug('asking player action')
         yield self._dbus_player.callRemote(
