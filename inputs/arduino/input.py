@@ -1,4 +1,6 @@
 # ----------------------------------------------------------------------------
+# vim: ts=4:sw=4:et
+# ----------------------------------------------------------------------------
 # inputs/arduino/input.py
 # ----------------------------------------------------------------------------
 
@@ -41,19 +43,25 @@ class ArduinoInput(object):
             self._input_manager.level(play_level, "arduino %r" % (agg_d,))
 
 
-    def _pairs_from(self, thing):
+    @staticmethod
+    def _pairs_from(thing):
+
         i = iter(thing)
-        one = next(i)
-        while True:
-            other = next(i)
-            yield one, other
-            one = other
+        try:
+            one = next(i)
+            while True:
+                other = next(i)
+                yield one, other
+                one = other
+        except StopIteration:
+            pass
+
 
     def _aggregated_derivative(self):
 
         result = 0
-        for one, next in self._pairs_from(self._pdus):
-            derivative = next - one
+        for one, next_one in self._pairs_from(self._pdus):
+            derivative = next_one - one
             if derivative >= 0:
                 result += derivative
             else:

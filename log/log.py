@@ -1,5 +1,7 @@
 # ----------------------------------------------------------------------------
-# log/__init__.py
+# vim: ts=4:sw=4:et
+# ----------------------------------------------------------------------------
+# log/log.py
 # ----------------------------------------------------------------------------
 
 """
@@ -68,7 +70,7 @@ class _LogManager(object):
 
 
     def setup(self, level, namespace_levels, text_file, time_format,
-              handle_stdlib, stdlib_level, stdlib_prefix, observer):
+              handle_stdlib, stdlib_level, stdlib_prefix, extra_observer=None):
         """
         Initiates the twisted.logger system:
         - level: default log level as a string (ie: 'warn', 'info', ....).
@@ -78,9 +80,9 @@ class _LogManager(object):
         - handle_stdlib: True/False.
         - stdlib_level: level name, above which stdlib logging is handled.
         - stdlib_prefix: added to stdlib logger name, used as namespace.
-        - observer: additional observer.
+        - extra_observer: additional observer.
         """
-        base_observer = textFileLogObserver(text_file, timeFormat=time_format)
+        file_observer = textFileLogObserver(text_file, timeFormat=time_format)
         self._predicate = LogLevelFilterPredicate(
             defaultLogLevel=LogLevel.levelWithName(level),
         )
@@ -88,9 +90,14 @@ class _LogManager(object):
             for namespace, level_name in namespace_levels.items():
                 level = LogLevel.levelWithName(level_name)
                 self._predicate.setLogLevelForNamespace(namespace, level)
-        filtered_observer = FilteringLogObserver(base_observer, [self._predicate])
-        xx = FilteringLogObserver(observer, [self._predicate])
-        globalLogBeginner.beginLoggingTo([filtered_observer, xx])
+        observers = [
+            FilteringLogObserver(file_observer, [self._predicate]),
+        ]
+        if extra_observer:
+            observers.append(
+                FilteringLogObserver(extra_observer, [self._predicate]),
+            )
+        globalLogBeginner.beginLoggingTo(observers)
 
         if handle_stdlib:
             self._handle_stdlib(stdlib_level, stdlib_prefix)
@@ -134,16 +141,17 @@ class _LogManager(object):
 _LOG_MGR = _LogManager()
 
 
+
 def setup(level='warn', namespace_levels=None, text_file=sys.stderr,
           time_format='%H:%M:%S.%f', handle_stdlib=True,
           stdlib_level='notset', stdlib_prefix='stdlib.',
-          observer=None):
+          extra_observer=None):
     """
     Initializes the twisted.logger system.
     """
     _LOG_MGR.setup(
         level, namespace_levels, text_file, time_format,
-        handle_stdlib, stdlib_level, stdlib_prefix, observer,
+        handle_stdlib, stdlib_level, stdlib_prefix, extra_observer,
     )
 
 
@@ -155,5 +163,5 @@ def set_level(namespace=None, level=None):
 
 
 # ----------------------------------------------------------------------------
-# log/__init__.py
+# log/log.py
 # ----------------------------------------------------------------------------

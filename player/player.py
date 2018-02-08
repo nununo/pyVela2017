@@ -1,9 +1,8 @@
-#!/usr/bin/env python
+# ----------------------------------------------------------------------------
 # vim: ts=4:sw=4:et
 # ----------------------------------------------------------------------------
 # player/player.py
 # ----------------------------------------------------------------------------
-
 
 from time import time
 
@@ -25,9 +24,9 @@ class _TrackStartStopProcessProtocol(protocol.ProcessProtocol):
         self.started = defer.Deferred()
         self.stopped = defer.Deferred()
 
-    def makeConnection(self, process):
+    def makeConnection(self, transport):
         self.log.debug('player process started')
-        self.started.callback(process)
+        self.started.callback(transport)
 
     def outReceived(self, data):
         self.log.debug('stdout: {s!r}', s=data)
@@ -169,7 +168,7 @@ class OMXPlayer(object):
                         'Stop',
                         interface='org.mpris.MediaPlayer2.Player'
                     )
-                except:
+                except Exception:
                     if not ignore_failures:
                         raise
                 else:

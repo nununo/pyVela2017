@@ -1,4 +1,9 @@
-#!/usr/bin/env python
+# ----------------------------------------------------------------------------
+# vim: ts=4:sw=4:et
+# ----------------------------------------------------------------------------
+# webserver/http.py
+# ----------------------------------------------------------------------------
+
 
 import os
 
@@ -6,7 +11,9 @@ from twisted.web import server, static
 from twisted import logger
 
 
+
 _log = logger.Logger(namespace='webserver.http')
+
 
 
 def setup_webserver(reactor):
@@ -18,3 +25,6 @@ def setup_webserver(reactor):
     _log.info('listening for HTTP connections on 0.0.0.0:8080')
 
 
+# ----------------------------------------------------------------------------
+# webserver/http.py
+# ----------------------------------------------------------------------------
