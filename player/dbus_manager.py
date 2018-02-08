@@ -18,7 +18,7 @@ from txdbus import client as txdbus_client
 class DBusManager(object):
 
     """
-    Connects to DBus and object names showing up and going away.
+    Connects to DBus and tracks object names showing up/going away.
     """
 
     def __init__(self, reactor):
