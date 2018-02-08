@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# ----------------------------------------------------------------------------
 # vim: ts=4:sw=4:et
 # ----------------------------------------------------------------------------
 # player/player_manager.py
@@ -12,6 +12,7 @@ from twisted import logger
 
 from .dbus_manager import OMXPlayerDBusManager
 from .player import OMXPlayer
+
 
 
 class PlayerManager(object):
@@ -60,7 +61,8 @@ class PlayerManager(object):
         self.log.debug('files found: {d!r}', d=self.files)
 
 
-    def generate_player_name(self, filename):
+    @staticmethod
+    def generate_player_name(filename):
 
         return 'com.nunogodinho.vela2017-%s' % (
             os.path.splitext(os.path.basename(filename))[0],

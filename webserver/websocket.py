@@ -1,4 +1,8 @@
-#!/usr/bin/env python
+# ----------------------------------------------------------------------------
+# vim: ts=4:sw=4:et
+# ----------------------------------------------------------------------------
+# webserver/websocket.py
+# ----------------------------------------------------------------------------
 
 import datetime
 import json
@@ -15,36 +19,32 @@ _log = logger.Logger(namespace='webserver.ws')
 
 class WSProto(websocket.WebSocketServerProtocol):
 
-    def _log_state(self, msg=''):
-        _log.info('{m}', m=msg)
-
     def onConnect(self, request):
-        self._log_state('ws conn')
+        _log.info('ws conn')
         self.factory.connected_protocol = self
 
     def onOpen(self):
-        self._log_state('ws open')
+        _log.info('ws open')
 
-    def onMessage(self, payload, binary):
-        msg = 'ws mesg: p={p!r} b={b!r}'.format(p=payload, b=binary)
-        self._log_state(msg)
+    def onMessage(self, payload, isBinary):
+        _log.info('ws mesg: p={p!r} b={b!r}', p=payload, b=isBinary)
 
     def onClose(self, wasClean, code, reason):
-        self._log_state('ws clse')
+        _log.info('ws clse')
         self.factory.connected_protocol = None
 
-    def _send(self, message_dict):
+    def _send_message_dict(self, message_dict):
         msg = json.dumps(message_dict).encode('utf8')
         self.sendMessage(msg, False)
 
-    def raw(self, source, value):
-        self._send({
+    def raw(self, _source, value):
+        self._send_message_dict({
             't': datetime.datetime.now().isoformat(),
             'y': value,
         })
 
     def log_message(self, text):
-        self._send({
+        self._send_message_dict({
             'text': text,
         })
 
@@ -75,3 +75,8 @@ def setup_websocket(reactor):
     _log.info('listening for WSCK connections on 0.0.0.0:8081')
 
     return factory
+
+
+# ----------------------------------------------------------------------------
+# webserver/websocket.py
+# ----------------------------------------------------------------------------

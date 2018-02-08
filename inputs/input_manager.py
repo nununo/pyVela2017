@@ -1,4 +1,6 @@
 # ----------------------------------------------------------------------------
+# vim: ts=4:sw=4:et
+# ----------------------------------------------------------------------------
 # inputs/input_manager.py
 # ----------------------------------------------------------------------------
 
@@ -28,7 +30,7 @@ class InputManager(object):
                 raise ValueError('invalid input type %r' % (input_type,))
 
             try:
-                input_object = method(**input_settings)
+                _input_object = method(**input_settings)
             except TypeError as e:
                 raise ValueError('invalid %r setting: %s' % (input_type, e))
 
@@ -48,7 +50,7 @@ class InputManager(object):
         self._player_mgr.level(level, comment)
 
 
-    def raw(self, source, value): 
+    def raw(self, source, value):
 
         self._raw_listener.raw(source, value)
 

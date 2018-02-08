@@ -1,9 +1,8 @@
-#!/usr/bin/env python
+# ----------------------------------------------------------------------------
 # vim: ts=4:sw=4:et
 # ----------------------------------------------------------------------------
 # player/player.py
 # ----------------------------------------------------------------------------
-
 
 from time import time
 
@@ -169,7 +168,7 @@ class OMXPlayer(object):
                         'Stop',
                         interface='org.mpris.MediaPlayer2.Player'
                     )
-                except:
+                except Exception:
                     if not ignore_failures:
                         raise
                 else:
