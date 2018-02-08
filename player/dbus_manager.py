@@ -12,7 +12,7 @@ from txdbus import client as txdbus_client
 
 
 
-class OMXPlayerDBusManager(object):
+class DBusManager(object):
 
     def __init__(self, reactor):
 

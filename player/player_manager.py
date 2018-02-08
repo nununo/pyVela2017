@@ -14,7 +14,7 @@ import random
 from twisted.internet import defer
 from twisted import logger
 
-from .dbus_manager import OMXPlayerDBusManager
+from .dbus_manager import DBusManager
 from .player import OMXPlayer
 
 
@@ -52,7 +52,7 @@ class PlayerManager(object):
         self.reactor = reactor
         self.settings = settings
         # part of our public interface, OMXPlayer will use this
-        self.dbus_mgr = OMXPlayerDBusManager(reactor)
+        self.dbus_mgr = DBusManager(reactor)
 
         # keys/values: integer levels/list of video files
         self.files = {}
