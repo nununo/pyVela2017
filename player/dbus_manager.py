@@ -4,6 +4,9 @@
 # player/dbus_manager.py
 # ----------------------------------------------------------------------------
 
+"""
+Asyncrounous, Twisted Based, DBus connection setup and name tracking.
+"""
 
 from twisted.internet import defer
 from twisted import logger
@@ -14,19 +17,28 @@ from txdbus import client as txdbus_client
 
 class DBusManager(object):
 
+    """
+    Connects to DBus and object names showing up and going away.
+    """
+
     def __init__(self, reactor):
 
         self.reactor = reactor
         self.log = logger.Logger(namespace='player.dbus')
 
         self._dbus_conn = None
+
+        # keys/values: DBus names/Twisted deferreds
         self._names_starting = {}
         self._names_stopping = {}
 
 
     @property
     def dbus_conn(self):
-
+        """
+        DBus connection object.
+        Only available after a successful call to `connect_to_dbus`.
+        """
         if self._dbus_conn is None:
             raise RuntimeError('Not connected to DBus.')
         return self._dbus_conn
@@ -34,7 +46,9 @@ class DBusManager(object):
 
     @defer.inlineCallbacks
     def connect_to_dbus(self, bus_address='session'):
-
+        """
+        Connects to DBus and sets up DBus object name tracking.
+        """
         self.log.info('connecting to dbus')
         self._dbus_conn = yield txdbus_client.connect(self.reactor, bus_address)
         self.log.info('connected to dbus')
@@ -55,6 +69,11 @@ class DBusManager(object):
 
     def _dbus_signal_name_owner_changed(self, name, old_addr, new_addr):
 
+        # DBus NameOwnerChanged signal handler
+        # ------------------------------------
+        # `old_addr` will be '' if name just showed up on the bus.
+        # `new_addr` will be '' if name is just gone from the bus.
+
         self.log.debug('name {n!r} owner change: {f!r} to {t!r}', n=name,
                        f=old_addr, t=new_addr)
         if not old_addr:
@@ -66,14 +85,18 @@ class DBusManager(object):
 
         d = tracking_dict.get(name)
         if d:
+            # `name` is being tracked: fire the deferred.
             d.callback(name)
 
 
     def track_dbus_name(self, name):
-
+        """
+        Starts `name` lifecycle tracking on DBus.
+        """
         if name in self._names_starting:
             raise RuntimeError('Name %r already tracked.' % (name, ))
 
+        # These will fire, respectively, when name shows up/goes away.
         self._names_starting[name] = defer.Deferred()
         self._names_stopping[name] = defer.Deferred()
         self.log.info('tracking dbus name {n!r}', n=name)
@@ -81,7 +104,9 @@ class DBusManager(object):
 
     @defer.inlineCallbacks
     def wait_dbus_name_start(self, name):
-
+        """
+        Returns a deferred that fires when `name` shows up on the bus.
+        """
         try:
             self.log.info('waiting name {n!r} start', n=name)
             yield self._names_starting[name]
@@ -93,7 +118,9 @@ class DBusManager(object):
 
     @defer.inlineCallbacks
     def wait_dbus_name_stop(self, name):
-
+        """
+        Returns a deferred that fires when `name` goes away from the bus.
+        """
         try:
             self.log.info('waiting name {n!r} stop', n=name)
             yield self._names_stopping[name]
