@@ -4,6 +4,10 @@
 # player/player_manager.py
 # ----------------------------------------------------------------------------
 
+"""
+Asyncronous, Twisted based, video playing interface.
+"""
+
 import os
 import random
 
@@ -17,16 +21,46 @@ from .player import OMXPlayer
 
 class PlayerManager(object):
 
-    def __init__(self, reactor, settings):
+    """
+    Tracks and controls video playing via one OMXPlayer instance per level.
+    """
 
+    # General lifecycle
+    # -----------------
+    # - Initialization finds available video files from the settings.
+    # - Starting:
+    #   - Spawns one OMXPlayer per level (which start in paused mode).
+    #   - Unpause level 0 player.
+    # - Level triggering calls (from the outside):
+    #   - Unpause level X player.
+    #   - Track player completion / process exit.
+    #   - Respawn a new level X player.
+
+    def __init__(self, reactor, settings):
+        """
+        Initializes the player manager:
+        - `reactor` is the Twisted reactor.
+        - `settings` is a dict with:
+           - ['environment']['ld_library_path']
+           - ['environment']['omxplayer_bin']
+           - ['levels'][*]['folder']
+           - ['levels'][*]['fadein']
+           - ['levels'][*]['fadeout']
+        """
         self.log = logger.Logger(namespace='player.mngr')
 
         self.reactor = reactor
         self.settings = settings
+        # part of our public interface, OMXPlayer will use this
         self.dbus_mgr = OMXPlayerDBusManager(reactor)
 
+        # keys/values: integer levels/list of video files
         self.files = {}
+
+        # keys/values: integer levels/OMXPlayer instances
         self.players = {}
+
+        # the level we're running, currently
         self.current_level = 0
 
         self._update_ld_lib_path()
@@ -38,6 +72,10 @@ class PlayerManager(object):
 
 
     def _update_ld_lib_path(self):
+
+        # Spawning omxplayer.bin requires associated shared libraries.
+        # This updates/extends the LD_LIBRARY_PATH linux environment variable
+        # such that those libraries can be found.
 
         extra_ld_lib_path = self.settings['environment']['ld_library_path']
         if extra_ld_lib_path:
@@ -52,6 +90,9 @@ class PlayerManager(object):
 
     def _find_files(self):
 
+        # Populate self.files by finding available files under each
+        # level's configured folder in the settings dict.
+
         for level, level_info in self.settings['levels'].items():
             level_folder = level_info['folder']
             self.files[int(level)] = [
@@ -63,7 +104,9 @@ class PlayerManager(object):
 
     @staticmethod
     def generate_player_name(filename):
-
+        """
+        Part of the public API, used by OMXPlayer.
+        """
         return 'com.nunogodinho.vela2017-%s' % (
             os.path.splitext(os.path.basename(filename))[0],
         )
@@ -71,12 +114,16 @@ class PlayerManager(object):
 
     def _get_file_for_level(self, level):
 
+        # Return a random filename from the available files in `level`.
+
         return random.sample(self.files[level], 1)[0]
 
 
     @property
     def executable(self):
-
+        """
+        Part of the public API, used by OMXPlayer.
+        """
         result = self.settings['environment']['omxplayer_bin']
         self.log.debug('executable is {e!r}', e=result)
         return result
@@ -84,7 +131,9 @@ class PlayerManager(object):
 
     @defer.inlineCallbacks
     def start(self):
-
+        """
+        Spawns one player per level ensuring the level 0 one is playing.
+        """
         yield self.dbus_mgr.connect_to_dbus()
 
         for level in self.files:
@@ -96,6 +145,11 @@ class PlayerManager(object):
 
     @defer.inlineCallbacks
     def _create_player(self, level):
+
+        # Spawns a player with a random video file for the given `level`.
+        # Ensures:
+        # - Level 0 players loop.
+        # - Player end is tracked.
 
         self.log.info('creating player level={l!r}', l=level)
         player = OMXPlayer(
@@ -112,7 +166,12 @@ class PlayerManager(object):
 
 
     def level(self, new_level, comment=''):
-
+        """
+        Triggers video playing level change.
+        Does nothing if:
+        - Startup isn't completed.
+        - `new_level` is less than or equal to the currently running level.
+        """
         if not self._ready:
             return
 
@@ -129,6 +188,9 @@ class PlayerManager(object):
 
     def _player_ended(self, level):
 
+        # Called when a player for `level` ends (see _create_player), ensures
+        # that new player is created such that it is ready when needed.
+
         self.log.info('player level={l!r} ended', l=level)
         if self._stopping:
             return
@@ -138,7 +200,9 @@ class PlayerManager(object):
 
     @defer.inlineCallbacks
     def stop(self):
-
+        """
+        Asks all players to stop (IOW: terminate) and exits cleanly.
+        """
         self._stopping = True
         for level, player in self.players.items():
             self.log.info('stopping player level={l!r}', l=level)
