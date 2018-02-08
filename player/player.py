@@ -4,6 +4,11 @@
 # player/player.py
 # ----------------------------------------------------------------------------
 
+"""
+Asyncronous, Twisted based, omxplayer process wrapper.
+(see: https://github.com/popcornmix/omxplayer)
+"""
+
 from time import time
 
 
@@ -19,22 +24,46 @@ from .misc import sleep
 
 class _TrackStartStopProcessProtocol(protocol.ProcessProtocol):
 
+    """
+    Twisted ProcessProtocol class used to track process startup/exit.
+    Exposes two relevant attributes:
+    - `started`: deferred that fires when the associated process is started.
+    - `stopped`: deferred that fires when the associated process terminates.
+    """
+
     def __init__(self, player_name):
+
         self.log = logger.Logger(namespace='player.proc.%s' % (player_name,))
         self.started = defer.Deferred()
         self.stopped = defer.Deferred()
 
+
     def connectionMade(self):
+
+        # Called by Twisted when the process is started.
+
         self.log.info('player process started')
         self.started.callback(None)
 
+
     def outReceived(self, data):
+
+        # Called by Twisted when the process writes to its standard output.
+
         self.log.debug('stdout: {s!r}', s=data)
 
+
     def errReceived(self, data):
+
+        # Called by Twisted when the process writes to its standard error.
+
         self.log.warn('stderr: {s!r}', s=data)
 
+
     def processEnded(self, reason):
+
+        # Called by Twisted when the process terminates.
+
         exit_code = reason.value.exitCode
         self.log.info('player process ended; exit_code={ec!r}', ec=exit_code)
         self.stopped.callback(exit_code)
@@ -43,8 +72,23 @@ class _TrackStartStopProcessProtocol(protocol.ProcessProtocol):
 
 class OMXPlayer(object):
 
+    """
+    Asyncronous, Twisted based, wrapper/proxy for omxplayer processes.
+    """
+
     def __init__(self, filename, player_mgr, *, layer=0, loop=False, alpha=255,
                  fadein=0, fadeout=0):
+
+        """
+        Initialization arguments:
+        - `filename`: the movie filename to play.
+        - `player_mgr`: provides access to DBus, reactor, and more.
+        - `layer`: used with omxplayer --layer argument.
+        - `loop`: if true, omxplayer is passed the --loop argument.
+        - `alpha`:  used with omxplayer --alpha argument.
+        - `fadein`: fade in duration, in seconds.
+        - `fadeout`: fade out duration, in seconds.
+        """
 
         self.filename = filename
         self.player_mgr = player_mgr
@@ -55,19 +99,28 @@ class OMXPlayer(object):
         self._fadein = fadein
         self._fadeout = fadeout
 
+        # Will be obtained by querying the omxplayer process via DBus.
         self._duration = None
 
+        # Use a known name so that we can track omxplayer's DBus presence.
         self.dbus_player_name = self.player_mgr.generate_player_name(filename)
         self.log = logger.Logger(namespace='player.each.%s' % (self.dbus_player_name,))
 
         self._reactor = self.player_mgr.reactor
         self._dbus_conn = self.dbus_mgr.dbus_conn
 
+        # Used to track omxplayer process startup/termination.
         self._process_protocol = None
+
+        # TODO: Not really used, can go away.
         self._process_transport = None
+
+        # DBus proxy object for the player: used to control it.
         self._dbus_player = None
-        self._stop_in_progress = False
+
+        # Lifecycle tracking.
         self._ready = defer.Deferred()
+        self._stop_in_progress = False
 
 
     def __repr__(self):
@@ -77,6 +130,14 @@ class OMXPlayer(object):
             self.filename,
         )
 
+
+    # Maybe if txdbus and/or omxplayer's introspection abilities were better
+    # these declarations wouldn't be needed; as of this writing, they are.
+
+    # For the nitty gritty details, see:
+    # - https://dbus.freedesktop.org/doc/dbus-specification.html
+    # - https://github.com/popcornmix/omxplayer
+    # - https://github.com/cocagne/txdbus
 
     _OMX_DBUS_PLAYER_PROPERTIES = txdbus_interface.DBusInterface(
         'org.freedesktop.DBus.Properties',
@@ -95,10 +156,21 @@ class OMXPlayer(object):
     @defer.inlineCallbacks
     def spawn(self, end_callable=None):
 
+        """
+        Spawns the omxplayer process associated to this instance, returning
+        a deferred that fires after the process is started and ready to be
+        controlled via the other instance methods; the spawned omxplayer
+        will be paused.
+
+        The optional `end_callable` will be called when the spawned omxplayer
+        process terminates, and passed in a single argument with the omxplayer's
+        exit code.
+        """
+
         player_name = self.dbus_player_name
         self.log.info('spawning player {p!r}', p=player_name)
 
-        # Delegate helps us track child process DBus presence.
+        # Ask DBus manager to track this player's name bus presence.
         self.dbus_mgr.track_dbus_name(player_name)
 
         # Spawn the omxplayer.bin process.
@@ -112,6 +184,10 @@ class OMXPlayer(object):
         args.append('--no-osd')
         args.extend(('--alpha', str(self.alpha)))
         args.append(str(self.filename))
+
+        # env=None, below, is relevant: it ensures that environment variables
+        # this process has set are passed down to the child process; in this
+        # case, PlayerManager probably set LD_LIBRARY_PATH.
         self._process_transport = self._reactor.spawnProcess(
             self._process_protocol,
             self.player_mgr.executable,
@@ -119,20 +195,20 @@ class OMXPlayer(object):
             env=None,
         )
 
-        # Wait process protocol start confirmation.
+        # Wait for process started confirmation.
         yield self._process_protocol.started
 
-        # Wait until the player shows up on DBus.
+        # Wait until the player name shows up on DBus.
         yield self.dbus_mgr.wait_dbus_name_start(player_name)
 
-        # Optional notification of process termination.
+        # Setup the optional notification of process termination.
         if end_callable:
             self._process_protocol.stopped.addCallback(end_callable)
 
         # Get the DBus object for this player.
         self.log.debug('getting dbus player object')
 
-        # Hardcoded data from OMXPlayer documentation.
+        # Hardcoded data from omxplayer documentation.
         path = '/org/mpris/MediaPlayer2'
         ifaces = [
             self._OMX_DBUS_PLAYER_PROPERTIES,
@@ -145,21 +221,34 @@ class OMXPlayer(object):
         )
         self.log.debug('got dbus player object')
 
+        # Ask omxplayer for the duration of the video file.
         duration_microsecs = yield self._dbus_player.callRemote(
             'Get', 'org.mpris.MediaPlayer2.Player', 'Duration',
         )
         self._duration = duration_microsecs / 1000000
         self.log.info('duration is {d}s', d=self._duration)
 
-        # now ready to be controlled
+        # Player is now ready to be controlled.
         self.log.info('player ready')
         self._ready.callback(None)
 
+        # Since omxplayer defaults to starting in play mode, ask it to
+        # play/pause straight away; we promised to have it paused when
+        # done.
         yield self.play_pause()
 
 
     @defer.inlineCallbacks
     def _wait_ready(self, action):
+
+        # Returns a deferred that fires when the spawned omxplayer is
+        # ready to be controlled via DBus; methods exposing such type of
+        # controls will wait on this before issuing actual control commands
+        # towards omxplayer; this prevents race conditions that exist between
+        # the `spawn` method (that can take quite a while to complete) and
+        # the remaining player control methods.
+
+        # TODO: Convert this into a decorator?
 
         if not self._ready.called:
             self.log.info('wait ready: {a}', a=action)
@@ -168,6 +257,11 @@ class OMXPlayer(object):
 
     @defer.inlineCallbacks
     def stop(self, ignore_failures=False):
+
+        """
+        Requests the spawned omxplayer process to stop and exit.
+        Returns a deferred that fires with the omxplayer process exit code.
+        """
 
         yield self._wait_ready('stop')
 
@@ -189,7 +283,7 @@ class OMXPlayer(object):
                 else:
                     self.log.debug('asked player to stop')
 
-        # Wait until the player disappears from DBus.
+        # Wait until the player name disappears from DBus.
         yield self.dbus_mgr.wait_dbus_name_stop(player_name)
 
         # Wait for the actual process to end and get exit code.
@@ -199,6 +293,11 @@ class OMXPlayer(object):
 
     @defer.inlineCallbacks
     def play_pause(self):
+
+        """
+        Asks the spawned omxplayer to play/pause.
+        Returns a deferred that fires once the command is acknowledged.
+        """
 
         yield self._wait_ready('play/pause')
 
@@ -214,6 +313,16 @@ class OMXPlayer(object):
     @defer.inlineCallbacks
     def play(self):
 
+        """
+        To be used right after `spawn`, asks the spawned omxplayer to play.
+
+        Immediately after that:
+        - Schedules the video fade out, if not looping.
+        - Initiates the video fade in.
+
+        Returns a deferred that fires when the video as faded in completely.
+        """
+
         yield self.play_pause()
 
         if not self.loop:
@@ -226,6 +335,11 @@ class OMXPlayer(object):
     @defer.inlineCallbacks
     def _set_alpha(self, int64):
 
+        """
+        Asks the spawned omxplayer to change its alpha value.
+        Returns a deferred that fires once the command is acknowledged.
+        """
+
         result = yield self._dbus_player.callRemote(
             'SetAlpha', '/not/used', int64,
             interface='org.mpris.MediaPlayer2.Player'
@@ -233,32 +347,40 @@ class OMXPlayer(object):
         defer.returnValue(result)
 
 
-    # fadein/fadeout notes:
-    # - assume 25fps
-    # - attributes represent time in seconds
-    # - use delay < 20ms which is 2x framerate
-
     @defer.inlineCallbacks
-    def _fade(self, duration, from_, to_):
+    def _fade(self, duration, from_alpha, to_alpha):
+
+        # Issues timed calls to `_set_alpha` to ensure that the spawned
+        # omxplayer's alpha is faded between the passed in alpha values:
+        # - `duration` represents time in seconds.
+
+        # Notes:
+        # - Assumes 25fps video.
+        # - Uses delay < 20ms which is 2x framerate.
 
         if duration:
             delay = 0.019
             start_time = time()
-            delta_alpha = to_ - from_
+            delta_alpha = to_alpha - from_alpha
             relative_time = 0
             while relative_time < 1:
-                alpha = from_ + delta_alpha * relative_time
+                alpha = from_alpha + delta_alpha * relative_time
                 self.log.debug('alpha {s}', s=alpha)
                 yield self._set_alpha(round(alpha))
                 yield sleep(delay, self._reactor)
                 relative_time = (time() - start_time) / duration
 
-        result = yield self._set_alpha(round(to_))
+        result = yield self._set_alpha(round(to_alpha))
         defer.returnValue(result)
 
 
     @defer.inlineCallbacks
     def fadein(self):
+
+        """
+        Triggers a fade in of the spawned omxplayer.
+        Returns a deferred that fires once the fade in is completed.
+        """
 
         yield self._wait_ready('fade in')
 
@@ -271,6 +393,10 @@ class OMXPlayer(object):
     @defer.inlineCallbacks
     def fadeout(self):
 
+        """
+        Triggers a fade out of the spawned omxplayer.
+        Returns a deferred that fires once the fade out is completed.
+        """
         yield self._wait_ready('fade out')
 
         self.log.info('fade out starting')
@@ -282,6 +408,10 @@ class OMXPlayer(object):
     @defer.inlineCallbacks
     def action(self, int32):
 
+        """
+        Triggers a generic omxplayer action.
+        Returns a deferred that fires once the action is acknowledged.
+        """
         yield self._wait_ready('action')
 
         self.log.debug('asking player action')
