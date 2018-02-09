@@ -4,6 +4,10 @@
 # webserver/__init__.py
 # ----------------------------------------------------------------------------
 
+"""
+Holds web interface related code.
+"""
+
 from .http import setup_webserver
 from .websocket import setup_websocket
 
