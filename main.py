@@ -78,6 +78,7 @@ def start_things(reactor, settings):
     player_manager = player.PlayerManager(reactor, settings)
 
     # Create the input manager, wiring it to the player manager and `raw_listener`.
+    # TODO: `_input_manager` not used, can go away.
     _input_manager = inputs.InputManager(
         reactor, player_manager, raw_listener, settings
     )
