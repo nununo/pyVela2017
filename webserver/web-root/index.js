@@ -2,11 +2,28 @@
 // index.js
 // ----------------------------------------------------------------------------
 
+
+// Global variables.
+
+// The chart object.
 var chart = null;
+
+// Sliding window over the most recent chart data values.
 var chart_data = [];
+
+// The websocket.
 var socket = null;
+
+// Number of log messages we're displaying.
 var log_count = 0;
+
+// The DOM element containing the log messages.
 var log = null;
+
+
+
+// Two objects used to setup the arduino readings chart.
+// Full docs at http://www.chartjs.org
 
 const _data = {
     datasets: [{
@@ -47,6 +64,9 @@ const _options = {
 }
 
 
+
+// Called by window.onload to create the chart object.
+
 function create_chart() {
     var canvas = document.getElementById('chart');
     var ctx = canvas.getContext('2d');
@@ -58,6 +78,10 @@ function create_chart() {
     });
 }
 
+
+
+// Called by window.onload to create the websocket.
+
 function create_websocket() {
     var ws = new WebSocket("ws://" + location.hostname + ":8081");
 
@@ -68,9 +92,17 @@ function create_websocket() {
     return ws;
 }
 
+
+
+// Websocket event handler: called when the connection is ready.
+
 function socket_open() {
     console.log('socket open');
 }
+
+
+
+// Websocket event handler: called when a message is received.
 
 function socket_message(msg) {
     var obj = JSON.parse(msg.data);
@@ -86,6 +118,12 @@ function socket_message(msg) {
     }
 }
 
+
+
+// Appends the `s` text message to the `log` DOM element's innerText.
+// Truncates initial `log` inner text if it holds more than a certain amount
+// of messages (for now hardcoded at 20).
+
 function update_log(s) {
     log.innerText += s + "\n";
     log_count++;
@@ -95,9 +133,17 @@ function update_log(s) {
     }
 }
 
+
+
+// Websocket event handler: called when the connection is closed.
+
 function socket_close(e) {
     console.log('socket close');
 }
+
+
+
+// Initialize global objects.
 
 window.onload = function() {
     chart = create_chart();
@@ -105,9 +151,14 @@ window.onload = function() {
     log = document.getElementById("log");
 }
 
+
+
+// Dummy input button click handler: sends `arg` via the connected websocket.
+
 function button_click(arg) {
     socket.send(arg);
 }
+
 
 // ----------------------------------------------------------------------------
 // index.js
