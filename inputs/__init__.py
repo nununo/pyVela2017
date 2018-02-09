@@ -4,6 +4,10 @@
 # inputs/__init__.py
 # ----------------------------------------------------------------------------
 
+"""
+Holds input related code.
+"""
+
 from .input_manager import InputManager
 
 

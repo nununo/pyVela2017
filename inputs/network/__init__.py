@@ -4,12 +4,20 @@
 # inputs/network/__init__.py
 # ----------------------------------------------------------------------------
 
+"""
+The TCP network connection input.
+"""
+
 from .protocol import ControlFactory
 
 
-def initialize(player_manager, reactor, port, interface='0.0.0.0'):
+def initialize(input_manager, reactor, port, interface='0.0.0.0'):
 
-    factory = ControlFactory(player_manager)
+    """
+    Initializes the TCP input and starts listening for connections.
+    """
+
+    factory = ControlFactory(input_manager)
     reactor.listenTCP(port, factory, interface=interface)
 
 

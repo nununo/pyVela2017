@@ -4,13 +4,33 @@
 # inputs/input_manager.py
 # ----------------------------------------------------------------------------
 
+"""
+Asyncronous, Twisted based, input management.
+"""
+
 from . import network
 from . import arduino
 
 
+
 class InputManager(object):
 
+    """
+    Initializes inputs and mediates their feeds to a player manager.
+    """
+
     def __init__(self, reactor, player_manager, raw_listener, settings):
+
+        """
+        Initializes configured inputs:
+        - `reactor` is the Twisted reactor.
+        - `player_manager` should have `level` method to trigger level changes.
+        - `raw_listener` should a `raw` method to trigger raw input data handling.
+        - `settings` is a dict containing the 'inputs' key.
+        """
+
+        # TODO: Maybe `player_manager` and `raw_listener` could be replaced with
+        # callables instead of objects with a given interface.
 
         self._reactor = reactor
         self._player_mgr = player_manager
@@ -22,6 +42,10 @@ class InputManager(object):
 
 
     def _create_inputs(self, settings):
+
+        """
+        Create each input configured in settings['inputs'].
+        """
 
         for input_type, input_settings in settings['inputs'].items():
             try:
@@ -47,10 +71,18 @@ class InputManager(object):
 
     def level(self, level, comment):
 
+        """
+        Inputs will call this, which will be forwarded to the player manager.
+        """
+
         self._player_mgr.level(level, comment)
 
 
     def raw(self, source, value):
+
+        """
+        Inputs will call this, which will be forwarded to the raw listener.
+        """
 
         self._raw_listener.raw(source, value)
 

@@ -4,12 +4,20 @@
 # inputs/arduino/__init__.py
 # ----------------------------------------------------------------------------
 
+"""
+The serial based Arduino input.
+"""
+
 from .input import ArduinoInput
 
 
-def initialize(player_manager, reactor, **kwargs):
+def initialize(input_manager, reactor, **kwargs):
 
-    return ArduinoInput(player_manager, reactor, **kwargs)
+    """
+    Initializes the Arduino input.
+    """
+
+    return ArduinoInput(input_manager, reactor, **kwargs)
 
 
 # ----------------------------------------------------------------------------
