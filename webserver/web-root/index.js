@@ -38,6 +38,10 @@ const _data = {
 }
 
 const _options = {
+    legend: {
+        display: false
+    },
+    maintainAspectRatio: false,
     scales: {
         xAxes: [{
             type: 'time',
@@ -122,12 +126,12 @@ function socket_message(msg) {
 
 // Appends the `s` text message to the `log` DOM element's innerText.
 // Truncates initial `log` inner text if it holds more than a certain amount
-// of messages (for now hardcoded at 20).
+// of messages (for now hardcoded at 40).
 
 function update_log(s) {
     log.innerText += s + "\n";
     log_count++;
-    if (log_count > 20) {
+    if (log_count > 40) {
         pos = log.innerText.indexOf("\n"); 
         log.innerText = log.innerText.substring(pos+1);
     }
