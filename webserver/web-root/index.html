@@ -8,33 +8,120 @@
     </script>
     <style type="text/css">
     html {
+        padding: 0;
+        margin: 0;
         font-family: system-ui;
+        height: 100vh;
     }
-    td {
-        width: 50%;
-        vertical-align: top;
+    body {
+        padding: 0;
+        margin: 0;
+        height: 100vh;
+    }
+    canvas {
     }
     h1 {
+        margin: 0;
+        padding: 0.5em;
         font-size: 100%;
+        border-bottom: 1px solid #ccc;
+        background: #eee;
+    }
+    button {
+        border: none;
+        background: darkorange;
+        width: 2em;
+        height: 2em;
+        font-size: 300%;
+    }
+    button#sll {
+        width: 2.5em;
+        float: right;
+        background: limegreen;
+    }
+    select {
+        margin: 0.2em 0.5em 0.2em 0.5em;
+        display: block;
+        float: right;
+        width: 8em;
+        font-size: 120%;
+    }
+    #left_pane {
+        width: 60%;
+        height: 60vh;
+        float: left;
+    }
+    #chart_pane {
+        padding-top: 0.5em;
+        height: 70vh;
+    }
+    #control_pane {
+        padding: 0.5em;
+    }
+    #level_control {
+        float: left;
+    }
+    #log_control {
+    }
+    #log_pane {
+        width: 40%;
+        height: 100vh;
+        float: left;
+    }
+    #log_scroller {
+        border-left: 1px solid #ccc;
+        height: 94%;
+        overflow-y: auto;
     }
     #log {
         font-family: monospace;
+        white-space: nowrap;
+        overflow-x: auto;
+        padding: 0.5em;
     }
     </style>
 </head>
 <body>
-    <table width="100%">
-    <tr>
-    <td><canvas id="chart" /></td>
-    <td>
+    <div id="left_pane">
+        <h1>sensor readings</h1>
+            <div id="chart_pane">
+                <canvas id="chart" />
+            </div>
+            <h1>level triggering and logging control</h1>
+            <div id="control_pane">
+                <div id="level_control">
+                    <button onclick="button_click('1');"> 1 </button>
+                    <button onclick="button_click('2');"> 2 </button>
+                    <button onclick="button_click('3');"> 3 </button>
+                </div>
+                <div id="log_control">
+                    <button id="sll" onclick="button_click('sll');"> SLL </button>
+                    <select name="logger_name">
+                        <option value="inputs">inputs</option>
+                        <option value="inputs.network">inputs.network</option>
+                        <option value="inputs.arduino">inputs.arduino</option>
+                        <option value="inputs.arduino.serial">inputs.arduino.serial</option>
+                        <option value="inputs.arduino.proto">inputs.arduino.proto</option>
+                        <option value="player">player</option>
+                        <option value="player.dbus">player.dbus</option>
+                        <option value="player.mngr">player.mngr</option>
+                        <option value="player.proc">player.proc</option>
+                        <option value="player.each">player.each</option>
+                    </select>
+                    <select name="logger_level">
+                        <option value="debug">debug</option>
+                        <option value="info">info</option>
+                        <option value="warn">warn</option>
+                        <option value="error">error</option>
+                    </select>
+                </div>
+            </div>
+    </div>
+    <div id="log_pane">
         <h1>log</h1>
-        <div id="log" />
-    </td>
-    </tr>
-    </table>
-    <div>
-        <input type="button" onclick="button_click('bigger');" value="Bigger"/>
-        <input type="button" onclick="button_click('smaller');" value="Smaller"/>
+        <div id="log_scroller">
+            <div id="log">
+        </div>
     </div>
 </body>
 </html>
