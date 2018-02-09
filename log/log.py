@@ -8,7 +8,6 @@
 Exports two functions to simplify twisted.logger utilization.
 """
 
-
 import logging
 import sys
 
@@ -49,6 +48,7 @@ class _TwistedLoggerHandler(logging.Handler):
         namespace = '%s%s' % (self._prefix, record.name)
         rounded_level = 10 * (record.levelno // 10)
         log_level = self._LEVELS.get(rounded_level, LogLevel.error)
+        # TODO: Use self.format instead?
         try:
             message = record.msg % record.args
         except Exception:
@@ -71,6 +71,7 @@ class _LogManager(object):
 
     def setup(self, level, namespace_levels, text_file, time_format,
               handle_stdlib, stdlib_level, stdlib_prefix, extra_observer=None):
+
         """
         Initiates the twisted.logger system:
         - level: default log level as a string (ie: 'warn', 'info', ....).
@@ -82,6 +83,7 @@ class _LogManager(object):
         - stdlib_prefix: added to stdlib logger name, used as namespace.
         - extra_observer: additional observer.
         """
+
         file_observer = textFileLogObserver(text_file, timeFormat=time_format)
         self._predicate = LogLevelFilterPredicate(
             defaultLogLevel=LogLevel.levelWithName(level),
@@ -105,11 +107,13 @@ class _LogManager(object):
 
     @staticmethod
     def _handle_stdlib(level_name, prefix):
+
         """
         Directs standard library logging records to twisted.logger.
         Standard library log recods will be handled at `level_name` or
         above and logged to a namespace prefixed by `prefix`.
         """
+
         stdlib_root_logger = logging.getLogger()
         try:
             level = getattr(logging, level_name.upper())
@@ -121,11 +125,13 @@ class _LogManager(object):
 
 
     def set_level(self, namespace=None, level_name=None):
+
         """
         Change the logging level of namespace to level.
         If namespace is None, sets all namespaces to level_name.
         If level_name is None, uses the default log level.
         """
+
         if level_name:
             level = LogLevel.levelWithName(level_name)
         else:
@@ -146,9 +152,11 @@ def setup(level='warn', namespace_levels=None, text_file=sys.stderr,
           time_format='%H:%M:%S.%f', handle_stdlib=True,
           stdlib_level='notset', stdlib_prefix='stdlib.',
           extra_observer=None):
+
     """
     Initializes the twisted.logger system.
     """
+
     _LOG_MGR.setup(
         level, namespace_levels, text_file, time_format,
         handle_stdlib, stdlib_level, stdlib_prefix, extra_observer,
@@ -156,9 +164,11 @@ def setup(level='warn', namespace_levels=None, text_file=sys.stderr,
 
 
 def set_level(namespace=None, level=None):
+
     """
-    Change the log level of namespace.
+    Changes the log level of namespace.
     """
+
     _LOG_MGR.set_level(namespace, level)
 
 

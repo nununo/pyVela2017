@@ -4,6 +4,10 @@
 # log/__init__.py
 # ----------------------------------------------------------------------------
 
+"""
+Holds logging related code.
+"""
+
 from .log import setup, set_level
 from .bridge import LogBridge
 
