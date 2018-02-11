@@ -26,7 +26,9 @@ def setup_webserver(reactor):
     Starts listening for HTTP requests, serving static files from a directory
     named 'web-root' in this module's directory.
 
-    Serves .gz ending files when asked for the non compressed URLs version.
+    Serves existing '.gz' ending files when asked for the non compressed name
+    in the URL; in those cases, includes the necessary 'Content-Encoding: gzip'
+    header for clients to perform the decompression themselves.
     """
 
     web_root = os.path.abspath(os.path.join(os.path.dirname(__file__), 'web-root'))
