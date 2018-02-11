@@ -25,10 +25,12 @@ def setup_webserver(reactor):
     """
     Starts listening for HTTP requests, serving static files from a directory
     named 'web-root' in this module's directory.
+
+    Serves .gz ending files when asked for the compressed URLs.
     """
 
     web_root = os.path.abspath(os.path.join(os.path.dirname(__file__), 'web-root'))
-    site = server.Site(static.File(web_root))
+    site = server.Site(static.File(web_root, ignoredExts=('.gz',)))
 
     # TODO: Should port/interface be configurable?
     reactor.listenTCP(8080, site, interface='0.0.0.0')
