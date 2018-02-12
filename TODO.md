@@ -13,4 +13,3 @@
 * Improve main.py:
   * When no DBus session detected, spawn itself under a private DBus session.
   * Rename to candle2017.py?
-* Replace Chart.bundle.js with a compressed and minified version?
