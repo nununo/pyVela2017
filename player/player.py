@@ -24,7 +24,7 @@ from .misc import sleep
 
 
 
-class _TrackStartStopProcessProtocol(protocol.ProcessProtocol):
+class _TrackProcessProtocol(protocol.ProcessProtocol):
 
     """
     Twisted ProcessProtocol class used to track process startup/exit.
@@ -186,27 +186,7 @@ class OMXPlayer(object):
         # Ask DBus manager to track this player's name bus presence.
         self.dbus_mgr.track_dbus_name(player_name)
 
-        # Spawn the omxplayer.bin process.
-        self._process_protocol = _TrackStartStopProcessProtocol(player_name)
-        args = [self.player_mgr.executable]
-        if self.loop:
-            args.append('--loop')
-        args.extend(('--dbus_name', str(player_name)))
-        args.extend(('--layer', str(self.layer)))
-        args.extend(('--orientation', str(180)))
-        args.append('--no-osd')
-        args.extend(('--alpha', str(self.alpha)))
-        args.append(str(self.filename))
-
-        # env=None, below, is relevant: it ensures that environment variables
-        # this process has set are passed down to the child process; in this
-        # case, PlayerManager probably set LD_LIBRARY_PATH.
-        self._process_transport = self._reactor.spawnProcess(
-            self._process_protocol,
-            self.player_mgr.executable,
-            args,
-            env=None,
-        )
+        self._spawn_process()
 
         # Wait for process started confirmation.
         yield self._process_protocol.started
@@ -251,6 +231,30 @@ class OMXPlayer(object):
         yield self.play_pause()
 
 
+    def _spawn_process(self):
+
+        # Spawn the omxplayer.bin process.
+
+        self._process_protocol = _TrackProcessProtocol(self.dbus_player_name)
+        args = [self.player_mgr.executable]
+        if self.loop:
+            args.append('--loop')
+        args.extend(('--dbus_name', str(self.dbus_player_name)))
+        args.extend(('--layer', str(self.layer)))
+        args.extend(('--orientation', str(180)))
+        args.append('--no-osd')
+        args.extend(('--alpha', str(self.alpha)))
+        args.append(str(self.filename))
+
+        # env=None, below, is relevant: it ensures that environment variables
+        # this process has set are passed down to the child process; in this
+        # case, PlayerManager probably set LD_LIBRARY_PATH.
+        self._process_transport = self._reactor.spawnProcess(
+            self._process_protocol,
+            self.player_mgr.executable,
+            args,
+            env=None,
+        )
     @defer.inlineCallbacks
     def _wait_ready(self, action):
 
