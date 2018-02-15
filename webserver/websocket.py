@@ -52,6 +52,13 @@ class WSProto(websocket.WebSocketServerProtocol):
 
         _log.info('ws mesg: p={p!r} b={b!r}', p=payload, b=isBinary)
 
+        try:
+            level = int(payload)
+        except ValueError:
+            _log.warn('invalid payload ignored')
+        else:
+            self.factory.change_level_callable(level)
+
 
     def onClose(self, wasClean, code, reason):
 
@@ -107,12 +114,13 @@ class WSFactory(websocket.WebSocketServerFactory):
 
     protocol = WSProto
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, change_level_callable, *args, **kwargs):
 
         # Track a single `connected_protocol` so that we can push data.
 
         super(WSFactory, self).__init__(*args, **kwargs)
         self.connected_protocol = None
+        self.change_level_callable = change_level_callable
 
 
     def raw(self, source, value):
@@ -136,13 +144,13 @@ class WSFactory(websocket.WebSocketServerFactory):
 
 
 
-def setup_websocket(reactor):
+def setup_websocket(reactor, change_level_callable):
 
     """
     Starts listening for websocket connections.
     """
 
-    factory = WSFactory()
+    factory = WSFactory(change_level_callable)
 
     # TODO: Should port/interface be configurable? Client may need adjustments.
     reactor.listenTCP(8081, factory, interface='0.0.0.0')

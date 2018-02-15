@@ -70,13 +70,13 @@ def start_things(reactor, settings):
     log.setup(level=log_level, namespace_levels=log_levels,
               extra_observer=log_bridge)
 
+    # Create the player manager.
+    player_manager = player.PlayerManager(reactor, settings)
+
     # Start the HTTP and websocket servers.
     # `raw_listener` to be used to push raw data and logs to connected websockets.
     webserver.setup_webserver(reactor)
-    raw_listener = webserver.setup_websocket(reactor)
-
-    # Create the player manager.
-    player_manager = player.PlayerManager(reactor, settings)
+    raw_listener = webserver.setup_websocket(reactor, player_manager.level)
 
     # Create the input manager, wiring it to the player manager and `raw_listener`.
     # TODO: `_input_manager` not used, can go away.

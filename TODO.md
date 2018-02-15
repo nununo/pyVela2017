@@ -1,5 +1,5 @@
 * Move all these TODOs into GitHub issues?
-* Implement web monitoring and control.
+* Implement web log level control.
 * Improve player manager level() call handling.
 * Review code for consistency (naming, etc).
 * Update movie files.
