@@ -67,7 +67,7 @@ $ source <path-to-your-venv>/bin/activate
 Change working directory to the repository root and run it under a DBus session:
 ```
 $ cd <path-to-repository-root>
-$ dbus-run-session python main.py
+$ dbus-run-session python candle2017.py
 ```
 
 Once running:
@@ -77,7 +77,7 @@ Once running:
 
 Stopping:
 * Hit CTRL-C on the shell that launched the program.
-* Send a SIGTERM to the Python process running `main.py`.
+* Send a SIGTERM to the Python process running `candle2017.py`.
 
 
 Using
@@ -159,7 +159,7 @@ Development Notes
 
 Lint with:
 ```
-$ pylint main inputs/ player/ webserver/ log/
+$ pylint candle2017 inputs/ player/ webserver/ log/
 ```
 
 

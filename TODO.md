@@ -10,6 +10,5 @@
   * Randomized suffix to prevent name collisions from hypothetical race conditions?...
 * Move player name generation to OMXPlayer itself?
 * Breakdown OMXPlayer.spawn() into smaller methods?
-* Improve main.py:
+* Improve candle2017.py:
   * When no DBus session detected, spawn itself under a private DBus session.
-  * Rename to candle2017.py?
