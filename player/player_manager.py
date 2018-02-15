@@ -102,17 +102,6 @@ class PlayerManager(object):
         self.log.debug('files found: {d!r}', d=self.files)
 
 
-    @staticmethod
-    def generate_player_name(filename):
-        """
-        Part of the public API, used by OMXPlayer.
-        """
-        return 'c.p%s-%s' % (
-            os.path.splitext(os.path.basename(filename))[0],
-            random.randint(10, 99),
-        )
-
-
     def _get_file_for_level(self, level):
 
         # Return a random filename from the available files in `level`.

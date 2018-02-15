@@ -9,6 +9,8 @@ Asyncronous, Twisted based, omxplayer process wrapper.
 (see: https://github.com/popcornmix/omxplayer)
 """
 
+import os
+import random
 from time import time
 
 
@@ -103,7 +105,7 @@ class OMXPlayer(object):
         self._duration = None
 
         # Use a known name so that we can track omxplayer's DBus presence.
-        self.dbus_player_name = self.player_mgr.generate_player_name(filename)
+        self.dbus_player_name = self.generate_player_name(filename)
         self.log = logger.Logger(namespace='player.each.%s' % (self.dbus_player_name,))
 
         self._reactor = self.player_mgr.reactor
@@ -128,6 +130,17 @@ class OMXPlayer(object):
         return '<OMXPlayer %r filename=%r>' % (
             self.dbus_player_name,
             self.filename,
+        )
+
+
+    @staticmethod
+    def generate_player_name(filename):
+        """
+        Generate unique player name.
+        """
+        return 'c.p%s-%s' % (
+            os.path.splitext(os.path.basename(filename))[0],
+            random.randint(10, 99),
         )
 
 

@@ -5,5 +5,4 @@
 * Update movie files.
 * Setup PI as an access point.
 * Review log messages.
-* Move player name generation to OMXPlayer itself?
 * Breakdown OMXPlayer.spawn() into smaller methods?
