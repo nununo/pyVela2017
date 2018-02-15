@@ -198,21 +198,7 @@ class OMXPlayer(object):
         if end_callable:
             self._process_protocol.stopped.addCallback(end_callable)
 
-        # Get the DBus object for this player.
-        self.log.debug('getting dbus player object')
-
-        # Hardcoded data from omxplayer documentation.
-        path = '/org/mpris/MediaPlayer2'
-        ifaces = [
-            self._OMX_DBUS_PLAYER_PROPERTIES,
-            self._OMX_DBUS_PLAYER_INTERFACE,
-        ]
-        self._dbus_player = yield self._dbus_conn.getRemoteObject(
-            player_name,
-            path,
-            interfaces=ifaces,
-        )
-        self.log.debug('got dbus player object')
+        yield self._get_dbus_player_object()
 
         # Ask omxplayer for the duration of the video file.
         duration_microsecs = yield self._dbus_player.callRemote(
@@ -255,6 +241,28 @@ class OMXPlayer(object):
             args,
             env=None,
         )
+
+
+    @defer.inlineCallbacks
+    def _get_dbus_player_object(self):
+
+        # Get the DBus object for this player.
+
+        self.log.debug('getting dbus player object')
+
+        # Hardcoded data from omxplayer documentation.
+        ifaces = [
+            self._OMX_DBUS_PLAYER_PROPERTIES,
+            self._OMX_DBUS_PLAYER_INTERFACE,
+        ]
+        self._dbus_player = yield self._dbus_conn.getRemoteObject(
+            self.dbus_player_name,
+            '/org/mpris/MediaPlayer2',
+            interfaces=ifaces,
+        )
+        self.log.debug('got dbus player object')
+
+
     @defer.inlineCallbacks
     def _wait_ready(self, action):
 
