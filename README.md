@@ -64,11 +64,13 @@ Activate the Python virtual environment:
 $ source <path-to-your-venv>/bin/activate
 ```
 
-Change working directory to the repository root and run it under a DBus session:
+Change working directory to the repository root and run:
 ```
 $ cd <path-to-repository-root>
-$ dbus-run-session python candle2017.py
+$ python candle2017.py
 ```
+
+(optionally, make `candle2017.py` executable with `chmod u+x candle2017.py` and run it with `./candle2017.py`)
 
 Once running:
 * Log messages will be output to `stderr`; see below to learn how to adjust logging details.

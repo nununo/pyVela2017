@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # ----------------------------------------------------------------------------
 # vim: ts=4:sw=4:et
 # ----------------------------------------------------------------------------
@@ -94,22 +95,41 @@ def start_things(reactor, settings):
 
 
 
+def respawn_under_dbus(settings):
+
+    """
+    Tries to respawn itself under a DBus session.
+    """
+
+    try:
+        executable = settings['environment']['dbus_run_session_bin']
+        os.execl(
+            executable,
+            executable,
+            sys.executable,
+            os.path.abspath(__file__),
+        )
+    except Exception as e:
+        print('failed to execute %r: %s' % (executable, e))
+        return False
+
+
+
 def main(environ):
 
     """
     Main entry point.
 
-    If not running under a DBus session prints a message and exits.
-    Otherwise, loads the settings and drives the main asynchronous code.
+    Loads settings, respawns under a DBus session if need and drives
+    the main asynchronous code.
     """
 
-    dbus_env_var_name = 'DBUS_SESSION_BUS_ADDRESS'
-    if dbus_env_var_name not in environ:
-        # TODO: Respawn ourselves under a spawned private DBus session?
-        print('%s not set. DBus session running?' % dbus_env_var_name)
-        return -1
-
     settings = load_settings()
+
+    if 'DBUS_SESSION_BUS_ADDRESS' not in environ:
+        if not respawn_under_dbus(settings):
+            sys.exit(-1)
+
     task.react(start_things, (settings,))
 
     return 0

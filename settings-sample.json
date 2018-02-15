@@ -1,5 +1,6 @@
 {
     "environment": {
+        "dbus_run_session_bin": "/usr/bin/dbus-run-session",
         "omxplayer_bin": "/usr/bin/omxplayer.bin",
         "ld_library_path": "/usr/lib/omxplayer"
     },
