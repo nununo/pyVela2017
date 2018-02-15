@@ -8,7 +8,7 @@
         "txdbus": "warn",
         "player": "warn",
         "player.dbus": "warn",
-        "player.mngr": "info",
+        "player.mngr": "warn",
         "player.proc": "warn",
         "player.each": "warn",
         "inputs": "warn",
@@ -16,7 +16,7 @@
         "inputs.arduino": "warn",
         "inputs.arduino.serial": "warn",
         "inputs.arduino.proto": "warn",
-        "webserver": "debug"
+        "webserver": "warn"
     },
     "inputs": {
         "arduino": {
