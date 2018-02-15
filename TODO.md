@@ -6,8 +6,6 @@
 * Setup PI as an access point.
 * Review log messages.
 * Change DBus player names:
-  * Shorter to simplify logs: no need for full qualification, running a private DBus.
-  * Randomized suffix to prevent name collisions from hypothetical race conditions?...
 * Move player name generation to OMXPlayer itself?
 * Breakdown OMXPlayer.spawn() into smaller methods?
 * Improve candle2017.py:

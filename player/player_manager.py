@@ -107,8 +107,9 @@ class PlayerManager(object):
         """
         Part of the public API, used by OMXPlayer.
         """
-        return 'com.nunogodinho.vela2017-%s' % (
+        return 'c.p%s-%s' % (
             os.path.splitext(os.path.basename(filename))[0],
+            random.randint(10, 99),
         )
 
 
