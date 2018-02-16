@@ -55,6 +55,7 @@ Put the video files in place:
   * `2`: triggered by *medium blowing*.
   * `3`: triggered by *strong blowing* (in the original project, the burning flame is blown out).
 
+Copy `settings-sample.json` to `settings.json` and adapt it according to your environment. See Configuration section below for details. 
  
 Running
 -------
@@ -126,19 +127,20 @@ When running, the configuration is sourced from the file `settings.json`. As its
 
 Most settings are, hopefully, self-explanatory. Here's a quick rundown:
 
-| setting                     | description                                                     |
-|-----------------------------|-----------------------------------------------------------------|
-| environment.omxplayer_bin   | Absolute path to the `omxplayer.bin` executable.                |
-| environment.ld_library_path | Absolute path to the OMXPlayer required shared libraries.       |
-| loglevel                    | Default log level, one of `debug`, `info`, `warn` or `error`.   |
-| loglevel.*                  | Per component log level.                                        |
-| inputs.arduino.device_file  | Absolute path to the serial device file of the "wind sensor".   |
-| inputs.arduino.baud_rate    | Baud rate of the "wind sensor" communication.                   |
-| inputs.arduino.thresholds   | Array of three integers: adjust "wind sensor" responsiveness.   |
-| inputs.network.port         | TCP port where raw network connections will be accepted in.     |
-| levels.*.folder             | Relative path to directory containing that level's video files. |
-| levels.*.fadein             | Fade in time, in secods, for this level's video files.          |
-| levels.*.fadeout            | Fade out time, in seconds, for this level's video files.        |
+| setting                          | description                                                     |
+|----------------------------------|-----------------------------------------------------------------|
+| environment.dbus_run_session_bin | Absolute path to the `dbus-run-session` executable.
+| environment.omxplayer_bin        | Absolute path to the `omxplayer.bin` executable.                |
+| environment.ld_library_path      | Absolute path to the OMXPlayer required shared libraries.       |
+| loglevel                         | Default log level, one of `debug`, `info`, `warn` or `error`.   |
+| loglevel.*                       | Per component log level.                                        |
+| inputs.arduino.device_file       | Absolute path to the serial device file of the "wind sensor".   |
+| inputs.arduino.baud_rate         | Baud rate of the "wind sensor" communication.                   |
+| inputs.arduino.thresholds        | Array of three integers: adjust "wind sensor" responsiveness.   |
+| inputs.network.port              | TCP port where raw network connections will be accepted in.     |
+| levels.*.folder                  | Relative path to directory containing that level's video files. |
+| levels.*.fadein                  | Fade in time, in secods, for this level's video files.          |
+| levels.*.fadeout                 | Fade out time, in seconds, for this level's video files.        |
 
 
 About the "wind sensor"
