@@ -1,5 +1,4 @@
 * Review log messages and levels.
-* Add "mark log" feature to web client.
 * Improve player manager level() call handling.
 * Review code for consistency (naming, etc).
 * Update movie files.
