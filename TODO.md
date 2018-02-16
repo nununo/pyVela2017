@@ -1,4 +1,3 @@
-* Add log prefixes to web log.
 * Review log messages and levels.
 * Improve player manager level() call handling.
 * Review code for consistency (naming, etc).

@@ -85,7 +85,7 @@ def start_things(reactor, settings):
     )
 
     # Connect the log bridge to the raw listener.
-    log_bridge.destination = raw_listener
+    log_bridge.destination_callable = raw_listener.log_message
 
     # Read: start the player manager.
     yield player_manager.start()
