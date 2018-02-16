@@ -19,14 +19,15 @@ from twisted import logger
 class LogBridge(object):
 
     """
-    Twisted logger observer that forwards emitted logs towards a configurable
-    `destination` object that should have a `log_message` method.
+    Twisted logger observer that forwards emitted logs to a callable, accepting
+    a string as its single argument.
     """
 
-    def __init__(self):
+    def __init__(self, destination_callable=None):
 
         # Where we'll forward log messages to.
-        self.destination = None
+        self.destination_callable = destination_callable
+
 
     def __call__(self, event):
 
@@ -34,13 +35,14 @@ class LogBridge(object):
         # Details about `event` and more at:
         # http://twistedmatrix.com/documents/current/core/howto/logger.html
 
-        # TODO: Convert `destination` into a simple callable?
-        if self.destination:
+        if self.destination_callable:
+
             # Formatted messages contain four elements, space separated:
-            # - Capitalized first letter of log level.
-            # - Seconds and milliseconds of event timestamp.
-            # - The logger namespace (variable width).
-            # - The formatted log message itself.
+            # - Fixed width, capitalized first letter of log level.
+            # - Fixed width, seconds and milliseconds of event timestamp.
+            # - Variable width, logger namespace.
+            # - Variable width, formatted message itself.
+
             log_datetime = datetime.fromtimestamp(event['log_time'])
             msg = '%s %s %s %s' % (
                 event['log_level'].name[0].upper(),
@@ -48,7 +50,7 @@ class LogBridge(object):
                 event.get('log_namespace', '-'),
                 logger.formatEvent(event),
             )
-            self.destination.log_message(msg)
+            self.destination_callable(msg)
 
 
 # ----------------------------------------------------------------------------
