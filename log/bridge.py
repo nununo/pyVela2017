@@ -8,6 +8,8 @@
 Helps bridging Twisted log messages towads runtime configurable destinations.
 """
 
+from datetime import datetime
+
 from zope.interface import provider
 from twisted.logger import ILogObserver, formatEvent
 
@@ -29,10 +31,23 @@ class LogBridge(object):
     def __call__(self, event):
 
         # Called by Twisted to deliver a log event to this observer.
+        # Details about `event` and more at:
+        # http://twistedmatrix.com/documents/current/core/howto/logger.html
 
         # TODO: Convert `destination` into a simple callable?
         if self.destination:
-            msg = formatEvent(event)
+            # Formatted messages contain four elements, space separated:
+            # - Capitalized first letter of log level.
+            # - Seconds and milliseconds of event timestamp.
+            # - The logger namespace (variable width).
+            # - The formatted log message itself.
+            log_datetime = datetime.fromtimestamp(event['log_time'])
+            msg = '%s %s %s %s' % (
+                event['log_level'].name[0].upper(),
+                log_datetime.strftime('%S.%f')[:6],
+                event.get('log_namespace', '-'),
+                formatEvent(event),
+            )
             self.destination.log_message(msg)
 
 
