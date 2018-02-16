@@ -87,11 +87,28 @@ def start_things(reactor, settings):
     # Connect the log bridge to the raw listener.
     log_bridge.destination_callable = raw_listener.log_message
 
-    # Read: start the player manager.
+    # Ensure a clean stop.
+    reactor.addSystemEventTrigger('before', 'shutdown', stop_things, player_manager)
+
+    # Start the player manager.
     yield player_manager.start()
 
-    # Wait here until the player manager is done.
+    # Not done until the player manager is done.
     yield player_manager.done
+
+
+
+@defer.inlineCallbacks
+def stop_things(player_manager):
+
+    """
+    Asyncronous, Twisted based, cleanup.
+
+    Asks the player manage to stop which, in turn, will stop the spawned player
+    processes.
+    """
+
+    yield player_manager.stop()
 
 
 
