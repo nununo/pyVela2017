@@ -57,7 +57,7 @@ class WSProto(websocket.WebSocketServerProtocol):
         except ValueError:
             _log.warn('invalid payload ignored')
         else:
-            self.factory.change_level_callable(level)
+            self.factory.change_level_callable(level, comment='web')
 
 
     def onClose(self, wasClean, code, reason):
