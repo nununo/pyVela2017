@@ -200,12 +200,7 @@ class OMXPlayer(object):
 
         yield self._get_dbus_player_object()
 
-        # Ask omxplayer for the duration of the video file.
-        duration_microsecs = yield self._dbus_player.callRemote(
-            'Get', 'org.mpris.MediaPlayer2.Player', 'Duration',
-        )
-        self._duration = duration_microsecs / 1000000
-        self.log.info('duration is {d}s', d=self._duration)
+        yield self._get_duration()
 
         # Player is now ready to be controlled.
         self.log.info('player ready')
@@ -261,6 +256,18 @@ class OMXPlayer(object):
             interfaces=ifaces,
         )
         self.log.debug('got dbus player object')
+
+
+    @defer.inlineCallbacks
+    def _get_duration(self):
+
+        # Ask omxplayer for the duration of the video file.
+
+        duration_microsecs = yield self._dbus_player.callRemote(
+            'Get', 'org.mpris.MediaPlayer2.Player', 'Duration',
+        )
+        self._duration = duration_microsecs / 1000000
+        self.log.debug('duration is {d}s', d=self._duration)
 
 
     @defer.inlineCallbacks

@@ -1,8 +1,8 @@
-* Move all these TODOs into GitHub issues?
-* Implement web log level control.
+* Add log prefixes to web log.
+* Review log messages and levels.
 * Improve player manager level() call handling.
 * Review code for consistency (naming, etc).
 * Update movie files.
+* Implement web log level control.
+* Move all these TODOs into GitHub issues?
 * Setup PI as an access point.
-* Review log messages.
-* Breakdown OMXPlayer.spawn() into smaller methods?
