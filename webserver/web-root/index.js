@@ -139,6 +139,14 @@ function update_log(s) {
 
 
 
+// Appends a marker line to the log.
+
+function mark_log() {
+    update_log('-- MARK --');
+}
+
+
+
 // Websocket event handler: called when the connection is closed.
 
 function socket_close(e) {

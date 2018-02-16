@@ -79,6 +79,12 @@
         overflow-x: auto;
         padding: 0.5em;
     }
+    .note {
+	padding: 0.25em;
+        float: right;
+        font-weight: normal;
+        font-size: 75%;
+    }
     </style>
 </head>
 <body>
@@ -118,7 +124,10 @@
             </div>
     </div>
     <div id="log_pane">
-        <h1>log</h1>
+        <h1 onclick="mark_log();">
+            log
+            <div class="note">click/tap to mark</div>
+        </h1>
         <div id="log_scroller">
             <div id="log">
         </div>
