@@ -11,11 +11,11 @@ Helps bridging Twisted log messages towads runtime configurable destinations.
 from datetime import datetime
 
 from zope.interface import provider
-from twisted.logger import ILogObserver, formatEvent
+from twisted import logger
 
 
 
-@provider(ILogObserver)
+@provider(logger.ILogObserver)
 class LogBridge(object):
 
     """
@@ -46,7 +46,7 @@ class LogBridge(object):
                 event['log_level'].name[0].upper(),
                 log_datetime.strftime('%S.%f')[:6],
                 event.get('log_namespace', '-'),
-                formatEvent(event),
+                logger.formatEvent(event),
             )
             self.destination.log_message(msg)
 
