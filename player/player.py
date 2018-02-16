@@ -13,11 +13,10 @@ import os
 import random
 from time import time
 
-
 from twisted.internet import defer, protocol
 from twisted import logger
 
-from txdbus import interface as txdbus_interface
+from txdbus import error, interface as txdbus_interface
 
 
 from .misc import sleep
@@ -288,32 +287,56 @@ class OMXPlayer(object):
 
 
     @defer.inlineCallbacks
-    def stop(self, ignore_failures=False):
+    def stop(self, ignore_failures=False, timeout=1):
 
         """
         Requests the spawned omxplayer process to stop and exit.
         Returns a deferred that fires with the omxplayer process exit code.
         """
 
+        player_name = self.dbus_player_name
+
+        if self._process_protocol.stopped.called:
+            # Prevent race condition: do nothing if process is gone.
+            self.log.info('player already stopped {p!r}', p=player_name)
+            exit_code = yield self._process_protocol.stopped
+            defer.returnValue(exit_code)
+            return
+
         yield self._wait_ready('stop')
 
-        player_name = self.dbus_player_name
         self.log.info('stopping player {p!r}', p=player_name)
 
-        if not self._process_protocol.stopped.called:
-            if not self._stop_in_progress:
-                self._stop_in_progress = True
-                self.log.debug('asking player to stop')
-                try:
-                    yield self._dbus_player.callRemote(
-                        'Stop',
-                        interface='org.mpris.MediaPlayer2.Player'
-                    )
-                except Exception:
-                    if not ignore_failures:
-                        raise
-                else:
-                    self.log.debug('asked player to stop')
+        if not self._stop_in_progress:
+            self._stop_in_progress = True
+            self.log.debug('asking player to stop')
+            try:
+                # Prevent race condition with timeout: process might have
+                # terminated in the meantime; timeout ensures we give up.
+                yield self._dbus_player.callRemote(
+                    'Stop',
+                    interface='org.mpris.MediaPlayer2.Player',
+                    timeout=timeout,
+                )
+            except error.TimeOut:
+                # Assume the process is gone: we're done, but no exit code.
+                self.log.info('player stop request timed out')
+                exit_code = None
+                defer.returnValue(exit_code)
+                return
+            except Exception as e:
+                self.log.warn('stop request failed: {e!r}', e=e)
+                if not ignore_failures:
+                    raise
+            else:
+                self.log.debug('asked player to stop')
+
+        if self._process_protocol.stopped.called:
+            # Prevent race condition: do nothing if process is gone.
+            self.log.info('player stopped in the meantime {p!r}', p=player_name)
+            exit_code = yield self._process_protocol.stopped
+            defer.returnValue(exit_code)
+            return
 
         # Wait until the player name disappears from DBus.
         yield self.dbus_mgr.wait_dbus_name_stop(player_name)

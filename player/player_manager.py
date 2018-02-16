@@ -124,6 +124,8 @@ class PlayerManager(object):
         """
         Spawns one player per level ensuring the level 0 one is playing.
         """
+        self.log.info('starting')
+
         yield self.dbus_mgr.connect_to_dbus()
 
         for level in self.files:
@@ -131,6 +133,8 @@ class PlayerManager(object):
 
         yield self.players[0].play()
         self._ready = True
+
+        self.log.info('started')
 
 
     @defer.inlineCallbacks
@@ -193,11 +197,18 @@ class PlayerManager(object):
         """
         Asks all players to stop (IOW: terminate) and exits cleanly.
         """
+        self.log.info('stopping')
+
         self._stopping = True
         for level, player in self.players.items():
             self.log.info('stopping player level={l!r}', l=level)
-            yield player.stop()
-
+            try:
+                yield player.stop()
+            except Exception as e:
+                self.log.info('failed stopping player level={l!r}: {e!r}', l=level, e=e)
+            else:
+                self.log.info('stopped player level={l!r}', l=level)
+        self.log.info('stopped')
         self.done.callback(None)
 
 
