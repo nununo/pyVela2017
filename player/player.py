@@ -11,6 +11,7 @@ Asyncronous, Twisted based, omxplayer process wrapper.
 
 import os
 import random
+import signal
 from time import time
 
 from twisted.internet import defer, protocol
@@ -37,13 +38,15 @@ class _TrackProcessProtocol(protocol.ProcessProtocol):
         self.log = logger.Logger(namespace='player.proc.%s' % (player_name,))
         self.started = defer.Deferred()
         self.stopped = defer.Deferred()
+        self.pid = None
 
 
     def connectionMade(self):
 
         # Called by Twisted when the process is started.
 
-        self.log.info('player process started')
+        self.pid = self.transport.pid
+        self.log.info('player process started with PID {pid}', pid=self.pid)
         self.started.callback(None)
 
 
@@ -287,63 +290,111 @@ class OMXPlayer(object):
 
 
     @defer.inlineCallbacks
-    def stop(self, ignore_failures=False, timeout=1):
+    def stop(self, timeout=1):
 
         """
-        Requests the spawned omxplayer process to stop and exit.
-        Returns a deferred that fires with the omxplayer process exit code.
+        Stops the spawned omxplayer process.
+
+        Starts by asking it to stop via DBus, waiting for it to cleanly stop.
+        In that case, returns a deferred that fires with the exit code.
+
+        If that fails, tries to send a SIGTERM signal to the process.
+        If it works, waits for the process to cleanly stop.
+
+        In the non DBus controlled clean stop, returns a deferred that fires
+        with None, when completed.
         """
 
         player_name = self.dbus_player_name
 
+        self.log.info('stopping player {p!r}', p=player_name)
+
         if self._process_protocol.stopped.called:
             # Prevent race condition: do nothing if process is gone.
-            self.log.info('player already stopped {p!r}', p=player_name)
+            self.log.info('no player {p!r} process to stop', p=player_name)
             exit_code = yield self._process_protocol.stopped
             defer.returnValue(exit_code)
             return
 
-        yield self._wait_ready('stop')
+        exit_code = None
+        try:
+            exit_code = yield self._stop_via_dbus(timeout=timeout)
+        except error.TimeOut:
+            yield self._stop_via_sigterm()
+        except Exception as e:
+            # Not much else we can do, but we prevent exception propagation
+            # to caller, letting it assume stop() completed successfully.
+            self.log.warn('stopping player {p!r} failed: {e!r}', p=player_name, e=e)
 
-        self.log.info('stopping player {p!r}', p=player_name)
+        self.log.info('stopped player {p!r}', p=player_name)
+
+        defer.returnValue(exit_code)
+
+
+    @defer.inlineCallbacks
+    def _stop_via_dbus(self, timeout):
+
+        # Asks the spawned process to stop via a DBus command, waits
+        # for it to be gone from DBus and for process exit. Returns a
+        # deferred that fires with the process exit code.
+
+        # May raise exceptions if, for example, DBus is unreachable.
+
+        yield self._wait_ready('stop')
 
         if not self._stop_in_progress:
             self._stop_in_progress = True
-            self.log.debug('asking player to stop')
+            self.log.debug('requesting player to stop')
             try:
                 # Prevent race condition with timeout: process might have
-                # terminated in the meantime; timeout ensures we give up.
+                # terminated or DBus may have become unreachable.
                 yield self._dbus_player.callRemote(
                     'Stop',
                     interface='org.mpris.MediaPlayer2.Player',
                     timeout=timeout,
                 )
             except error.TimeOut:
-                # Assume the process is gone: we're done, but no exit code.
                 self.log.info('player stop request timed out')
-                exit_code = None
-                defer.returnValue(exit_code)
-                return
+                raise
             except Exception as e:
-                self.log.warn('stop request failed: {e!r}', e=e)
-                if not ignore_failures:
-                    raise
+                self.log.warn('player stop request failed: {e!r}', e=e)
+                raise
             else:
-                self.log.debug('asked player to stop')
+                self.log.debug('requested player to stop')
+
+        player_name = self.dbus_player_name
+
+        if not self._process_protocol.stopped.called:
+            # Process still there: wait until it disappears from DBus.
+            yield self.dbus_mgr.wait_dbus_name_stop(player_name)
+
+        # Finally, wait for the actual process to end and get exit code.
+        exit_code = yield self._process_protocol.stopped
+        defer.returnValue(exit_code)
+
+
+    @defer.inlineCallbacks
+    def _stop_via_sigterm(self):
+
+        # Sends a SIGTERM to the spawned process and waits for it to exit.
+
+        player_name = self.dbus_player_name
 
         if self._process_protocol.stopped.called:
             # Prevent race condition: do nothing if process is gone.
-            self.log.info('player stopped in the meantime {p!r}', p=player_name)
-            exit_code = yield self._process_protocol.stopped
-            defer.returnValue(exit_code)
+            self.log.info('no player {p!r} process to send signal to', p=player_name)
             return
 
-        # Wait until the player name disappears from DBus.
-        yield self.dbus_mgr.wait_dbus_name_stop(player_name)
+        self.log.debug('sending SIGTERM to process')
+        try:
+            os.kill(self._process_protocol.pid, signal.SIGTERM)
+        except Exception as e:
+            self.log.warn('sending SIGTERM failed: {e!r}', e=e)
+        else:
+            self.log.debug('sent SIGTERM to process')
 
-        # Wait for the actual process to end and get exit code.
-        exit_code = yield self._process_protocol.stopped
-        defer.returnValue(exit_code)
+        # Finally, wait for the process to end, discarding the exit code.
+        yield self._process_protocol.stopped
 
 
     @defer.inlineCallbacks

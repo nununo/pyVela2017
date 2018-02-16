@@ -202,12 +202,8 @@ class PlayerManager(object):
         self._stopping = True
         for level, player in self.players.items():
             self.log.info('stopping player level={l!r}', l=level)
-            try:
-                yield player.stop()
-            except Exception as e:
-                self.log.info('failed stopping player level={l!r}: {e!r}', l=level, e=e)
-            else:
-                self.log.info('stopped player level={l!r}', l=level)
+            yield player.stop()
+            self.log.info('stopped player level={l!r}', l=level)
         self.log.info('stopped')
         self.done.callback(None)
 
