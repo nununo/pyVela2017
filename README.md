@@ -56,6 +56,8 @@ Put the video files in place:
   * `3`: triggered by *strong blowing* (in the original project, the burning flame is blown out).
 
 Copy `settings-sample.json` to `settings.json` and adapt it according to your environment. See Configuration section below for details. 
+
+
  
 Running
 -------
@@ -71,7 +73,8 @@ $ cd <path-to-repository-root>
 $ python candle2017.py
 ```
 
-(optionally, make `candle2017.py` executable with `chmod u+x candle2017.py` and run it with `./candle2017.py`)
+> Optionally, make `candle2017.py` executable with `chmod u+x candle2017.py` and run it with `./candle2017.py`.
+
 
 Once running:
 * Log messages will be output to `stderr`; see below to learn how to adjust logging details.
@@ -81,6 +84,10 @@ Once running:
 Stopping:
 * Hit CTRL-C on the shell that launched the program.
 * Send a SIGTERM to the Python process running `candle2017.py`.
+
+
+> Integrating **Vela 2017** with system services, ensuring automatic startup/shutdown with the system is handled via the supplied `candle2017.service` file; refer to its internal comments on how to set that up.
+
 
 
 Using

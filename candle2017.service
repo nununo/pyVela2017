@@ -1,0 +1,108 @@
+; ----------------------------------------------------------------------------
+; candle2017.service
+; ----------------------------------------------------------------------------
+; Integrating with operating system startup/shutdown
+; --------------------------------------------------
+; - Copy this file to /etc/systemd/system.
+; - Edit it, adjusting the {...} place holders in the [Service] section.
+; - Test it manually with:
+;   $ sudo systemctl daemon-reload
+;   $ sudo systemctl start candle2017
+;   $ sudo systemctl stop candle2017
+; - Enable it with:
+;   $ sudo systemctl enable candle2017
+; - Reboot your system to confirm.
+; ----------------------------------------------------------------------------
+
+
+[Unit]
+
+Description=Candle 2017
+Wants=network.target
+
+
+
+[Service]
+
+; Technical note
+; --------------
+; - candle2017.py defaults to using the system dbus-run-session binary.
+; - This has some implications in the way a controlled stop happens.
+; - If you want to know more, read the next Technical note, below.
+; - Otherwise, just fill in the placeholders and disregard that.
+
+; Placeholder description
+; -----------------------
+; - {USERNAME_OR_ID}
+;   The user that candle2017.py will run as.
+;   Use the same that created the virtual environment.
+;   Use the user ID number if the username contains ".".
+; - {USER_HOME}
+;   The absolute path to the user's HOME directory.
+; - {VENV_PYTHON3_ABSPATH}
+;   The absolute path to python3 in the created virtual environment.
+; - {candle2017.py_ABSPATH}
+;   The absolute path to candle2017.py.
+; - {USERNAME}
+;   The same as above, in {USERNAME_OR_ID}, unless a user ID number was used.
+;   This must be a username, even if it includes ".".
+
+Type=simple
+User={USERNAME_OR_ID}
+WorkingDirectory={USER_HOME}
+ExecStart={VENV_PYTHON3_ABSPATH} {candle2017.py_ABSPATH}
+ExecStop=/usr/bin/killall -u {USERNAME} python3
+KillMode=none
+TimeoutStopSec=10
+Restart=always
+RestartSec=10
+
+
+; Technical note
+; --------------
+; The system dbus-run-session binary behaves somewhat badly:
+; - If sent a SIGTERM:
+;   - It terminates.
+;   - Leaves two orphans: dbus-daemon and the launched application.
+; - This is somewhat useless and the reason that the stop is setup the way
+;   it is in the previous, uncommented, unfortunatelly recommended section.
+;
+; A better behaving dbus-run-session would:
+; - If sent a SIGTERM:
+;   - Forward it to the launched application.
+;   - Wait for it to exit.
+;   - Stop its dbus-daemon child.
+;   - Wait for it to exit.
+;   - Finally exit.
+; - This would allow stopping everything cleanly by sending dbus-run-session
+;   a single SIGTERM signal; this could be achieved with the following,
+;   commented out, section.
+;
+; PS: For an unofficial fork of dbus with a better behaving dbus-run-session,
+;     see https://github.com/tmontes/dbus/tree/better-dbus-run-session.
+;
+; PPS: Of, course, leaving out any of the "stop service" settings does also
+;      work in the sense that things a stopped; they're just not stopped in
+;      a clean and synchronized way (and that is ugly).
+
+; Type=simple
+; User={USERNAME_OR_ID}
+; WorkingDirectory={USER_HOME}
+; ExecStart={VENV_PYTHON3_ABSPATH} {candle2017.py_ABSPATH}
+; KillMode=process
+; KillSignal=SIGTERM
+; TimeoutStopSec=10
+; Restart=always
+; RestartSec=10
+
+
+
+[Install]
+
+WantedBy=multi-user.target
+
+
+; ----------------------------------------------------------------------------
+; candle2017.service
+; ----------------------------------------------------------------------------
+
