@@ -1,0 +1,17 @@
+[Unit]
+Description=Candle 2017
+Wants=network.target
+
+[Service]
+Type=simple
+User=__USERNAME_OR_ID__
+WorkingDirectory=__USER_HOME__
+ExecStart=__VENV_PYTHON3_ABSPATH__ __candle2017.py_ABSPATH__
+Restart=always
+RestartSec=10
+KillMode=process
+KillSignal=SIGTERM
+TimeoutStopSec=10
+
+[Install]
+WantedBy=multi-user.target
