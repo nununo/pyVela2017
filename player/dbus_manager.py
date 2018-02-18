@@ -82,6 +82,12 @@ class DBusManager(object):
         self.log.info('lost connection: {f}', f=failure.value)
         self._dbus_conn = None
 
+        # Assume any names being waited on for stopping are gone.
+        for name in self._names_stopping:
+            self.log.debug('assuming name {n!r} stopped', n=name)
+            self._signal_name_change(self._names_stopping, name)
+            self.log.debug('assumed name {n!r} stopped', n=name)
+
         if self._disconnect_callable:
             try:
                 self._disconnect_callable()
@@ -105,10 +111,22 @@ class DBusManager(object):
         else:
             self.log.error('unexpected signal data')
 
+        self._signal_name_change(tracking_dict, name)
+
+
+    def _signal_name_change(self, tracking_dict, name):
+
+        # Fires the associated `name` deferred in `tracking_dict`.
+
         d = tracking_dict.get(name)
-        if d:
-            # `name` is being tracked: fire the deferred.
-            d.callback(name)
+        if not d:
+            self.log.debug('no deferred for {n!r}', n=name)
+            return
+
+        try:
+            d.callback(None)
+        except defer.AlreadyCalledError:
+            self.log.error('failed firing {n!r} deferred', n=name)
 
 
     def track_dbus_name(self, name):
