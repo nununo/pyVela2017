@@ -28,6 +28,9 @@ class DBusManager(object):
 
         self._dbus_conn = None
 
+        # Will be called on disconnect.
+        self._disconnect_callable = None
+
         # keys/values: DBus names/Twisted deferreds
         self._names_starting = {}
         self._names_stopping = {}
@@ -45,7 +48,7 @@ class DBusManager(object):
 
 
     @defer.inlineCallbacks
-    def connect_to_dbus(self, bus_address='session'):
+    def connect_to_dbus(self, bus_address='session', disconnect_callable=None):
         """
         Connects to DBus and sets up DBus object name tracking.
         """
@@ -55,6 +58,7 @@ class DBusManager(object):
 
         # Track DBus disconnections.
         self._dbus_conn.notifyOnDisconnect(self._dbus_disconnected)
+        self._disconnect_callable = disconnect_callable
         self.log.debug('tracking disconnections')
 
         # Use this to track DBus attachments.
@@ -75,8 +79,14 @@ class DBusManager(object):
 
         # Called by txdbus when DBus is disconnected.
 
-        self.log.warn('lost connection: {f}', f=failure.value)
+        self.log.info('lost connection: {f}', f=failure.value)
         self._dbus_conn = None
+
+        if self._disconnect_callable:
+            try:
+                self._disconnect_callable()
+            except Exception as e:
+                self.log.warn('disconnect callable failed: {e}', e=e)
 
 
     def _dbus_signal_name_owner_changed(self, name, old_addr, new_addr):
