@@ -126,7 +126,7 @@ class PlayerManager(object):
         """
         self.log.info('starting')
 
-        yield self.dbus_mgr.connect_to_dbus()
+        yield self.dbus_mgr.connect_to_dbus(disconnect_callable=self._dbus_disconnected)
 
         for level in self.files:
             yield self._create_player(level)
@@ -135,6 +135,19 @@ class PlayerManager(object):
         self._ready = True
 
         self.log.info('started')
+
+
+    @defer.inlineCallbacks
+    def _dbus_disconnected(self):
+
+        # Called by DBus manager /when DBus connection is lost.
+
+        if self._stopping:
+            return
+
+        self.log.warn('lost DBus connection: stopping')
+        yield self.stop(skip_dbus=True)
+        self.log.warn('lost DBus connection: stopped')
 
 
     @defer.inlineCallbacks
@@ -193,17 +206,24 @@ class PlayerManager(object):
 
 
     @defer.inlineCallbacks
-    def stop(self):
+    def stop(self, skip_dbus=False):
         """
         Asks all players to stop (IOW: terminate) and exits cleanly.
         """
+        if self._stopping:
+            if self._ready:
+                self.log.warn('stopping in progress')
+            return
+
         self.log.info('stopping')
 
         self._stopping = True
         for level, player in self.players.items():
             self.log.info('stopping player level={l!r}', l=level)
-            yield player.stop()
+            yield player.stop(skip_dbus)
             self.log.info('stopped player level={l!r}', l=level)
+        self._ready = False
+
         self.log.info('stopped')
         self.done.callback(None)
 

@@ -290,12 +290,13 @@ class OMXPlayer(object):
 
 
     @defer.inlineCallbacks
-    def stop(self, timeout=1):
+    def stop(self, skip_dbus=False, timeout=1):
 
         """
         Stops the spawned omxplayer process.
 
-        Starts by asking it to stop via DBus, waiting for it to cleanly stop.
+        If `skip_dbus` is False, starts by asking it to stop via DBus,
+        waiting for it to cleanly stop.
         In that case, returns a deferred that fires with the exit code.
 
         If that fails, tries to send a SIGTERM signal to the process.
@@ -317,14 +318,21 @@ class OMXPlayer(object):
             return
 
         exit_code = None
-        try:
-            exit_code = yield self._stop_via_dbus(timeout=timeout)
-        except error.TimeOut:
+        stop_via_sigterm = skip_dbus
+
+        if not skip_dbus:
+            try:
+                exit_code = yield self._stop_via_dbus(timeout=timeout)
+            except Exception as e:
+                # May have failed due to timeout or any other reason.
+                # The best we can do is ensuring we try stopping it via SIGTERM
+                # and prevent exception propagation to caller, letting it assume
+                # stop() completed successfully.
+                stop_via_sigterm = True
+                self.log.warn('stopping player {p!r} failed: {e!r}', p=player_name, e=e)
+
+        if stop_via_sigterm:
             yield self._stop_via_sigterm()
-        except Exception as e:
-            # Not much else we can do, but we prevent exception propagation
-            # to caller, letting it assume stop() completed successfully.
-            self.log.warn('stopping player {p!r} failed: {e!r}', p=player_name, e=e)
 
         self.log.info('stopped player {p!r}', p=player_name)
 
