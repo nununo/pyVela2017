@@ -53,6 +53,10 @@ class DBusManager(object):
         self._dbus_conn = yield txdbus_client.connect(self.reactor, bus_address)
         self.log.info('connected to dbus')
 
+        # Track DBus disconnections.
+        self._dbus_conn.notifyOnDisconnect(self._dbus_disconnected)
+        self.log.debug('tracking disconnections')
+
         # Use this to track DBus attachments.
         self.log.debug('getting org.freedesktop.DBus')
         dbus_obj = yield self.dbus_conn.getRemoteObject(
@@ -65,6 +69,14 @@ class DBusManager(object):
             self._dbus_signal_name_owner_changed
         )
         self.log.debug('subscribed to NameOwnerChanged signal')
+
+
+    def _dbus_disconnected(self, _dbus_conn, failure):
+
+        # Called by txdbus when DBus is disconnected.
+
+        self.log.warn('lost connection: {f}', f=failure.value)
+        self._dbus_conn = None
 
 
     def _dbus_signal_name_owner_changed(self, name, old_addr, new_addr):
