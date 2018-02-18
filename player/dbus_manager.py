@@ -28,6 +28,9 @@ class DBusManager(object):
 
         self._dbus_conn = None
 
+        # Will be called on disconnect.
+        self._disconnect_callable = None
+
         # keys/values: DBus names/Twisted deferreds
         self._names_starting = {}
         self._names_stopping = {}
@@ -45,13 +48,18 @@ class DBusManager(object):
 
 
     @defer.inlineCallbacks
-    def connect_to_dbus(self, bus_address='session'):
+    def connect_to_dbus(self, bus_address='session', disconnect_callable=None):
         """
         Connects to DBus and sets up DBus object name tracking.
         """
         self.log.info('connecting to dbus')
         self._dbus_conn = yield txdbus_client.connect(self.reactor, bus_address)
         self.log.info('connected to dbus')
+
+        # Track DBus disconnections.
+        self._dbus_conn.notifyOnDisconnect(self._dbus_disconnected)
+        self._disconnect_callable = disconnect_callable
+        self.log.debug('tracking disconnections')
 
         # Use this to track DBus attachments.
         self.log.debug('getting org.freedesktop.DBus')
@@ -65,6 +73,26 @@ class DBusManager(object):
             self._dbus_signal_name_owner_changed
         )
         self.log.debug('subscribed to NameOwnerChanged signal')
+
+
+    def _dbus_disconnected(self, _dbus_conn, failure):
+
+        # Called by txdbus when DBus is disconnected.
+
+        self.log.info('lost connection: {f}', f=failure.value)
+        self._dbus_conn = None
+
+        # Assume any names being waited on for stopping are gone.
+        for name in self._names_stopping:
+            self.log.debug('assuming name {n!r} stopped', n=name)
+            self._signal_name_change(self._names_stopping, name)
+            self.log.debug('assumed name {n!r} stopped', n=name)
+
+        if self._disconnect_callable:
+            try:
+                self._disconnect_callable()
+            except Exception as e:
+                self.log.warn('disconnect callable failed: {e}', e=e)
 
 
     def _dbus_signal_name_owner_changed(self, name, old_addr, new_addr):
@@ -83,10 +111,22 @@ class DBusManager(object):
         else:
             self.log.error('unexpected signal data')
 
+        self._signal_name_change(tracking_dict, name)
+
+
+    def _signal_name_change(self, tracking_dict, name):
+
+        # Fires the associated `name` deferred in `tracking_dict`.
+
         d = tracking_dict.get(name)
-        if d:
-            # `name` is being tracked: fire the deferred.
-            d.callback(name)
+        if not d:
+            self.log.debug('no deferred for {n!r}', n=name)
+            return
+
+        try:
+            d.callback(None)
+        except defer.AlreadyCalledError:
+            self.log.error('failed firing {n!r} deferred', n=name)
 
 
     def track_dbus_name(self, name):
