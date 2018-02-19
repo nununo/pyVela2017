@@ -47,7 +47,7 @@
         },
         "3": {
             "folder": "../videos/3",
-            "fadein": 1,
+            "fadein": 0,
             "fadeout": 1
         }
     }
