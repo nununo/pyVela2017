@@ -8,7 +8,7 @@
 Asyncrounous, Twisted Based, process management.
 """
 
-from twisted.internet import defer, protocol
+from twisted.internet import defer, protocol, error
 from twisted import logger
 
 
@@ -64,6 +64,20 @@ class _TrackProcessProtocol(protocol.ProcessProtocol):
         self.log.debug('{n} stderr: {d!r}', n=self.name, d=data)
         if self._track_output:
             self.err_queue.put(data)
+
+
+    def terminate(self):
+        """
+        Sends a SIGTERM to the process.
+
+        May raise an OSError.
+        """
+        try:
+            self.log.debug('sending SIGTERM to {n}', n=self.name)
+            self.transport.signalProcess('TERM')
+            self.log.debug('sent SIGTERM to {n}', n=self.name)
+        except error.ProcessExitedAlready:
+            self.log.debug('{n} already exited', n=self.name)
 
 
     def processEnded(self, reason):

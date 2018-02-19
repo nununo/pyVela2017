@@ -122,6 +122,32 @@ class DBusManager(object):
             os.environ['DBUS_SESSION_BUS_ADDRESS'] = bus_address
 
 
+    @defer.inlineCallbacks
+    def cleanup(self):
+        """
+        Ensures the spawned DBus daemon is properly stopped.
+        """
+        self.log.info('cleaning up')
+
+        if not self._dbus_proto:
+            self.log.info('nothing to cleanup')
+            return
+
+        try:
+            self.log.info('signalling dbus daemon termination')
+            self._dbus_proto.terminate()
+            self.log.info('signalled dbus daemon termination')
+        except OSError as e:
+            self.log.info('signalling dbus daemon failed: {e!r}', e=e)
+            raise
+
+        self.log.debug('waiting for dbus daemon termination')
+        yield self._dbus_proto.stopped
+        self.log.debug('dbus daemon terminated')
+
+        self.log.info('cleaned up')
+
+
     def _dbus_disconnected(self, _dbus_conn, failure):
 
         # Called by txdbus when DBus is disconnected.
