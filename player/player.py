@@ -11,10 +11,9 @@ Asyncronous, Twisted based, omxplayer process wrapper.
 
 import os
 import random
-import signal
 from time import time
 
-from twisted.internet import defer, protocol
+from twisted.internet import defer
 from twisted import logger
 
 from txdbus import error, interface as txdbus_interface
@@ -327,13 +326,6 @@ class OMXPlayer(object):
     def _stop_via_sigterm(self):
 
         # Sends a SIGTERM to the spawned process and waits for it to exit.
-
-        player_name = self.dbus_player_name
-
-        if self._process_protocol.stopped.called:
-            # Prevent race condition: do nothing if process is gone.
-            self.log.info('no player {p!r} process to send signal to', p=player_name)
-            return
 
         self.log.debug('signalling process termination')
         try:
