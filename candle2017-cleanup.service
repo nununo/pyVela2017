@@ -1,0 +1,58 @@
+; ----------------------------------------------------------------------------
+; candle2017-cleanup.service
+; ----------------------------------------------------------------------------
+; Setup instructions
+; ------------------
+; Refer to the notes in the candle2017.service file.
+;
+; Purpose
+; -------
+; On most scenarios, candle2017.py can properly cleanup after itself,
+; including stopping the processes it spawns: dbus-daemon and omxplayer.bin.
+;
+; The candle2017.service ensures that candle2017.py is restarted when it
+; detects that it has gone away unexpectedly.
+;
+; This cleanup service ensures proper cleanup on some unexpected failures
+; such as the ones resulting from a main process crash, leading to the child
+; processes (dbus-daemon and omxplayer.bin) being left running, orphaned.
+;
+; Confirm it works by:
+; - Starting the candle2017 service.
+; - Sending a SIGKILL to the python process running candle2017.py.
+; - candle2017.py doesn't have a chance to stop its child processes.
+; - The candle2017 service detects a failure.
+; - This candle2017-service is started.
+; - Any dbus-daemon and/or omxplayer.bin processes are stopped.
+; - The candle2017 service restarts candle2017.py.
+; ----------------------------------------------------------------------------
+
+
+[Unit]
+
+Description=Candle 2017 cleanup
+
+
+
+[Service]
+
+; Placeholder description
+; -----------------------
+; - {USERNAME}
+;   The username that is running the candle2017 service.
+;   Unline {USERNAME_OR_ID} in candle2017.service, which may need to
+;   be a user ID if the username includes ".", this value should
+;   always be the username, even if it includes ".".
+
+Type=oneshot
+ExecStart=-/usr/bin/killall -u {USERNAME} -s SIGTERM omxplayer.bin
+ExecStart=-/usr/bin/killall -u {USERNAME} -s SIGTERM dbus-daemon
+ExecStart=-/bin/sleep 1
+ExecStart=-/usr/bin/killall -u {USERNAME} -s SIGKILL omxplayer.bin
+ExecStart=-/usr/bin/killall -u {USERNAME} -s SIGKILL dbus-daemon
+
+
+; ----------------------------------------------------------------------------
+; candle2017-cleanup.service
+; ----------------------------------------------------------------------------
+
