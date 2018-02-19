@@ -165,11 +165,31 @@ window.onload = function() {
 
 
 
-// Dummy input button click handler: sends `arg` via the connected websocket.
+// level button click handler.
 
-function button_click(arg) {
-    socket.send(arg);
+function change_level(level) {
+    socket.send(JSON.stringify({
+        action: "change_level",
+        level: level
+    }));
 }
+
+
+
+// Log level change click handler.
+
+function set_log_level() {
+    var e = document.getElementById("logger_namespace");
+    var namespace = e.options[e.selectedIndex].value;
+    e = document.getElementById("logger_level");
+    var level = e.options[e.selectedIndex].value;
+    socket.send(JSON.stringify({
+        action: "set_log_level",
+        namespace: namespace,
+        level: level
+    }));
+}
+
 
 
 // ----------------------------------------------------------------------------

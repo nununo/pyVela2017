@@ -96,13 +96,13 @@
             <h1>level triggering and logging control</h1>
             <div id="control_pane">
                 <div id="level_control">
-                    <button onclick="button_click('1');"> 1 </button>
-                    <button onclick="button_click('2');"> 2 </button>
-                    <button onclick="button_click('3');"> 3 </button>
+                    <button onclick="change_level(1);"> 1 </button>
+                    <button onclick="change_level(2);"> 2 </button>
+                    <button onclick="change_level(3);"> 3 </button>
                 </div>
                 <div id="log_control">
-                    <button id="sll" onclick="button_click('sll');"> SLL </button>
-                    <select name="logger_name">
+                    <button id="sll" onclick="set_log_level();"> SLL </button>
+                    <select id="logger_namespace">
                         <option value="inputs">inputs</option>
                         <option value="inputs.network">inputs.network</option>
                         <option value="inputs.arduino">inputs.arduino</option>
@@ -114,7 +114,7 @@
                         <option value="player.proc">player.proc</option>
                         <option value="player.each">player.each</option>
                     </select>
-                    <select name="logger_level">
+                    <select id="logger_level">
                         <option value="debug">debug</option>
                         <option value="info">info</option>
                         <option value="warn">warn</option>

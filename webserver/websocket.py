@@ -53,11 +53,39 @@ class WSProto(websocket.WebSocketServerProtocol):
         _log.info('ws mesg: p={p!r} b={b!r}', p=payload, b=isBinary)
 
         try:
-            level = int(payload)
+            message = json.loads(payload.decode('utf-8'))
         except ValueError:
-            _log.warn('invalid payload ignored')
+            _log.warn('invalid payload ignored: {p!r}', p=payload)
+        else:
+            method_name = '_action_%s' % message.get('action', 'invalid')
+            method = getattr(self, method_name)
+            method(message)
+
+
+    def _action_invalid(self, message):
+
+        _log.warn('invalid message: {m!r}', m=message)
+
+
+    def _action_change_level(self, message):
+
+        try:
+            level = message['level']
+        except KeyError:
+            _log.warn('missing level: {m!r}', m=message)
         else:
             self.factory.change_level_callable(level, comment='web')
+
+
+    def _action_set_log_level(self, message):
+
+        try:
+            namespace = message['namespace']
+            level = message['level']
+        except KeyError:
+            _log.warn('missing level/namespace: {m!r}', m=message)
+        else:
+            self.factory.set_log_level_callable(namespace, level)
 
 
     def onClose(self, wasClean, code, reason):
@@ -114,13 +142,15 @@ class WSFactory(websocket.WebSocketServerFactory):
 
     protocol = WSProto
 
-    def __init__(self, change_level_callable, *args, **kwargs):
+    def __init__(self, change_level_callable, set_log_level_callable,
+                 *args, **kwargs):
 
         # Track a single `connected_protocol` so that we can push data.
 
         super(WSFactory, self).__init__(*args, **kwargs)
         self.connected_protocol = None
         self.change_level_callable = change_level_callable
+        self.set_log_level_callable = set_log_level_callable
 
 
     def raw(self, source, value):
@@ -144,13 +174,13 @@ class WSFactory(websocket.WebSocketServerFactory):
 
 
 
-def setup_websocket(reactor, change_level_callable):
+def setup_websocket(reactor, change_level_callable, set_log_level_callable):
 
     """
     Starts listening for websocket connections.
     """
 
-    factory = WSFactory(change_level_callable)
+    factory = WSFactory(change_level_callable, set_log_level_callable)
 
     # TODO: Should port/interface be configurable? Client may need adjustments.
     reactor.listenTCP(8081, factory, interface='0.0.0.0')
