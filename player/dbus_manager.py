@@ -133,13 +133,14 @@ class DBusManager(object):
             self.log.info('nothing to cleanup')
             return
 
+        self.log.info('signalling dbus daemon termination')
         try:
-            self.log.info('signalling dbus daemon termination')
             self._dbus_proto.terminate()
-            self.log.info('signalled dbus daemon termination')
         except OSError as e:
-            self.log.info('signalling dbus daemon failed: {e!r}', e=e)
+            self.log.warn('signalling dbus daemon failed: {e!r}', e=e)
             raise
+        else:
+            self.log.info('signalled dbus daemon termination')
 
         self.log.debug('waiting for dbus daemon termination')
         yield self._dbus_proto.stopped

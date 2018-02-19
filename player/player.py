@@ -335,13 +335,13 @@ class OMXPlayer(object):
             self.log.info('no player {p!r} process to send signal to', p=player_name)
             return
 
-        self.log.debug('sending SIGTERM to process')
+        self.log.debug('signalling process termination')
         try:
-            os.kill(self._process_protocol.pid, signal.SIGTERM)
-        except Exception as e:
-            self.log.warn('sending SIGTERM failed: {e!r}', e=e)
+            self._process_protocol.terminate()
+        except OSError as e:
+            self.log.warn('signalling process failed: {e!r}', e=e)
         else:
-            self.log.debug('sent SIGTERM to process')
+            self.log.debug('signalled process termination')
 
         # Finally, wait for the process to end, discarding the exit code.
         yield self._process_protocol.stopped
