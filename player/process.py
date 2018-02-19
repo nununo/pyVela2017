@@ -76,18 +76,21 @@ class _TrackProcessProtocol(protocol.ProcessProtocol):
 
 
 
-def spawn(reactor, cmd_args, name):
+def spawn(reactor, cmd_args, name, track_output=False):
 
     """
     Simple wrapper around Twisted's IReactorProcess.spawnProcess.
 
     Assumes the executable is the first entry in `cmd_args` and ensures
-    the current process environment is passed down to the spawned process.
+    the current process environment is passed down to the spawned process;
+    when `track_output` is True, the returned protocol instance uses two
+    deferred queues that fire with the spawned process stdout and stderr
+    data.
 
     Returns the associated process protocol instance.
     """
 
-    process_proto = _TrackProcessProtocol(name)
+    process_proto = _TrackProcessProtocol(name, track_output=track_output)
     executable = cmd_args[0]
 
     # env=None, below, is relevant: it ensures that environment variables

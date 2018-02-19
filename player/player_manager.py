@@ -51,8 +51,9 @@ class PlayerManager(object):
 
         self.reactor = reactor
         self.settings = settings
+
         # part of our public interface, OMXPlayer will use this
-        self.dbus_mgr = DBusManager(reactor)
+        self.dbus_mgr = DBusManager(reactor, settings)
 
         # keys/values: integer levels/list of video files
         self.files = {}
