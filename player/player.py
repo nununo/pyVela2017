@@ -19,58 +19,8 @@ from twisted import logger
 
 from txdbus import error, interface as txdbus_interface
 
-
+from . import process
 from .misc import sleep
-
-
-
-class _TrackProcessProtocol(protocol.ProcessProtocol):
-
-    """
-    Twisted ProcessProtocol class used to track process startup/exit.
-    Exposes two relevant attributes:
-    - `started`: deferred that fires when the associated process is started.
-    - `stopped`: deferred that fires when the associated process terminates.
-    """
-
-    def __init__(self, player_name):
-
-        self.log = logger.Logger(namespace='player.proc.%s' % (player_name,))
-        self.started = defer.Deferred()
-        self.stopped = defer.Deferred()
-        self.pid = None
-
-
-    def connectionMade(self):
-
-        # Called by Twisted when the process is started.
-
-        self.pid = self.transport.pid
-        self.log.info('player process started with PID {pid}', pid=self.pid)
-        self.started.callback(None)
-
-
-    def outReceived(self, data):
-
-        # Called by Twisted when the process writes to its standard output.
-
-        self.log.debug('stdout: {s!r}', s=data)
-
-
-    def errReceived(self, data):
-
-        # Called by Twisted when the process writes to its standard error.
-
-        self.log.warn('stderr: {s!r}', s=data)
-
-
-    def processEnded(self, reason):
-
-        # Called by Twisted when the process terminates.
-
-        exit_code = reason.value.exitCode
-        self.log.info('player process ended; exit_code={ec!r}', ec=exit_code)
-        self.stopped.callback(exit_code)
 
 
 
@@ -115,9 +65,6 @@ class OMXPlayer(object):
 
         # Used to track omxplayer process startup/termination.
         self._process_protocol = None
-
-        # TODO: Not really used, can go away.
-        self._process_transport = None
 
         # DBus proxy object for the player: used to control it.
         self._dbus_player = None
@@ -218,7 +165,6 @@ class OMXPlayer(object):
 
         # Spawn the omxplayer.bin process.
 
-        self._process_protocol = _TrackProcessProtocol(self.dbus_player_name)
         args = [self.player_mgr.executable]
         if self.loop:
             args.append('--loop')
@@ -229,14 +175,10 @@ class OMXPlayer(object):
         args.extend(('--alpha', str(self.alpha)))
         args.append(str(self.filename))
 
-        # env=None, below, is relevant: it ensures that environment variables
-        # this process has set are passed down to the child process; in this
-        # case, PlayerManager probably set LD_LIBRARY_PATH.
-        self._process_transport = self._reactor.spawnProcess(
-            self._process_protocol,
-            self.player_mgr.executable,
+        self._process_protocol = process.spawn(
+            self._reactor,
             args,
-            env=None,
+            self.dbus_player_name,
         )
 
 
