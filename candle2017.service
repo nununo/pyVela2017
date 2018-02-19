@@ -3,8 +3,9 @@
 ; ----------------------------------------------------------------------------
 ; Integrating with operating system startup/shutdown
 ; --------------------------------------------------
-; - Copy this file to /etc/systemd/system.
-; - Edit it, adjusting the {...} place holders in the [Service] section.
+; - Copy this file and candle2017-cleanup.service to /etc/systemd/system:
+;   $ sudo cp candle*.service /etc/systemd/system
+; - Edit them, adjusting the {...} place holders in the [Service] sections.
 ; - Test it manually with:
 ;   $ sudo systemctl daemon-reload
 ;   $ sudo systemctl start candle2017
@@ -19,6 +20,7 @@
 
 Description=Candle 2017
 Wants=network.target
+OnFailure=candle2017-cleanup.service
 
 
 
