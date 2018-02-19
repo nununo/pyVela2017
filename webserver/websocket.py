@@ -86,6 +86,10 @@ class WSProto(websocket.WebSocketServerProtocol):
             _log.warn('missing level/namespace: {m!r}', m=message)
         else:
             self.factory.set_log_level_callable(namespace, level)
+            # Log message on the specified logger/level to feed user back.
+            log = logger.Logger(namespace=namespace)
+            method = getattr(log, level)
+            method('log level set')
 
 
     def onClose(self, wasClean, code, reason):
