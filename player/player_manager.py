@@ -51,8 +51,9 @@ class PlayerManager(object):
 
         self.reactor = reactor
         self.settings = settings
+
         # part of our public interface, OMXPlayer will use this
-        self.dbus_mgr = DBusManager(reactor)
+        self.dbus_mgr = DBusManager(reactor, settings)
 
         # keys/values: integer levels/list of video files
         self.files = {}
@@ -140,7 +141,7 @@ class PlayerManager(object):
     @defer.inlineCallbacks
     def _dbus_disconnected(self):
 
-        # Called by DBus manager /when DBus connection is lost.
+        # Called by DBus manager when DBus connection is lost.
 
         if self._stopping:
             return
@@ -222,6 +223,9 @@ class PlayerManager(object):
             self.log.info('stopping player level={l!r}', l=level)
             yield player.stop(skip_dbus)
             self.log.info('stopped player level={l!r}', l=level)
+        self.log.info('cleaning up dbus manager')
+        yield self.dbus_mgr.cleanup()
+        self.log.info('cleaned up dbus manager')
         self._ready = False
 
         self.log.info('stopped')

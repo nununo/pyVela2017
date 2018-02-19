@@ -91,7 +91,11 @@ def start_things(reactor, settings):
     reactor.addSystemEventTrigger('before', 'shutdown', stop_things, player_manager)
 
     # Start the player manager.
-    yield player_manager.start()
+    try:
+        yield player_manager.start()
+    except Exception:
+        # May fail at launching child processes, logs should help diagnose.
+        raise SystemExit(-1)
 
     # Not done until the player manager is done.
     yield player_manager.done
@@ -112,41 +116,15 @@ def stop_things(player_manager):
 
 
 
-def respawn_under_dbus(settings):
-
-    """
-    Tries to respawn itself under a DBus session.
-    """
-
-    try:
-        executable = settings['environment']['dbus_run_session_bin']
-        os.execl(
-            executable,
-            executable,
-            sys.executable,
-            os.path.abspath(__file__),
-        )
-    except Exception as e:
-        print('failed to execute %r: %s' % (executable, e))
-        return False
-
-
-
-def main(environ):
+def main():
 
     """
     Main entry point.
 
-    Loads settings, respawns under a DBus session if need and drives
-    the main asynchronous code.
+    Loads settings, and drives the main asynchronous code.
     """
 
     settings = load_settings()
-
-    if 'DBUS_SESSION_BUS_ADDRESS' not in environ:
-        if not respawn_under_dbus(settings):
-            sys.exit(-1)
-
     task.react(start_things, (settings,))
 
     return 0
@@ -154,7 +132,7 @@ def main(environ):
 
 if __name__ == '__main__':
 
-    sys.exit(main(os.environ))
+    sys.exit(main())
 
 
 # ----------------------------------------------------------------------------

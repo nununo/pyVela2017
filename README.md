@@ -136,7 +136,7 @@ Most settings are, hopefully, self-explanatory. Here's a quick rundown:
 
 | setting                          | description                                                     |
 |----------------------------------|-----------------------------------------------------------------|
-| environment.dbus_run_session_bin | Absolute path to the `dbus-run-session` executable.
+| environment.dbus_daemon_bin      | Absolute path to the `dbus-daemon` executable.
 | environment.omxplayer_bin        | Absolute path to the `omxplayer.bin` executable.                |
 | environment.ld_library_path      | Absolute path to the OMXPlayer required shared libraries.       |
 | loglevel                         | Default log level, one of `debug`, `info`, `warn` or `error`.   |
