@@ -129,7 +129,7 @@ class OMXPlayer(object):
         """
 
         player_name = self.dbus_player_name
-        self.log.info('spawning player {p!r}', p=player_name)
+        self.log.info('spawning')
 
         # Ask DBus manager to track this player's name bus presence.
         self.dbus_mgr.track_dbus_name(player_name)
@@ -151,7 +151,7 @@ class OMXPlayer(object):
         yield self._get_duration()
 
         # Player is now ready to be controlled.
-        self.log.info('player ready')
+        self.log.info('ready')
         self._ready.callback(None)
 
         # Since omxplayer defaults to starting in play mode, ask it to
@@ -186,7 +186,7 @@ class OMXPlayer(object):
 
         # Get the DBus object for this player.
 
-        self.log.debug('getting dbus player object')
+        self.log.debug('getting dbus object')
 
         # Hardcoded data from omxplayer documentation.
         ifaces = [
@@ -198,7 +198,7 @@ class OMXPlayer(object):
             '/org/mpris/MediaPlayer2',
             interfaces=ifaces,
         )
-        self.log.debug('got dbus player object')
+        self.log.debug('got dbus object')
 
 
     @defer.inlineCallbacks
@@ -249,11 +249,11 @@ class OMXPlayer(object):
 
         player_name = self.dbus_player_name
 
-        self.log.info('stopping player {p!r}', p=player_name)
+        self.log.info('stopping')
 
         if self._process_protocol.stopped.called:
             # Prevent race condition: do nothing if process is gone.
-            self.log.info('no player {p!r} process to stop', p=player_name)
+            self.log.info('no process to stop', p=player_name)
             exit_code = yield self._process_protocol.stopped
             defer.returnValue(exit_code)
             return
@@ -270,12 +270,12 @@ class OMXPlayer(object):
                 # and prevent exception propagation to caller, letting it assume
                 # stop() completed successfully.
                 stop_via_sigterm = True
-                self.log.warn('stopping player {p!r} failed: {e!r}', p=player_name, e=e)
+                self.log.warn('stopping failed: {e!r}', e=e)
 
         if stop_via_sigterm:
             yield self._stop_via_sigterm()
 
-        self.log.info('stopped player {p!r}', p=player_name)
+        self.log.info('stopped')
 
         defer.returnValue(exit_code)
 
@@ -293,7 +293,7 @@ class OMXPlayer(object):
 
         if not self._stop_in_progress:
             self._stop_in_progress = True
-            self.log.debug('requesting player to stop')
+            self.log.debug('requesting stop')
             try:
                 # Prevent race condition with timeout: process might have
                 # terminated or DBus may have become unreachable.
@@ -303,13 +303,13 @@ class OMXPlayer(object):
                     timeout=timeout,
                 )
             except error.TimeOut:
-                self.log.info('player stop request timed out')
+                self.log.info('stop request timed out')
                 raise
             except Exception as e:
-                self.log.warn('player stop request failed: {e!r}', e=e)
+                self.log.warn('stop request failed: {e!r}', e=e)
                 raise
             else:
-                self.log.debug('requested player to stop')
+                self.log.debug('requested stop')
 
         player_name = self.dbus_player_name
 
@@ -350,12 +350,12 @@ class OMXPlayer(object):
         yield self._wait_ready('play/pause')
 
         # Based on https://github.com/popcornmix/omxplayer
-        self.log.debug('asking player to play/pause')
+        self.log.debug('requesting play/pause')
         yield self._dbus_player.callRemote(
             'PlayPause',
             interface='org.mpris.MediaPlayer2.Player'
         )
-        self.log.debug('asked player to play/pause')
+        self.log.debug('requested play/pause')
 
 
     @defer.inlineCallbacks
@@ -462,12 +462,12 @@ class OMXPlayer(object):
         """
         yield self._wait_ready('action')
 
-        self.log.debug('asking player action')
+        self.log.debug('requesting action')
         yield self._dbus_player.callRemote(
             'Action', int32,
             interface='org.mpris.MediaPlayer2.Player'
         )
-        self.log.debug('asked player action')
+        self.log.debug('requested action')
 
 
 # ----------------------------------------------------------------------------
