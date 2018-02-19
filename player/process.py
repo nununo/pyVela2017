@@ -29,7 +29,6 @@ class _TrackProcessProtocol(protocol.ProcessProtocol):
 
     def __init__(self, name, track_output=False):
 
-        self.name = name
         self.log = logger.Logger(namespace='player.proc.%s' % (name,))
         self.started = defer.Deferred()
         self.stopped = defer.Deferred()
@@ -44,7 +43,7 @@ class _TrackProcessProtocol(protocol.ProcessProtocol):
         # Called by Twisted when the process is started.
 
         self.pid = self.transport.pid
-        self.log.info('{n} process started, PID {p}', n=self.name, p=self.pid)
+        self.log.info('process started, PID {p}', p=self.pid)
         self.started.callback(self.pid)
 
 
@@ -52,7 +51,7 @@ class _TrackProcessProtocol(protocol.ProcessProtocol):
 
         # Called by Twisted when the process writes to its standard output.
 
-        self.log.debug('{n} stdout: {d!r}', n=self.name, d=data)
+        self.log.debug('stdout: {d!r}', d=data)
         if self._track_output:
             self.out_queue.put(data)
 
@@ -61,7 +60,7 @@ class _TrackProcessProtocol(protocol.ProcessProtocol):
 
         # Called by Twisted when the process writes to its standard error.
 
-        self.log.debug('{n} stderr: {d!r}', n=self.name, d=data)
+        self.log.debug('stderr: {d!r}', d=data)
         if self._track_output:
             self.err_queue.put(data)
 
@@ -73,11 +72,11 @@ class _TrackProcessProtocol(protocol.ProcessProtocol):
         May raise an OSError.
         """
         try:
-            self.log.debug('sending SIGTERM to {n}', n=self.name)
+            self.log.debug('sending SIGTERM')
             self.transport.signalProcess('TERM')
-            self.log.debug('sent SIGTERM to {n}', n=self.name)
+            self.log.debug('sent SIGTERM')
         except error.ProcessExitedAlready:
-            self.log.debug('{n} already exited', n=self.name)
+            self.log.debug('already exited')
 
 
     def processEnded(self, reason):
@@ -85,7 +84,7 @@ class _TrackProcessProtocol(protocol.ProcessProtocol):
         # Called by Twisted when the process terminates.
 
         exit_code = reason.value.exitCode
-        self.log.info('{n} process ended, exit code {ec}', n=self.name, ec=exit_code)
+        self.log.info('process ended, exit code {ec}', ec=exit_code)
         self.stopped.callback(exit_code)
 
 
