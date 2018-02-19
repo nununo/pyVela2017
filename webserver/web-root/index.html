@@ -28,6 +28,7 @@
         background: #eee;
     }
     button {
+        padding: 0;
         border: none;
         background: darkorange;
         width: 2em;
@@ -36,35 +37,38 @@
     }
     button#sll {
         width: 2.5em;
-        float: right;
         background: limegreen;
+        float: right;
     }
     select {
         margin: 0.2em 0.5em 0.2em 0.5em;
         display: block;
-        float: right;
         width: 8em;
         font-size: 120%;
     }
     #left_pane {
-        width: 60%;
+        width: 50%;
         height: 60vh;
         float: left;
     }
     #chart_pane {
         padding-top: 0.5em;
-        height: 70vh;
+        height: 50vh;
     }
     #control_pane {
         padding: 0.5em;
     }
     #level_control {
-        float: left;
+        margin-bottom: 0.5em;
     }
     #log_control {
     }
+    #log_selects {
+        padding: 0.5em;
+        float: right;
+    }
     #log_pane {
-        width: 40%;
+        width: 50%;
         height: 100vh;
         float: left;
     }
@@ -102,24 +106,26 @@
                 </div>
                 <div id="log_control">
                     <button id="sll" onclick="set_log_level();"> SLL </button>
-                    <select id="logger_namespace">
-                        <option value="inputs">inputs</option>
-                        <option value="inputs.network">inputs.network</option>
-                        <option value="inputs.arduino">inputs.arduino</option>
-                        <option value="inputs.arduino.serial">inputs.arduino.serial</option>
-                        <option value="inputs.arduino.proto">inputs.arduino.proto</option>
-                        <option value="player">player</option>
-                        <option value="player.dbus">player.dbus</option>
-                        <option value="player.mngr">player.mngr</option>
-                        <option value="player.proc">player.proc</option>
-                        <option value="player.each">player.each</option>
-                    </select>
-                    <select id="logger_level">
-                        <option value="debug">debug</option>
-                        <option value="info">info</option>
-                        <option value="warn">warn</option>
-                        <option value="error">error</option>
-                    </select>
+                    <div id="log_selects">
+                        <select id="logger_namespace">
+                            <option value="inputs">inputs</option>
+                            <option value="inputs.network">inputs.network</option>
+                            <option value="inputs.arduino">inputs.arduino</option>
+                            <option value="inputs.arduino.serial">inputs.arduino.serial</option>
+                            <option value="inputs.arduino.proto">inputs.arduino.proto</option>
+                            <option value="player">player</option>
+                            <option value="player.dbus">player.dbus</option>
+                            <option value="player.mngr">player.mngr</option>
+                            <option value="player.proc">player.proc</option>
+                            <option value="player.each">player.each</option>
+                        </select>
+                        <select id="logger_level">
+                            <option value="debug">debug</option>
+                            <option value="info">info</option>
+                            <option value="warn">warn</option>
+                            <option value="error">error</option>
+                        </select>
+                    </div>
                 </div>
             </div>
     </div>

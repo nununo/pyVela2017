@@ -113,7 +113,7 @@ function socket_message(msg) {
     if ( obj.hasOwnProperty("y") ) {
         obj.t = new Date(obj.t);
         chart_data.push(obj);
-        if ( chart_data.length > 600 ) {
+        if ( chart_data.length > 100 ) {
             chart_data.shift();
         }
         chart.update();
