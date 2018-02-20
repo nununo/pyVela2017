@@ -51,7 +51,12 @@ class _ArduinoProtocol(basic.LineReceiver):
 
         self._log.debug('data received: {d!r}', d=line)
         try:
-            pdu = self._decode_pdu_buffer(line)
+            pdu = int.from_bytes(line, byteorder='little')
+        except (TypeError, ValueError):
+            self._log.warn('bad value: {d!r}', d=line)
+            return
+
+        try:
             self._pdu_received_callable(pdu)
         except Exception as e:
             self._log.warn('callable exception: {e!s}', e=e)
@@ -65,14 +70,6 @@ class _ArduinoProtocol(basic.LineReceiver):
         # the parent class does not implement it.
 
         self._log.warn('unexpected data: {d!r}', d=data)
-
-
-    @staticmethod
-    def _decode_pdu_buffer(pdu_buffer):
-
-        # TODO: Throw this method away and inline it in `lineReceived`?
-
-        return int.from_bytes(pdu_buffer, byteorder='little')
 
 
     def connectionLost(self, reason=protocol.connectionDone):
