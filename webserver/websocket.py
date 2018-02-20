@@ -36,7 +36,7 @@ class WSProto(websocket.WebSocketServerProtocol):
         # Twisted/Autobahn calls this when a websocket connection is establised.
 
         _log.info('ws conn')
-        self.factory.connected_protocol = self
+        self.factory.set_active_protocol(self)
 
 
     def onOpen(self):
@@ -97,7 +97,7 @@ class WSProto(websocket.WebSocketServerProtocol):
         # Twisted/Autobahn calls this when a websocket connection is closed.
 
         _log.info('ws clse')
-        self.factory.connected_protocol = None
+        self.factory.set_protocol_gone(self)
 
 
     def _send_message_dict(self, message_dict):
@@ -149,12 +149,36 @@ class WSFactory(websocket.WebSocketServerFactory):
     def __init__(self, change_level_callable, set_log_level_callable,
                  *args, **kwargs):
 
-        # Track a single `connected_protocol` so that we can push data.
+        # Track a single `_connected_protocol` so that we can push data.
 
         super(WSFactory, self).__init__(*args, **kwargs)
-        self.connected_protocol = None
+        self._connected_protocol = None
         self.change_level_callable = change_level_callable
         self.set_log_level_callable = set_log_level_callable
+
+
+    def set_active_protocol(self, active_proto):
+
+        """
+        Sets the protocol instance this factory will push data to.
+
+        Drops any currenly active protocol connections to prevent concurrency.
+        """
+
+        if self._connected_protocol and self._connected_protocol != active_proto:
+            self._connected_protocol.dropConnection()
+        self._connected_protocol = active_proto
+
+
+    def set_protocol_gone(self, gone_proto):
+
+        """
+        Clears the active protocol if it hasn't been changed in the meantime.
+        """
+
+        if self._connected_protocol != gone_proto:
+            return
+        self._connected_protocol = None
 
 
     def raw(self, source, value):
@@ -163,8 +187,8 @@ class WSFactory(websocket.WebSocketServerFactory):
         Sends a raw `value` from `source` to the connected protocol, if any.
         """
 
-        if self.connected_protocol:
-            self.connected_protocol.raw(source, value)
+        if self._connected_protocol:
+            self._connected_protocol.raw(source, value)
 
 
     def log_message(self, message):
@@ -173,8 +197,8 @@ class WSFactory(websocket.WebSocketServerFactory):
         Sends the log `message` to the connected protocol, if any.
         """
 
-        if self.connected_protocol:
-            self.connected_protocol.log_message(message)
+        if self._connected_protocol:
+            self._connected_protocol.log_message(message)
 
 
 

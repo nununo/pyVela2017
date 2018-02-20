@@ -167,6 +167,7 @@ function clear_log() {
 function socket_close(e) {
     console.log('socket close');
     update_log('-- CONNECTION LOST --');
+    socket = null;
 }
 
 
@@ -184,10 +185,10 @@ window.onload = function() {
 // level button click handler.
 
 function change_level(level) {
-    socket.send(JSON.stringify({
+    _socket_send({
         action: "change_level",
         level: level
-    }));
+    });
 }
 
 
@@ -199,11 +200,23 @@ function set_log_level() {
     var namespace = e.options[e.selectedIndex].value;
     e = document.getElementById("logger_level");
     var level = e.options[e.selectedIndex].value;
-    socket.send(JSON.stringify({
+    _socket_send({
         action: "set_log_level",
         namespace: namespace,
         level: level
-    }));
+    });
+}
+
+
+
+// Send an JSONified object over the websocket.
+
+function _socket_send(obj) {
+    if ( !socket ) {
+        update_log('-- NOT CONNECTED --');
+        return;
+    }
+    socket.send(JSON.stringify(obj));
 }
 
 
