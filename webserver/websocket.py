@@ -58,11 +58,12 @@ class WSProto(websocket.WebSocketServerProtocol):
             _log.warn('invalid payload ignored: {p!r}', p=payload)
         else:
             method_name = '_action_%s' % message.get('action', 'invalid')
-            method = getattr(self, method_name)
+            method = getattr(self, method_name, self._action_invalid)
             method(message)
 
 
-    def _action_invalid(self, message):
+    @staticmethod
+    def _action_invalid(message):
 
         _log.warn('invalid message: {m!r}', m=message)
 
