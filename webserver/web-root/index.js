@@ -102,6 +102,7 @@ function create_websocket() {
 
 function socket_open() {
     console.log('socket open');
+    update_log('-- CONNECTION UP --');
 }
 
 
@@ -131,7 +132,7 @@ function socket_message(msg) {
 function update_log(s) {
     log.innerText += s + "\n";
     log_count++;
-    if (log_count > 40) {
+    if ( log_count > 45 ) {
         pos = log.innerText.indexOf("\n"); 
         log.innerText = log.innerText.substring(pos+1);
     }
@@ -142,7 +143,21 @@ function update_log(s) {
 // Appends a marker line to the log.
 
 function mark_log() {
-    update_log('-- MARK --');
+    if ( log.innerText.endsWith('-- MARK --\n') ) {
+        clear_log();
+    } else {
+        update_log('-- MARK --');
+    }
+}
+
+
+
+// Clear log.
+
+function clear_log() {
+    log.innerText = "";
+    log_count = 0;
+    update_log('-- LOG CLEARED --');
 }
 
 
@@ -151,6 +166,7 @@ function mark_log() {
 
 function socket_close(e) {
     console.log('socket close');
+    update_log('-- CONNECTION LOST --');
 }
 
 
@@ -189,7 +205,6 @@ function set_log_level() {
         level: level
     }));
 }
-
 
 
 // ----------------------------------------------------------------------------
