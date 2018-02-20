@@ -32,7 +32,6 @@ class InputManager(object):
         self._reactor = reactor
         self._change_level_callable = change_level_callable
         self._raw_callable = raw_callable
-        self._settings = settings
 
         self._inputs = []
         self._create_inputs(settings)
@@ -56,32 +55,26 @@ class InputManager(object):
                 raise ValueError('invalid %r setting: %s' % (input_type, e))
 
 
-    def _create_input_network(self, port):
+    def _create_input_network(self, port, interface='0.0.0.0'):
 
-        network.initialize(self, self._reactor, port)
-
-
-    def _create_input_arduino(self, **kwargs):
-
-        arduino.initialize(self, self._reactor, **kwargs)
-
-
-    def level(self, level, comment):
-
-        """
-        Inputs will call this, to signal play level changes.
-        """
-
-        self._change_level_callable(level, comment)
+        network.initialize(
+            self._reactor,
+            port,
+            interface,
+            self._change_level_callable,
+        )
 
 
-    def raw(self, source, value):
+    def _create_input_arduino(self, device_file, baud_rate, thresholds):
 
-        """
-        Inputs will call this, to signal their raw data.
-        """
-
-        self._raw_callable(source, value)
+        arduino.initialize(
+            self._reactor,
+            device_file,
+            baud_rate,
+            thresholds,
+            self._change_level_callable,
+            self._raw_callable,
+        )
 
 
 # ----------------------------------------------------------------------------
