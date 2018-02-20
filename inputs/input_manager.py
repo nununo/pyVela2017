@@ -19,22 +19,19 @@ class InputManager(object):
     Initializes inputs and mediates their feeds to a player manager.
     """
 
-    def __init__(self, reactor, player_manager, raw_listener, settings):
+    def __init__(self, reactor, change_level_callable, raw_callable, settings):
 
         """
         Initializes configured inputs:
         - `reactor` is the Twisted reactor.
-        - `player_manager` should have `level` method to trigger level changes.
-        - `raw_listener` should a `raw` method to trigger raw input data handling.
+        - `change_level_callable` should trigger level changes when called.
+        - `raw_callable` will be called by inputs with (source, value) raw data.
         - `settings` is a dict containing the 'inputs' key.
         """
 
-        # TODO: Maybe `player_manager` and `raw_listener` could be replaced with
-        # callables instead of objects with a given interface.
-
         self._reactor = reactor
-        self._player_mgr = player_manager
-        self._raw_listener = raw_listener
+        self._change_level_callable = change_level_callable
+        self._raw_callable = raw_callable
         self._settings = settings
 
         self._inputs = []
@@ -72,19 +69,19 @@ class InputManager(object):
     def level(self, level, comment):
 
         """
-        Inputs will call this, which will be forwarded to the player manager.
+        Inputs will call this, to signal play level changes.
         """
 
-        self._player_mgr.level(level, comment)
+        self._change_level_callable(level, comment)
 
 
     def raw(self, source, value):
 
         """
-        Inputs will call this, which will be forwarded to the raw listener.
+        Inputs will call this, to signal their raw data.
         """
 
-        self._raw_listener.raw(source, value)
+        self._raw_callable(source, value)
 
 
 # ----------------------------------------------------------------------------
