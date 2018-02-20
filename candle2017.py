@@ -70,14 +70,14 @@ def start_things(reactor, settings):
     log_levels = settings.get('loglevels', {})
     log.setup(level=log_level, namespace_levels=log_levels, extra_observer=log_bridge)
 
-    # Will be used to dynamically set logging levels.
-    set_level_callable = log.set_level
+    # Passed to components that need to dynamically set logging levels.
+    set_log_levels_callable = log.set_level
 
 
     # Create the player manager.
     player_manager = player.PlayerManager(reactor, settings)
 
-    # Will be used to request the player manager to trigger a level change.
+    # Passed to components that need to trigger player level changes.
     change_play_level_callable = player_manager.level
 
 
@@ -86,16 +86,16 @@ def start_things(reactor, settings):
     ws_factory = webserver.setup_websocket(
         reactor,
         change_play_level_callable,
-        set_level_callable,
+        set_log_levels_callable,
     )
 
-    # Will be used to push data to the connected web client.
+    # Passed to components that need to push data to the connected web client.
     push_raw_to_websocket_callable = ws_factory.raw
     push_log_to_websocket_callable = ws_factory.log_message
 
 
     # Create the input manager, wiring it to the appropriate callables.
-    # TODO: `_input_manager` not used, can go away.
+    # TODO: `_input_manager` either goes away or is used on exit/cleanup.
     _input_manager = inputs.InputManager(
         reactor,
         change_play_level_callable,
@@ -149,7 +149,6 @@ def main():
     settings = load_settings()
     task.react(start_things, (settings,))
 
-    return 0
 
 
 if __name__ == '__main__':
