@@ -8,8 +8,9 @@
 // The chart object.
 var chart = null;
 
-// Sliding window over the most recent chart data values.
-var chart_data = [];
+// Sliding windows over the most recent chart data values.
+var chart_data_raw = [];
+var chart_data_agd = [];
 
 // The websocket.
 var socket = null;
@@ -22,33 +23,44 @@ var log = null;
 
 
 
-// Two objects used to setup the arduino readings chart.
+// Two objects used to setup the sensor readings chart.
 // Full docs at http://www.chartjs.org
 
 const _data = {
     datasets: [{
         fill: false,
-        label: 'Arduino raw',
-        data: chart_data,
+        label: 'RAW',
+        data: chart_data_raw,
         borderColor: '#0080f0',
         backgroundColor: '#0080f0',
         pointRadius: 0,
         lineTension: 0,
+        yAxisID: 'left_axis',
+    }, {
+        fill: false,
+        label: 'AGD',
+        data: chart_data_agd,
+        borderColor: '#00a040',
+        backgroundColor: '#00a040',
+        pointRadius: 0,
+        lineTension: 0,
+        yAxisID: 'right_axis',
     }]
 }
 
 const _options = {
-    legend: {
-        display: false
-    },
+//  Visibility becomes useful with >1 dataset; bonus: clicking hides/shows datasets.
+//    legend: {
+//        display: false
+//    },
     maintainAspectRatio: false,
     scales: {
         xAxes: [{
             type: 'time',
             time: {
-                minUnit: 'minute',
+                minUnit: 'year',
                 displayFormats: {
-                    minute: 'MMM DD, HH:mm'
+                    minute: 'HH:mm:ss'
                 }
             },
             ticks: {
@@ -57,9 +69,15 @@ const _options = {
             },
         }],
         yAxes: [{
-            ticks: {
+            id: 'left_axis',
+            position: 'left',
+//            ticks: {
 //                beginAtZero: true,
-            }
+//            }
+        }, {
+            id: 'right_axis',
+            position: 'right',
+//            type: 'logarithmic',
         }]
     },
     animation: {
@@ -108,19 +126,36 @@ function socket_open() {
 
 
 // Websocket event handler: called when a message is received.
+// Should be a JSON payload.
 
 function socket_message(msg) {
     var obj = JSON.parse(msg.data);
-    if ( obj.hasOwnProperty("y") ) {
-        obj.t = new Date(obj.t);
-        chart_data.push(obj);
-        if ( chart_data.length > 100 ) {
-            chart_data.shift();
-        }
-        chart.update();
-    } else {
-        update_log(obj.text);
+    switch ( obj.type ) {
+        case 'chart-data':
+            _update_chart_data(obj);
+            break;
+        case 'log-message':
+            update_log(obj.message);
+            break;
+        default:
+            console.log('bad message: "'+msg.data+'"');
+            break;
     }
+}
+
+
+
+// Updates the chart from an object with .ts, .raw and .agd values.
+
+function _update_chart_data(data_object) {
+    var ts = new Date(data_object.ts);
+    chart_data_raw.push({t: ts, y: data_object.raw});
+    chart_data_agd.push({t: ts, y: data_object.agd});
+    if ( chart_data_raw.length > 100 ) {
+        chart_data_raw.shift();
+        chart_data_agd.shift();
+    }
+    chart.update();
 }
 
 

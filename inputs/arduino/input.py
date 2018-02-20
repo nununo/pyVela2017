@@ -50,14 +50,14 @@ class ArduinoInput(object):
         # The low level serial port code will call this where `pdu` is expected
         # to be an integer.
 
-        # Notify about the "raw data" we just received.
-        self._raw_data_callable(source="arduino", value=pdu)
-
         # Keep track of this PDU and calculate the new aggregated derivative.
         self._pdus.append(pdu)
         _log.debug('pdus: {p!r}', p=self._pdus)
         agg_d = self._aggregated_derivative()
         _log.debug('aggregated derivative: {ad!r}', ad=agg_d)
+
+        # Notify about the "raw data" we just received.
+        self._raw_data_callable(raw=pdu, agd=agg_d)
 
         # Find if the aggregated derivative is over any of the thresholds and
         # request a level change, if that is the case.

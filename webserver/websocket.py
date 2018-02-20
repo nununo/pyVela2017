@@ -101,15 +101,16 @@ class WSProto(websocket.WebSocketServerProtocol):
         self.factory.set_protocol_gone(self)
 
 
-    def _send_message_dict(self, message_dict):
+    def _send_message_dict(self, message_type, message_dict):
 
         # Server to client messages are JSON serialized objects.
 
+        message_dict['type'] = message_type
         msg = json.dumps(message_dict).encode('utf8')
         self.sendMessage(msg, isBinary=False)
 
 
-    def raw(self, _source, value):
+    def raw(self, **values):
 
         """
         Called by our factory to send raw data to the client.
@@ -118,10 +119,8 @@ class WSProto(websocket.WebSocketServerProtocol):
         the client will plot in a chart.
         """
 
-        self._send_message_dict({
-            't': datetime.datetime.now().isoformat(),
-            'y': value,
-        })
+        values['ts'] = datetime.datetime.now().isoformat()
+        self._send_message_dict('chart-data', values)
 
 
     def log_message(self, text):
@@ -133,8 +132,8 @@ class WSProto(websocket.WebSocketServerProtocol):
         displayed by the client.
         """
 
-        self._send_message_dict({
-            'text': text,
+        self._send_message_dict('log-message', {
+            'message': text,
         })
 
 
@@ -182,14 +181,14 @@ class WSFactory(websocket.WebSocketServerFactory):
         self._connected_protocol = None
 
 
-    def raw(self, source, value):
+    def raw(self, **values):
 
         """
-        Sends a raw `value` from `source` to the connected protocol, if any.
+        Sends raw `values` to the connected protocol, if any.
         """
 
         if self._connected_protocol:
-            self._connected_protocol.raw(source, value)
+            self._connected_protocol.raw(**values)
 
 
     def log_message(self, message):
