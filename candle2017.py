@@ -15,6 +15,7 @@ import sys
 
 from twisted.internet import task, defer
 
+import events
 import player
 import log
 import inputs
@@ -62,50 +63,33 @@ def start_things(reactor, settings):
     Exits when the player manager terminates.
     """
 
-    # Twisted logger observer, will forward log messages to websockets.
-    log_bridge = log.LogBridge()
+    # Decouples callers from callees, who subscribe to events fired by callers.
+    event_manager = events.EventManager()
+
+    # Twisted logger observer: fires `log_message` events.
+    log_bridge = log.LogBridge(event_manager)
 
     # Setup the logging system.
     log_level = settings.get('loglevel', 'warn')
     log_levels = settings.get('loglevels', {})
     log.setup(level=log_level, namespace_levels=log_levels, extra_observer=log_bridge)
 
-    # Passed to components that need to dynamically set logging levels.
-    set_log_levels_callable = log.set_level
+    # Tell the event manager what to do with 'set-log-level' events.
+    event_manager.subscribe(event_manager.set_log_level, log.set_level)
 
 
     # Create the player manager.
-    player_manager = player.PlayerManager(reactor, settings)
-
-    # Passed to components that need to trigger player level changes.
-    change_play_level_callable = player_manager.level
+    player_manager = player.PlayerManager(reactor, event_manager, settings)
 
 
     # Start the HTTP and websocket servers.
     webserver.setup_webserver(reactor)
-    ws_factory = webserver.setup_websocket(
-        reactor,
-        change_play_level_callable,
-        set_log_levels_callable,
-    )
-
-    # Passed to components that need to push data to the connected web client.
-    push_raw_to_websocket_callable = ws_factory.raw
-    push_log_to_websocket_callable = ws_factory.log_message
+    webserver.setup_websocket(reactor, event_manager)
 
 
-    # Create the input manager, wiring it to the appropriate callables.
+    # Create the input manager.
     # TODO: `_input_manager` either goes away or is used on exit/cleanup.
-    _input_manager = inputs.InputManager(
-        reactor,
-        change_play_level_callable,
-        push_raw_to_websocket_callable,
-        settings,
-    )
-
-
-    # Connect the log bridge to the websocket client.
-    log_bridge.destination_callable = push_log_to_websocket_callable
+    _input_manager = inputs.InputManager(reactor, event_manager, settings)
 
 
     # Ensure a clean stop.

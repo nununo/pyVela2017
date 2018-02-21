@@ -75,7 +75,7 @@ class WSProto(websocket.WebSocketServerProtocol):
         except KeyError:
             _log.warn('missing level: {m!r}', m=message)
         else:
-            self.factory.change_level_callable(level, comment='web')
+            self.factory.event_manager.change_play_level(level, comment='web')
 
 
     def _action_set_log_level(self, message):
@@ -86,7 +86,7 @@ class WSProto(websocket.WebSocketServerProtocol):
         except KeyError:
             _log.warn('missing level/namespace: {m!r}', m=message)
         else:
-            self.factory.set_log_level_callable(namespace, level)
+            self.factory.event_manager.set_log_level(namespace, level)
             # Log message on the specified logger/level to feed user back.
             log = logger.Logger(namespace=namespace)
             method = getattr(log, level)
@@ -110,7 +110,7 @@ class WSProto(websocket.WebSocketServerProtocol):
         self.sendMessage(msg, isBinary=False)
 
 
-    def raw(self, **values):
+    def push_raw_data(self, **values):
 
         """
         Called by our factory to send raw data to the client.
@@ -123,7 +123,7 @@ class WSProto(websocket.WebSocketServerProtocol):
         self._send_message_dict('chart-data', values)
 
 
-    def log_message(self, text):
+    def push_log_message(self, text):
 
         """
         Called by our factory to send log messages to the client.
@@ -146,15 +146,16 @@ class WSFactory(websocket.WebSocketServerFactory):
 
     protocol = WSProto
 
-    def __init__(self, change_level_callable, set_log_level_callable,
-                 *args, **kwargs):
+    def __init__(self, event_manager, *args, **kwargs):
 
         # Track a single `_connected_protocol` so that we can push data.
 
         super(WSFactory, self).__init__(*args, **kwargs)
         self._connected_protocol = None
-        self.change_level_callable = change_level_callable
-        self.set_log_level_callable = set_log_level_callable
+        self.event_manager = event_manager
+
+        event_manager.subscribe(event_manager.arduino_raw_data, self._push_raw_data_to_client)
+        event_manager.subscribe(event_manager.log_message, self._push_log_msg_to_client)
 
 
     def set_active_protocol(self, active_proto):
@@ -181,40 +182,38 @@ class WSFactory(websocket.WebSocketServerFactory):
         self._connected_protocol = None
 
 
-    def raw(self, **values):
+    def _push_raw_data_to_client(self, **values):
 
         """
         Sends raw `values` to the connected protocol, if any.
         """
 
         if self._connected_protocol:
-            self._connected_protocol.raw(**values)
+            self._connected_protocol.push_raw_data(**values)
 
 
-    def log_message(self, message):
+    def _push_log_msg_to_client(self, message):
 
         """
         Sends the log `message` to the connected protocol, if any.
         """
 
         if self._connected_protocol:
-            self._connected_protocol.log_message(message)
+            self._connected_protocol.push_log_message(message)
 
 
 
-def setup_websocket(reactor, change_level_callable, set_log_level_callable):
+def setup_websocket(reactor, event_manager):
 
     """
     Starts listening for websocket connections.
     """
 
-    factory = WSFactory(change_level_callable, set_log_level_callable)
+    factory = WSFactory(event_manager)
 
     # TODO: Should port/interface be configurable? Client may need adjustments.
     reactor.listenTCP(8081, factory, interface='0.0.0.0')
     _log.info('listening for WSCK connections on 0.0.0.0:8081')
-
-    return factory
 
 
 # ----------------------------------------------------------------------------

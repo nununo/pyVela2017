@@ -19,19 +19,17 @@ class InputManager(object):
     Initializes inputs and mediates their feeds to a player manager.
     """
 
-    def __init__(self, reactor, change_level_callable, raw_callable, settings):
+    def __init__(self, reactor, event_manager, settings):
 
         """
         Initializes configured inputs:
         - `reactor` is the Twisted reactor.
-        - `change_level_callable` should trigger level changes when called.
-        - `raw_callable` will be called by inputs with (source, value) raw data.
+        - `event_manager` # TODO: update this
         - `settings` is a dict containing the 'inputs' key.
         """
 
         self._reactor = reactor
-        self._change_level_callable = change_level_callable
-        self._raw_callable = raw_callable
+        self._event_manager = event_manager
 
         self._inputs = []
         self._create_inputs(settings)
@@ -61,7 +59,7 @@ class InputManager(object):
             self._reactor,
             port,
             interface,
-            self._change_level_callable,
+            self._event_manager,
         )
 
 
@@ -72,8 +70,7 @@ class InputManager(object):
             device_file,
             baud_rate,
             thresholds,
-            self._change_level_callable,
-            self._raw_callable,
+            self._event_manager,
         )
 
 

@@ -7,6 +7,7 @@
     "loglevel": "warn",
     "loglevels": {
         "txdbus": "warn",
+        "events.mngr": "warn",
         "player": "warn",
         "player.dbus": "warn",
         "player.mngr": "warn",
