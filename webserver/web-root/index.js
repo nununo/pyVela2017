@@ -71,13 +71,43 @@ const _options = {
         yAxes: [{
             id: 'left_axis',
             position: 'left',
-//            ticks: {
-//                beginAtZero: true,
-//            }
+            afterDataLimits: function(axis) {
+                // Force axis range to be slighly larger than the data range.
+                axis.min -= 5;
+                axis.max += 5;
+            }
         }, {
             id: 'right_axis',
             position: 'right',
-//            type: 'logarithmic',
+            afterDataLimits: function(axis) {
+                // This is somewhat of a hack, read on.
+                // Ideally, we could just extend the axis range; however, the
+                // threshold annotation values are accounted for there (not sure
+                // if this is a chartjs/chart-annotations limitation of it's
+                // just my lack of understanding).
+                // The hack:
+                // - Get out of here if !chart (we're being called too early).
+                // - Grab the chart.options.annotation.annotations array and:
+                //   - Collect valid (non-null) annotations.
+                //   - If no annotations found, just extend the axis.
+                //   - If annotations are found, extend the axis taking into
+                //     account not only the chart data, already accounted for
+                //     when we are called, but also the min/max values for the
+                //     existing annotations.
+                if ( !chart ) {
+                    return;
+                }
+                var chart_annotations = chart.options.annotation.annotations;
+                var threshold_values = chart_annotations.map(item => item.value);
+                threshold_values = threshold_values.filter(item => item !== null);
+                if ( !threshold_values.length ) {
+                    axis.min -= 5;
+                    axis.max += 5;
+                } else {
+                    axis.min = Math.min(axis.min, Math.min(...threshold_values)) - 5;
+                    axis.max = Math.max(axis.max, Math.max(...threshold_values)) + 5;
+                }
+            }
         }]
     },
     animation: {
