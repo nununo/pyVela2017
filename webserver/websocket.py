@@ -75,7 +75,7 @@ class WSProto(websocket.WebSocketServerProtocol):
         except KeyError:
             _log.warn('missing level: {m!r}', m=message)
         else:
-            self.factory.event_manager.fire('change-level', level, comment='web')
+            self.factory.event_manager.change_play_level(level, comment='web')
 
 
     def _action_set_log_level(self, message):
@@ -86,7 +86,7 @@ class WSProto(websocket.WebSocketServerProtocol):
         except KeyError:
             _log.warn('missing level/namespace: {m!r}', m=message)
         else:
-            self.factory.event_manager.fire('set-log-level', namespace, level)
+            self.factory.event_manager.set_log_level(namespace, level)
             # Log message on the specified logger/level to feed user back.
             log = logger.Logger(namespace=namespace)
             method = getattr(log, level)
@@ -154,8 +154,8 @@ class WSFactory(websocket.WebSocketServerFactory):
         self._connected_protocol = None
         self.event_manager = event_manager
 
-        event_manager.subscribe('arduino-raw', self._push_raw_data_to_client)
-        event_manager.subscribe('log-message', self._push_log_msg_to_client)
+        event_manager.subscribe(event_manager.arduino_raw_data, self._push_raw_data_to_client)
+        event_manager.subscribe(event_manager.log_message, self._push_log_msg_to_client)
 
 
     def set_active_protocol(self, active_proto):

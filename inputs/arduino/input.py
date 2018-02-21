@@ -29,7 +29,7 @@ class ArduinoInput(object):
 
     Keeps track of the last _INPUT_SIZE PDUs and calculates an aggregated
     derivative which is compared is compared to the given `thresholds` and,
-    in turn, to fire 'change-level' events via the `event_manager`.
+    in turn, to fire `change_play_level` events via the `event_manager`.
     """
 
     def __init__(self, reactor, device_file, baud_rate, thresholds, event_manager):
@@ -53,7 +53,7 @@ class ArduinoInput(object):
         _log.debug('aggregated derivative: {ad!r}', ad=agg_d)
 
         # Notify about the "raw data" we just received.
-        self._event_manager.fire('arduino-raw', raw=pdu, agd=agg_d)
+        self._event_manager.arduino_raw_data(raw=pdu, agd=agg_d)
 
         # Find if the aggregated derivative is over any of the thresholds and
         # request a level change, if that is the case.
@@ -63,7 +63,7 @@ class ArduinoInput(object):
                 play_level = level
         if play_level != self._last_play_level:
             self._last_play_level = play_level
-            self._event_manager.fire('change-level', play_level, "arduino %r" % (agg_d,))
+            self._event_manager.change_play_level(play_level, "arduino %r" % (agg_d,))
 
 
     @staticmethod

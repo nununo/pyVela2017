@@ -23,6 +23,7 @@ class EventManager(object):
 
         self._log = logger.Logger(namespace=name)
         self._subscriptions = collections.defaultdict(list)
+        self._functions = {}
 
 
     def _event_functions(self, event):
@@ -44,7 +45,7 @@ class EventManager(object):
             pass
 
 
-    def fire(self, event, *args, log_failures=True, **kwargs):
+    def _fire(self, event, *args, log_failures=True, **kwargs):
 
         functions = self._event_functions(event)
         if not functions:
@@ -59,6 +60,21 @@ class EventManager(object):
                     self._log.error(msg)
                 else:
                     sys.stderr.write(msg+'\n')
+
+
+    def __getattr__(self, name):
+
+        function = self._functions.get(name)
+        if function:
+            return function
+
+        def function(*args, **kwargs):
+            this_function = self._functions[name]
+            self._fire(this_function, *args, **kwargs)
+
+        self._functions[name] = function
+
+        return function
 
 
 # ----------------------------------------------------------------------------

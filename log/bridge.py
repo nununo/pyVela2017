@@ -19,12 +19,12 @@ from twisted import logger
 class LogBridge(object):
 
     """
-    Twisted logger observer firing 'log-message' events for each emitted log.
+    Twisted logger observer firing `log_message` events for each emitted log.
     """
 
     def __init__(self, event_manager=None):
 
-        # Used to fire 'log-message' events.
+        # Used to fire `log_message` events.
         self._event_manager = event_manager
 
 
@@ -50,7 +50,7 @@ class LogBridge(object):
                 event.get('log_namespace', '-'),
                 logger.formatEvent(event),
             )
-            self._event_manager.fire('log-message', msg, log_failures=False)
+            self._event_manager.log_message(msg, log_failures=False)
 
 
 # ----------------------------------------------------------------------------

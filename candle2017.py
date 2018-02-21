@@ -66,7 +66,7 @@ def start_things(reactor, settings):
     # Decouples callers from callees, who subscribe to events fired by callers.
     event_manager = events.EventManager()
 
-    # Twisted logger observer: fires 'log-message' events.
+    # Twisted logger observer: fires `log_message` events.
     log_bridge = log.LogBridge(event_manager)
 
     # Setup the logging system.
@@ -75,7 +75,7 @@ def start_things(reactor, settings):
     log.setup(level=log_level, namespace_levels=log_levels, extra_observer=log_bridge)
 
     # Tell the event manager what to do with 'set-log-level' events.
-    event_manager.subscribe('set-log-level', log.set_level)
+    event_manager.subscribe(event_manager.set_log_level, log.set_level)
 
 
     # Create the player manager.
