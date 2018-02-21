@@ -198,9 +198,10 @@ class DBusManager(object):
             return
 
         try:
-            d.callback(None)
-        except defer.AlreadyCalledError:
-            self.log.error('failed firing {n!r} deferred', n=name)
+            if not d.called:
+                d.callback(None)
+        except Exception as e:
+            self.log.error('failed firing {n!r} deferred: {e!r}', n=name, e=e)
 
 
     def track_dbus_name(self, name):
