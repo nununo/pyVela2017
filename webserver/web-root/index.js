@@ -8,8 +8,9 @@
 // The chart object.
 var chart = null;
 
-// Sliding window over the most recent chart data values.
-var chart_data = [];
+// Sliding windows over the most recent chart data values.
+var chart_data_raw = [];
+var chart_data_agd = [];
 
 // The websocket.
 var socket = null;
@@ -22,33 +23,44 @@ var log = null;
 
 
 
-// Two objects used to setup the arduino readings chart.
+// Two objects used to setup the sensor readings chart.
 // Full docs at http://www.chartjs.org
 
 const _data = {
     datasets: [{
         fill: false,
-        label: 'Arduino raw',
-        data: chart_data,
+        label: 'RAW',
+        data: chart_data_raw,
         borderColor: '#0080f0',
         backgroundColor: '#0080f0',
         pointRadius: 0,
         lineTension: 0,
+        yAxisID: 'left_axis',
+    }, {
+        fill: false,
+        label: 'AGD',
+        data: chart_data_agd,
+        borderColor: '#00a040',
+        backgroundColor: '#00a040',
+        pointRadius: 0,
+        lineTension: 0,
+        yAxisID: 'right_axis',
     }]
 }
 
 const _options = {
-    legend: {
-        display: false
-    },
+//  Visibility becomes useful with >1 dataset; bonus: clicking hides/shows datasets.
+//    legend: {
+//        display: false
+//    },
     maintainAspectRatio: false,
     scales: {
         xAxes: [{
             type: 'time',
             time: {
-                minUnit: 'minute',
+                minUnit: 'year',
                 displayFormats: {
-                    minute: 'MMM DD, HH:mm'
+                    minute: 'HH:mm:ss'
                 }
             },
             ticks: {
@@ -57,13 +69,81 @@ const _options = {
             },
         }],
         yAxes: [{
-            ticks: {
+            id: 'left_axis',
+            position: 'left',
+//            ticks: {
 //                beginAtZero: true,
-            }
+//            }
+        }, {
+            id: 'right_axis',
+            position: 'right',
+//            type: 'logarithmic',
         }]
     },
     animation: {
         duration: 0
+    },
+// Depends on https://github.com/chartjs/chartjs-plugin-annotation
+    annotation: {
+        events: ["click"],
+        annotations: [{
+            drawTime: "afterDatasetsDraw",
+            type: "line",
+            mode: "horizontal",
+            scaleID: "right_axis",
+            value: null,
+            borderColor: "rgba(0, 0, 0, 0.3)",
+            borderWidth: 28,
+            label: {
+                content: "Level 1",
+                position: 'left',
+                xAdjust: 10,
+                backgroundColor: "rgba(0, 0, 0, 0)",
+                enabled: true
+            },
+            onClick: function(e) {
+                // console.log("Annotation", e.type, this);
+                _prompt_level_threshold(1);
+            }
+        }, {
+            drawTime: "afterDatasetsDraw",
+            type: "line",
+            mode: "horizontal",
+            scaleID: "right_axis",
+            value: null,
+            borderColor: "rgba(0, 0, 0, 0.3)",
+            borderWidth: 28,
+            label: {
+                content: "Level 2",
+                position: 'left',
+                xAdjust: 10,
+                backgroundColor: "rgba(0, 0, 0, 0)",
+                enabled: true
+            },
+            onClick: function(e) {
+                // console.log("Annotation", e.type, this);
+                _prompt_level_threshold(2);
+            }
+        }, {
+            drawTime: "afterDatasetsDraw",
+            type: "line",
+            mode: "horizontal",
+            scaleID: "right_axis",
+            value: null,
+            borderColor: "rgba(0, 0, 0, 0.3)",
+            borderWidth: 28,
+            label: {
+                content: "Level 3",
+                position: 'left',
+                xAdjust: 10,
+                backgroundColor: "rgba(0, 0, 0, 0)",
+                enabled: true
+            },
+            onClick: function(e) {
+                // console.log("Annotation", e.type, this);
+                _prompt_level_threshold(3);
+            }
+        }]
     },
 }
 
@@ -108,19 +188,64 @@ function socket_open() {
 
 
 // Websocket event handler: called when a message is received.
+// Should be a JSON payload.
 
 function socket_message(msg) {
     var obj = JSON.parse(msg.data);
-    if ( obj.hasOwnProperty("y") ) {
-        obj.t = new Date(obj.t);
-        chart_data.push(obj);
-        if ( chart_data.length > 100 ) {
-            chart_data.shift();
-        }
-        chart.update();
-    } else {
-        update_log(obj.text);
+    switch ( obj.type ) {
+        case 'chart-data':
+            _update_chart_data(obj);
+            break;
+        case 'chart-threshold':
+            _update_chart_threshold(obj);
+            break;
+        case 'log-message':
+            update_log(obj.message);
+            break;
+        default:
+            console.log('bad message: "'+msg.data+'"');
+            break;
     }
+}
+
+
+
+// Updates the chart from an object with .ts, .raw and .agd values.
+
+function _update_chart_data(data_object) {
+    var ts = new Date(data_object.ts);
+    chart_data_raw.push({t: ts, y: data_object.raw});
+    chart_data_agd.push({t: ts, y: data_object.agd});
+    if ( chart_data_raw.length > 100 ) {
+        chart_data_raw.shift();
+        chart_data_agd.shift();
+    }
+    chart.update();
+}
+
+
+
+// Updates chart thresholds from an object with .level and .value values.
+
+function _update_chart_threshold(data_object) {
+    chart.options.annotation.annotations[data_object.level-1].value = data_object.value;
+    // We could skip chart.update():
+    // Motive: data keeps coming in, this is superfluous.
+    chart.update()
+}
+
+
+
+// Asks the user for a new threshold value and notifies the server about it.
+
+function _prompt_level_threshold(level) {
+    var new_value_str = prompt('New level '+level+' threshold:');
+    var new_value = parseInt(new_value_str, 10);
+    if ( isNaN(new_value) ) {
+        return;
+    }
+    // TODO: Send action to server, instead.
+    _update_chart_threshold({level: level, value: new_value});
 }
 
 
