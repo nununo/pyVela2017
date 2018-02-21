@@ -83,6 +83,68 @@ const _options = {
     animation: {
         duration: 0
     },
+// Depends on https://github.com/chartjs/chartjs-plugin-annotation
+    annotation: {
+        events: ["click"],
+        annotations: [{
+            drawTime: "afterDatasetsDraw",
+            type: "line",
+            mode: "horizontal",
+            scaleID: "right_axis",
+            value: null,
+            borderColor: "rgba(0, 0, 0, 0.3)",
+            borderWidth: 28,
+            label: {
+                content: "Level 1",
+                position: 'left',
+                xAdjust: 10,
+                backgroundColor: "rgba(0, 0, 0, 0)",
+                enabled: true
+            },
+            onClick: function(e) {
+                // console.log("Annotation", e.type, this);
+                update_log('-- LEVEL 1 CLICK --');
+            }
+        }, {
+            drawTime: "afterDatasetsDraw",
+            type: "line",
+            mode: "horizontal",
+            scaleID: "right_axis",
+            value: null,
+            borderColor: "rgba(0, 0, 0, 0.3)",
+            borderWidth: 28,
+            label: {
+                content: "Level 2",
+                position: 'left',
+                xAdjust: 10,
+                backgroundColor: "rgba(0, 0, 0, 0)",
+                enabled: true
+            },
+            onClick: function(e) {
+                // console.log("Annotation", e.type, this);
+                update_log('-- LEVEL 2 CLICK --');
+            }
+        }, {
+            drawTime: "afterDatasetsDraw",
+            type: "line",
+            mode: "horizontal",
+            scaleID: "right_axis",
+            value: null,
+            borderColor: "rgba(0, 0, 0, 0.3)",
+            borderWidth: 28,
+            label: {
+                content: "Level 3",
+                position: 'left',
+                xAdjust: 10,
+                backgroundColor: "rgba(0, 0, 0, 0)",
+                enabled: true
+            },
+            onClick: function(e) {
+                // console.log("Annotation", e.type, this);
+                update_log('-- LEVEL 3 CLICK --');
+            }
+        }]
+    },
 }
 
 
@@ -134,6 +196,9 @@ function socket_message(msg) {
         case 'chart-data':
             _update_chart_data(obj);
             break;
+        case 'chart-threshold':
+            _update_chart_threshold(obj);
+            break;
         case 'log-message':
             update_log(obj.message);
             break;
@@ -156,6 +221,17 @@ function _update_chart_data(data_object) {
         chart_data_agd.shift();
     }
     chart.update();
+}
+
+
+
+// Updates chart thresholds from an object with .level and .value values.
+
+function _update_chart_threshold(data_object) {
+    chart.options.annotation.annotations[data_object.level-1].value = data_object.value;
+    // We could skip chart.update():
+    // Motive: data keeps coming in, this is superfluous.
+    chart.update()
 }
 
 
