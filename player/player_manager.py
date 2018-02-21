@@ -36,10 +36,11 @@ class PlayerManager(object):
     #   - Track player completion / process exit.
     #   - Respawn a new level X player.
 
-    def __init__(self, reactor, settings):
+    def __init__(self, reactor, event_manager, settings):
         """
         Initializes the player manager:
         - `reactor` is the Twisted reactor.
+        - `event_manager` is used to subscribe to 'change-level' events.
         - `settings` is a dict with:
            - ['environment']['ld_library_path']
            - ['environment']['omxplayer_bin']
@@ -51,6 +52,9 @@ class PlayerManager(object):
 
         self.reactor = reactor
         self.settings = settings
+
+        # TODO: Review where/when to call this.
+        event_manager.subscribe('change-level', self._change_play_level)
 
         # part of our public interface, OMXPlayer will use this
         self.dbus_mgr = DBusManager(reactor, settings)
@@ -173,7 +177,7 @@ class PlayerManager(object):
         yield player.spawn(end_callable=lambda exit_code: self._player_ended(level))
 
 
-    def level(self, new_level, comment=''):
+    def _change_play_level(self, new_level, comment=''):
         """
         Triggers video playing level change.
         Does nothing if:

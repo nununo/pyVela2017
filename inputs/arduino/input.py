@@ -27,19 +27,15 @@ class ArduinoInput(object):
     Processes serial received PDUs (protocol data units) that are integers that
     will be bigger when the sensors detect "more wind".
 
-    Keeps track of the last _INPUT_SIZE PDUs and calcualtes an aggregated
-    derivative (see below).
-
-    The aggregated derivative is compared to the given `thresholds` which, in
-    turn, uses the `change_level_callable` for level changes.
+    Keeps track of the last _INPUT_SIZE PDUs and calculates an aggregated
+    derivative which is compared is compared to the given `thresholds` and,
+    in turn, to fire 'change-level' events via the `event_manager`.
     """
 
-    def __init__(self, reactor, device_file, baud_rate, thresholds,
-                 change_level_callable, raw_data_callable):
+    def __init__(self, reactor, device_file, baud_rate, thresholds, event_manager):
 
         self._sp = serial.create_port(reactor, device_file, baud_rate, self._pdu_received)
-        self._change_level_callable = change_level_callable
-        self._raw_data_callable = raw_data_callable
+        self._event_manager = event_manager
         self._pdus = deque(maxlen=_INPUT_SIZE)
         self._thresholds = thresholds
         self._last_play_level = 0
@@ -57,7 +53,7 @@ class ArduinoInput(object):
         _log.debug('aggregated derivative: {ad!r}', ad=agg_d)
 
         # Notify about the "raw data" we just received.
-        self._raw_data_callable(raw=pdu, agd=agg_d)
+        self._event_manager.fire('arduino-raw', raw=pdu, agd=agg_d)
 
         # Find if the aggregated derivative is over any of the thresholds and
         # request a level change, if that is the case.
@@ -67,7 +63,7 @@ class ArduinoInput(object):
                 play_level = level
         if play_level != self._last_play_level:
             self._last_play_level = play_level
-            self._change_level_callable(play_level, "arduino %r" % (agg_d,))
+            self._event_manager.fire('change-level', play_level, "arduino %r" % (agg_d,))
 
 
     @staticmethod

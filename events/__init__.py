@@ -1,26 +1,16 @@
 # ----------------------------------------------------------------------------
 # vim: ts=4:sw=4:et
 # ----------------------------------------------------------------------------
-# inputs/network/__init__.py
+# events/__init__.py
 # ----------------------------------------------------------------------------
 
 """
-The TCP network connection input.
+Holds all event tracking code.
 """
 
-from .protocol import ControlFactory
-
-
-def initialize(reactor, port, interface, event_manager):
-
-    """
-    Initializes the TCP input and starts listening for connections.
-    """
-
-    factory = ControlFactory(event_manager)
-    reactor.listenTCP(port, factory, interface=interface)
+from .event_manager import EventManager
 
 
 # ----------------------------------------------------------------------------
-# inputs/network/__init__.py
+# events/__init__.py
 # ----------------------------------------------------------------------------
