@@ -103,7 +103,7 @@ const _options = {
             },
             onClick: function(e) {
                 // console.log("Annotation", e.type, this);
-                update_log('-- LEVEL 1 CLICK --');
+                _prompt_level_threshold(1);
             }
         }, {
             drawTime: "afterDatasetsDraw",
@@ -122,7 +122,7 @@ const _options = {
             },
             onClick: function(e) {
                 // console.log("Annotation", e.type, this);
-                update_log('-- LEVEL 2 CLICK --');
+                _prompt_level_threshold(2);
             }
         }, {
             drawTime: "afterDatasetsDraw",
@@ -141,7 +141,7 @@ const _options = {
             },
             onClick: function(e) {
                 // console.log("Annotation", e.type, this);
-                update_log('-- LEVEL 3 CLICK --');
+                _prompt_level_threshold(3);
             }
         }]
     },
@@ -232,6 +232,20 @@ function _update_chart_threshold(data_object) {
     // We could skip chart.update():
     // Motive: data keeps coming in, this is superfluous.
     chart.update()
+}
+
+
+
+// Asks the user for a new threshold value and notifies the server about it.
+
+function _prompt_level_threshold(level) {
+    var new_value_str = prompt('New level '+level+' threshold:');
+    var new_value = parseInt(new_value_str, 10);
+    if ( isNaN(new_value) ) {
+        return;
+    }
+    // TODO: Send action to server, instead.
+    _update_chart_threshold({level: level, value: new_value});
 }
 
 
