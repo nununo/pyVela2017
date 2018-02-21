@@ -11,13 +11,13 @@ The serial based Arduino input.
 from .input import ArduinoInput
 
 
-def initialize(input_manager, reactor, **kwargs):
+def initialize(*args, **kwargs):
 
     """
     Initializes the Arduino input.
     """
 
-    return ArduinoInput(input_manager, reactor, **kwargs)
+    return ArduinoInput(*args, **kwargs)
 
 
 # ----------------------------------------------------------------------------

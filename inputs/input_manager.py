@@ -19,23 +19,19 @@ class InputManager(object):
     Initializes inputs and mediates their feeds to a player manager.
     """
 
-    def __init__(self, reactor, player_manager, raw_listener, settings):
+    def __init__(self, reactor, change_level_callable, raw_callable, settings):
 
         """
         Initializes configured inputs:
         - `reactor` is the Twisted reactor.
-        - `player_manager` should have `level` method to trigger level changes.
-        - `raw_listener` should a `raw` method to trigger raw input data handling.
+        - `change_level_callable` should trigger level changes when called.
+        - `raw_callable` will be called by inputs with (source, value) raw data.
         - `settings` is a dict containing the 'inputs' key.
         """
 
-        # TODO: Maybe `player_manager` and `raw_listener` could be replaced with
-        # callables instead of objects with a given interface.
-
         self._reactor = reactor
-        self._player_mgr = player_manager
-        self._raw_listener = raw_listener
-        self._settings = settings
+        self._change_level_callable = change_level_callable
+        self._raw_callable = raw_callable
 
         self._inputs = []
         self._create_inputs(settings)
@@ -59,32 +55,26 @@ class InputManager(object):
                 raise ValueError('invalid %r setting: %s' % (input_type, e))
 
 
-    def _create_input_network(self, port):
+    def _create_input_network(self, port, interface='0.0.0.0'):
 
-        network.initialize(self, self._reactor, port)
-
-
-    def _create_input_arduino(self, **kwargs):
-
-        arduino.initialize(self, self._reactor, **kwargs)
-
-
-    def level(self, level, comment):
-
-        """
-        Inputs will call this, which will be forwarded to the player manager.
-        """
-
-        self._player_mgr.level(level, comment)
+        network.initialize(
+            self._reactor,
+            port,
+            interface,
+            self._change_level_callable,
+        )
 
 
-    def raw(self, source, value):
+    def _create_input_arduino(self, device_file, baud_rate, thresholds):
 
-        """
-        Inputs will call this, which will be forwarded to the raw listener.
-        """
-
-        self._raw_listener.raw(source, value)
+        arduino.initialize(
+            self._reactor,
+            device_file,
+            baud_rate,
+            thresholds,
+            self._change_level_callable,
+            self._raw_callable,
+        )
 
 
 # ----------------------------------------------------------------------------

@@ -21,6 +21,7 @@ import inputs
 import webserver
 
 
+
 def load_settings(filename='settings.json'):
 
     """
@@ -67,32 +68,49 @@ def start_things(reactor, settings):
     # Setup the logging system.
     log_level = settings.get('loglevel', 'warn')
     log_levels = settings.get('loglevels', {})
-    log.setup(level=log_level, namespace_levels=log_levels,
-              extra_observer=log_bridge)
+    log.setup(level=log_level, namespace_levels=log_levels, extra_observer=log_bridge)
+
+    # Passed to components that need to dynamically set logging levels.
+    set_log_levels_callable = log.set_level
+
 
     # Create the player manager.
     player_manager = player.PlayerManager(reactor, settings)
 
+    # Passed to components that need to trigger player level changes.
+    change_play_level_callable = player_manager.level
+
+
     # Start the HTTP and websocket servers.
-    # `raw_listener` to be used to push raw data and logs to connected websockets.
     webserver.setup_webserver(reactor)
-    raw_listener = webserver.setup_websocket(
+    ws_factory = webserver.setup_websocket(
         reactor,
-        player_manager.level,
-        log.set_level,
+        change_play_level_callable,
+        set_log_levels_callable,
     )
 
-    # Create the input manager, wiring it to the player manager and `raw_listener`.
-    # TODO: `_input_manager` not used, can go away.
+    # Passed to components that need to push data to the connected web client.
+    push_raw_to_websocket_callable = ws_factory.raw
+    push_log_to_websocket_callable = ws_factory.log_message
+
+
+    # Create the input manager, wiring it to the appropriate callables.
+    # TODO: `_input_manager` either goes away or is used on exit/cleanup.
     _input_manager = inputs.InputManager(
-        reactor, player_manager, raw_listener, settings
+        reactor,
+        change_play_level_callable,
+        push_raw_to_websocket_callable,
+        settings,
     )
 
-    # Connect the log bridge to the raw listener.
-    log_bridge.destination_callable = raw_listener.log_message
+
+    # Connect the log bridge to the websocket client.
+    log_bridge.destination_callable = push_log_to_websocket_callable
+
 
     # Ensure a clean stop.
     reactor.addSystemEventTrigger('before', 'shutdown', stop_things, player_manager)
+
 
     # Start the player manager.
     try:
@@ -131,7 +149,6 @@ def main():
     settings = load_settings()
     task.react(start_things, (settings,))
 
-    return 0
 
 
 if __name__ == '__main__':

@@ -31,14 +31,15 @@ class ArduinoInput(object):
     derivative (see below).
 
     The aggregated derivative is compared to the given `thresholds` which, in
-    turn, signals the `input_manager` for level changes.
+    turn, uses the `change_level_callable` for level changes.
     """
 
-    def __init__(self, input_manager, reactor, device_file, baud_rate, thresholds):
+    def __init__(self, reactor, device_file, baud_rate, thresholds,
+                 change_level_callable, raw_data_callable):
 
-        # TODO: Maybe replace the `input_manager` with a simple callable.
-        self._input_manager = input_manager
         self._sp = serial.create_port(reactor, device_file, baud_rate, self._pdu_received)
+        self._change_level_callable = change_level_callable
+        self._raw_data_callable = raw_data_callable
         self._pdus = deque(maxlen=_INPUT_SIZE)
         self._thresholds = thresholds
         self._last_play_level = 0
@@ -49,8 +50,8 @@ class ArduinoInput(object):
         # The low level serial port code will call this where `pdu` is expected
         # to be an integer.
 
-        # Tell the input manager about the "raw data" we just received.
-        self._input_manager.raw(source="arduino", value=pdu)
+        # Notify about the "raw data" we just received.
+        self._raw_data_callable(source="arduino", value=pdu)
 
         # Keep track of this PDU and calculate the new aggregated derivative.
         self._pdus.append(pdu)
@@ -59,14 +60,14 @@ class ArduinoInput(object):
         _log.debug('aggregated derivative: {ad!r}', ad=agg_d)
 
         # Find if the aggregated derivative is over any of the thresholds and
-        # notify the input manager of a new level.
+        # request a level change, if that is the case.
         play_level = 0
         for level, threshold in enumerate(self._thresholds, start=1):
             if agg_d >= threshold:
                 play_level = level
         if play_level != self._last_play_level:
             self._last_play_level = play_level
-            self._input_manager.level(play_level, "arduino %r" % (agg_d,))
+            self._change_level_callable(play_level, "arduino %r" % (agg_d,))
 
 
     @staticmethod

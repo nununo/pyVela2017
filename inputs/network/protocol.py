@@ -44,7 +44,7 @@ class ControlProtocol(basic.LineReceiver):
         except Exception:
             _log.warn('ignored {l!r}', l=line)
         else:
-            self.factory.input_manager.level(level, 'network')
+            self.factory.change_level_callable(level, 'network')
 
 
     def rawDataReceived(self, data):
@@ -73,12 +73,12 @@ class ControlFactory(protocol.Factory):
 
     protocol = ControlProtocol
 
-    def __init__(self, input_manager):
+    def __init__(self, change_level_callable):
 
         # Need to keep track of the input manager such that protocol instances
         # can notify it about level change requests.
 
-        self.input_manager = input_manager
+        self.change_level_callable = change_level_callable
 
 
 # ----------------------------------------------------------------------------

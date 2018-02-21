@@ -11,13 +11,13 @@ The TCP network connection input.
 from .protocol import ControlFactory
 
 
-def initialize(input_manager, reactor, port, interface='0.0.0.0'):
+def initialize(reactor, port, interface, change_level_callable):
 
     """
     Initializes the TCP input and starts listening for connections.
     """
 
-    factory = ControlFactory(input_manager)
+    factory = ControlFactory(change_level_callable)
     reactor.listenTCP(port, factory, interface=interface)
 
 
