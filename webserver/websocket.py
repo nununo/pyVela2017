@@ -39,8 +39,6 @@ class WSProto(websocket.WebSocketServerProtocol):
 
         # Twisted/Autobahn calls this when a websocket connection is establised.
 
-        _log.info('ws conn')
-
         # Add self as a log observer to push logs to the client.
         log.add_observer(self)
 
@@ -52,7 +50,7 @@ class WSProto(websocket.WebSocketServerProtocol):
 
         # Twisted/Autobahn calls this when a websocket connection is ready.
 
-        _log.info('ws open')
+        _log.info('{p.host}:{p.port} connected', p=self.transport.getPeer())
 
 
     def onMessage(self, payload, isBinary):
@@ -111,7 +109,7 @@ class WSProto(websocket.WebSocketServerProtocol):
         # Can't push arduino raw data to the client anymore.
         self.factory.event_manager.arduino_raw_data.no_longer_calls(self._push_raw_data)
 
-        _log.info('ws clse')
+        _log.info('{p.host}:{p.port} disconnected', p=self.transport.getPeer())
 
 
     def _send_message_dict(self, message_type, message_dict):
