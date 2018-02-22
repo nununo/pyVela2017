@@ -53,7 +53,7 @@ class WSProto(websocket.WebSocketServerProtocol):
 
         # Twisted/Autobahn calls this when a websocket connection is ready.
 
-        _log.info('{p.host}:{p.port} connected', p=self.transport.getPeer())
+        _log.warn('{p.host}:{p.port} connected', p=self.transport.getPeer())
 
 
     def onMessage(self, payload, isBinary):
@@ -112,7 +112,7 @@ class WSProto(websocket.WebSocketServerProtocol):
         # Can't push arduino raw data to the client anymore.
         self.factory.event_manager.arduino_raw_data.no_longer_calls(self._push_raw_data)
 
-        _log.info('{p.host}:{p.port} disconnected', p=self.transport.getPeer())
+        _log.warn('{p.host}:{p.port} disconnected', p=self.transport.getPeer())
 
 
     def _send_message_dict(self, message_type, message_dict):
