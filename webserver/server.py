@@ -23,7 +23,7 @@ import log
 
 
 
-_log = logger.Logger(namespace='webserver.ws')
+_log = logger.Logger(namespace='webserver')
 
 
 
