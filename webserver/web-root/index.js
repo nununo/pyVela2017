@@ -197,7 +197,8 @@ function create_chart() {
 // Called by window.onload to create the websocket.
 
 function create_websocket() {
-    var ws = new WebSocket("ws://" + location.hostname + ":8081");
+    var url = "ws://" + location.hostname + ":" + location.port + "/ws";
+    var ws = new WebSocket(url);
 
     ws.onopen = socket_open;
     ws.onmessage = socket_message;
