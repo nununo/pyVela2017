@@ -27,6 +27,10 @@ class LogBridge(object):
         # Used to fire `log_message` events.
         self._event_manager = event_manager
 
+        # Tell the event manager not to use the logging system to report
+        # event handling failures; otherwise, those would come back to to us.
+        self._event_manager.log_message.use_log = None
+
 
     def __call__(self, event):
 
@@ -50,7 +54,7 @@ class LogBridge(object):
                 event.get('log_namespace', '-'),
                 logger.formatEvent(event),
             )
-            self._event_manager.log_message(msg, log_failures=False)
+            self._event_manager.log_message(msg)
 
 
 # ----------------------------------------------------------------------------

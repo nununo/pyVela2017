@@ -6,8 +6,6 @@
     },
     "loglevel": "warn",
     "loglevels": {
-        "txdbus": "warn",
-        "events": "warn",
         "player": "warn",
         "player.dbus": "warn",
         "player.mngr": "warn",
@@ -18,7 +16,9 @@
         "inputs.arduino": "warn",
         "inputs.arduino.serial": "warn",
         "inputs.arduino.proto": "warn",
-        "webserver": "warn"
+        "webserver": "warn",
+        "txdbus": "warn",
+        "events": "warn"
     },
     "inputs": {
         "arduino": {
