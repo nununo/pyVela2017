@@ -42,13 +42,19 @@ class Event(object):
     def calls(self, function):
 
         """
-        Adds `function` as a handler to this event.
+        Adds `function` as an event handler.
         """
 
         self._functions.append(function)
 
 
-    # There could be a "does_not_call" method to remove a known handler.
+    def no_longer_calls(self, function):
+
+        """
+        Removes `function` from exising event handlers.
+        """
+
+        self._functions.remove(function)
 
 
     def __call__(self, *args, **kwargs):
