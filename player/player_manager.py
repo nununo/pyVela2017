@@ -40,7 +40,7 @@ class PlayerManager(object):
         """
         Initializes the player manager:
         - `reactor` is the Twisted reactor.
-        - `event_manager` is used to subscribe to `change_play_level` events.
+        - `event_manager` is used to register `change_play_level` handling.
         - `settings` is a dict with:
            - ['environment']['ld_library_path']
            - ['environment']['omxplayer_bin']
@@ -54,7 +54,7 @@ class PlayerManager(object):
         self.settings = settings
 
         # TODO: Review where/when to call this.
-        event_manager.subscribe(event_manager.change_play_level, self._change_play_level)
+        event_manager.change_play_level.calls(self._change_play_level)
 
         # part of our public interface, OMXPlayer will use this
         self.dbus_mgr = DBusManager(reactor, settings)
