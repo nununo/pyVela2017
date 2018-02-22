@@ -5,14 +5,14 @@
 # ----------------------------------------------------------------------------
 
 """
-Exports two functions to simplify twisted.logger utilization.
+Exports functions to simplify twisted.logger utilization.
 """
 
 import logging
 import sys
 
 from twisted.logger import (
-    globalLogBeginner, textFileLogObserver,
+    globalLogBeginner, globalLogPublisher, textFileLogObserver,
     FilteringLogObserver, LogLevelFilterPredicate, LogLevel, Logger,
 )
 
@@ -61,16 +61,23 @@ class _LogManager(object):
 
     """
     Twisted logger manager: tracks filtering predicates to support dynamic
-    per-namespace log level changes at runtime.
+    per-namespace log level changes at runtime and supports adding/removing
+    observers at runtime.
     """
 
     def __init__(self):
 
         self._predicate = None
 
+        # Track dynamically added/removed observers:
+        # - keys: observers
+        # - values: FilteringLogObserver instances
+        self._observers = {}
 
-    def setup(self, level, namespace_levels, text_file, time_format,
-              handle_stdlib, stdlib_level, stdlib_prefix, extra_observer=None):
+
+    def setup(self, level='warn', namespace_levels=None, text_file=sys.stderr,
+              time_format='%H:%M:%S.%f', handle_stdlib=True, stdlib_level='notset',
+              stdlib_prefix='stdlib.'):
 
         """
         Initiates the twisted.logger system:
@@ -81,7 +88,6 @@ class _LogManager(object):
         - handle_stdlib: True/False.
         - stdlib_level: level name, above which stdlib logging is handled.
         - stdlib_prefix: added to stdlib logger name, used as namespace.
-        - extra_observer: additional observer.
         """
 
         file_observer = textFileLogObserver(text_file, timeFormat=time_format)
@@ -92,17 +98,18 @@ class _LogManager(object):
             for namespace, level_name in namespace_levels.items():
                 level = LogLevel.levelWithName(level_name)
                 self._predicate.setLogLevelForNamespace(namespace, level)
-        observers = [
-            FilteringLogObserver(file_observer, [self._predicate]),
-        ]
-        if extra_observer:
-            observers.append(
-                FilteringLogObserver(extra_observer, [self._predicate]),
-            )
-        globalLogBeginner.beginLoggingTo(observers)
+        globalLogBeginner.beginLoggingTo([self._filtered_observer(file_observer)])
 
         if handle_stdlib:
             self._handle_stdlib(stdlib_level, stdlib_prefix)
+
+
+    def _filtered_observer(self, observer):
+
+        # Wraps `observer` in a t.l.FilteringLogObserver using the
+        # shared t.l.LogLevelFilterPredicate in `self._predicate`
+
+        return FilteringLogObserver(observer, [self._predicate])
 
 
     @staticmethod
@@ -143,33 +150,42 @@ class _LogManager(object):
             self._predicate.clearLogLevels()
 
 
+    def add_observer(self, observer):
+
+        """
+        Wraps `observer` in a FilteringLogObserver and adds it to the global
+        log publisher (filtering agrees with `setup` and `set_level` calls).
+        """
+
+        filtered_observer = self._filtered_observer(observer)
+        globalLogPublisher.addObserver(filtered_observer)
+        self._observers[observer] = filtered_observer
+
+
+    def remove_observer(self, observer):
+
+        """
+        Locates the FilteringLogObserver wrapping `observer` and removes it
+        from the global log publisher.
+        """
+
+        filtered_observer = self._observers[observer]
+        globalLogPublisher.removeObserver(filtered_observer)
+
+
+
+# The log manager instance.
 
 _LOG_MGR = _LogManager()
 
 
 
-def setup(level='warn', namespace_levels=None, text_file=sys.stderr,
-          time_format='%H:%M:%S.%f', handle_stdlib=True,
-          stdlib_level='notset', stdlib_prefix='stdlib.',
-          extra_observer=None):
+# Export the log manager's methods as module level callables.
 
-    """
-    Initializes the twisted.logger system.
-    """
-
-    _LOG_MGR.setup(
-        level, namespace_levels, text_file, time_format,
-        handle_stdlib, stdlib_level, stdlib_prefix, extra_observer,
-    )
-
-
-def set_level(namespace=None, level=None):
-
-    """
-    Changes the log level of namespace.
-    """
-
-    _LOG_MGR.set_level(namespace, level)
+setup = _LOG_MGR.setup
+set_level = _LOG_MGR.set_level
+add_observer = _LOG_MGR.add_observer
+remove_observer = _LOG_MGR.remove_observer
 
 
 # ----------------------------------------------------------------------------
