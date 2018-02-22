@@ -40,10 +40,12 @@ class WSProto(websocket.WebSocketServerProtocol):
         # Twisted/Autobahn calls this when a websocket connection is establised.
 
         _log.info('ws conn')
-        self.factory.set_active_protocol(self)
 
         # Add self as a log observer to push logs to the client.
         log.add_observer(self)
+
+        # Handle `arduino_raw_data` by pushing it to the client.
+        self.factory.event_manager.arduino_raw_data.calls(self._push_raw_data)
 
 
     def onOpen(self):
@@ -106,8 +108,10 @@ class WSProto(websocket.WebSocketServerProtocol):
         # Can't push logs to the client anymore.
         log.remove_observer(self)
 
+        # Can't push arduino raw data to the client anymore.
+        self.factory.event_manager.arduino_raw_data.no_longer_calls(self._push_raw_data)
+
         _log.info('ws clse')
-        self.factory.set_protocol_gone(self)
 
 
     def _send_message_dict(self, message_type, message_dict):
@@ -119,7 +123,7 @@ class WSProto(websocket.WebSocketServerProtocol):
         self.sendMessage(msg, isBinary=False)
 
 
-    def push_raw_data(self, **values):
+    def _push_raw_data(self, **values):
 
         """
         Called by our factory to send raw data to the client.
@@ -166,47 +170,10 @@ class WSFactory(websocket.WebSocketServerFactory):
 
     def __init__(self, event_manager, *args, **kwargs):
 
-        # Track a single `_connected_protocol` so that we can push data.
+        # Protocol instances use `event_manager`.
 
         super(WSFactory, self).__init__(*args, **kwargs)
-        self._connected_protocol = None
         self.event_manager = event_manager
-
-        event_manager.arduino_raw_data.calls(self._push_raw_data_to_client)
-
-
-    def set_active_protocol(self, active_proto):
-
-        """
-        Sets the protocol instance this factory will push data to.
-
-        Drops any currenly active protocol connections to prevent concurrency.
-        """
-
-        if self._connected_protocol and self._connected_protocol != active_proto:
-            self._connected_protocol.dropConnection()
-        self._connected_protocol = active_proto
-
-
-    def set_protocol_gone(self, gone_proto):
-
-        """
-        Clears the active protocol if it hasn't been changed in the meantime.
-        """
-
-        if self._connected_protocol != gone_proto:
-            return
-        self._connected_protocol = None
-
-
-    def _push_raw_data_to_client(self, **values):
-
-        """
-        Sends raw `values` to the connected protocol, if any.
-        """
-
-        if self._connected_protocol:
-            self._connected_protocol.push_raw_data(**values)
 
 
 
