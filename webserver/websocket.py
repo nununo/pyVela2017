@@ -154,8 +154,8 @@ class WSFactory(websocket.WebSocketServerFactory):
         self._connected_protocol = None
         self.event_manager = event_manager
 
-        event_manager.subscribe(event_manager.arduino_raw_data, self._push_raw_data_to_client)
-        event_manager.subscribe(event_manager.log_message, self._push_log_msg_to_client)
+        event_manager.arduino_raw_data.calls(self._push_raw_data_to_client)
+        event_manager.log_message.calls(self._push_log_msg_to_client)
 
 
     def set_active_protocol(self, active_proto):

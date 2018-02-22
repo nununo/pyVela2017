@@ -10,71 +10,57 @@ Simple callable based event manager.
 
 from __future__ import absolute_import
 
-import collections
-import sys
-
-from twisted import logger
+from . import event
 
 
 
 class EventManager(object):
 
-    def __init__(self, name='events.mngr'):
+    """
+    Callable based event manager with a minimal API.
+    Summary:
+    - Events are attributes of EventManager, created dynamically, as needed.
+    - Events have zero or more handlers: functions/callables added to them.
+    - Events are fired by calling them, like functions.
+    - Firing an event calls all associated handlers, passing them the same
+      arguments the "fire event" call was given.
 
-        self._log = logger.Logger(namespace=name)
-        self._subscriptions = collections.defaultdict(list)
-        self._functions = {}
+    Usage example:
 
+    >>> em = EventManager()
 
-    def _event_functions(self, event):
+    # Tell the event manager to call our lambda when 'my_event' is fired.
+    >>> em.my_event.calls(lambda: print('event handler #1'))
 
-        return self._subscriptions.get(event)
+    # Adding another callable for 'my_event':
+    >>> em.my_event.calls(lambda: print('event handler #2'))
 
+    # Trigger 'my_event'
+    >>> em.my_event()
+    event handler #1
+    event handler #2
+    """
 
-    def subscribe(self, event, function):
+    def __init__(self):
 
-        self._subscriptions[event].append(function)
+        # Tracks known event objects:
+        # - Keys are event names (my dynamic attributes).
+        # - Values are Event objects.
 
-
-    def unsubscribe(self, event, function):
-
-        functions = self._event_functions(event)
-        try:
-            functions.remove(function)
-        except ValueError:
-            pass
-
-
-    def _fire(self, event, *args, log_failures=True, **kwargs):
-
-        functions = self._event_functions(event)
-        if not functions:
-            return
-
-        for function in functions:
-            try:
-                function(*args, **kwargs)
-            except Exception as e:
-                msg = 'firing {ev!r} failed: {e}'.format(ev=event, e=e)
-                if log_failures:
-                    self._log.error(msg)
-                else:
-                    sys.stderr.write(msg+'\n')
+        self._events = {}
 
 
     def __getattr__(self, name):
 
-        function = self._functions.get(name)
-        if function:
-            return function
+        # Called on attribute access, returns an event object.
+        # Either uses an tracked one or creates new one, tracking it.
 
-        def function(*args, **kwargs):
-            this_function = self._functions[name]
-            self._fire(this_function, *args, **kwargs)
-
-        self._functions[name] = function
-
-        return function
+        try:
+            return self._events[name]
+        except KeyError:
+            new_event = event.Event(name)
+            self._events[name] = new_event
+            return new_event
 
 
 # ----------------------------------------------------------------------------
