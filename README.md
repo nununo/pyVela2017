@@ -1,10 +1,10 @@
-Vela 2017
-=========
+Candle 2017
+===========
 
 About
 -----
 
-**Vela 2017** is a reimplementation of an interactive art project by Nuno Godinho (https://projects.nunogodinho.com/candle/).
+**Candle 2017** is a reimplementation of an interactive art project by Nuno Godinho (https://projects.nunogodinho.com/candle/).
 
 Originally written in C++ using OpenFrameworks, Nuno never got it to run with acceptable performance on the desired target platform, a Raspberri Pi; it required being driven by a much more powerful and expensive system, like a Mac Mini.
 
@@ -125,7 +125,7 @@ $
 * Track log messages on the top right pane.
 * Use the buttons on the bottom to trigger video level changes.
 
-> Important: multiple browser connections are accepted simultaneously, however only the *most recent connection* will actually be usable; also, no authentication is in place.
+> Important: multiple browser connections are accepted simultaneously; no effort to authenticate or limit the amount of connections is made.
 
 
 Configuration
