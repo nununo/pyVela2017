@@ -66,13 +66,10 @@ def start_things(reactor, settings):
     # Decouples callers from callees, who "subscribe" to events "fired" by callers.
     event_manager = events.EventManager()
 
-    # Twisted logger observer: fires `log_message` events.
-    log_bridge = log.LogBridge(event_manager)
-
     # Setup the logging system.
     log_level = settings.get('loglevel', 'warn')
     log_levels = settings.get('loglevels', {})
-    log.setup(level=log_level, namespace_levels=log_levels, extra_observer=log_bridge)
+    log.setup(level=log_level, namespace_levels=log_levels)
 
     # Tell the event manager what to do with `set_log_level` events.
     event_manager.set_log_level.calls(log.set_level)

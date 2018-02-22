@@ -8,12 +8,15 @@
 An asyncronous, Twisted/Autobahn based, websocket server.
 """
 
-import datetime
+from datetime import datetime
 import json
 
+from zope.interface import provider
 from twisted import logger
 
 from autobahn.twisted import websocket
+
+import log
 
 
 
@@ -21,6 +24,7 @@ _log = logger.Logger(namespace='webserver.ws')
 
 
 
+@provider(logger.ILogObserver)
 class WSProto(websocket.WebSocketServerProtocol):
 
     """
@@ -37,6 +41,9 @@ class WSProto(websocket.WebSocketServerProtocol):
 
         _log.info('ws conn')
         self.factory.set_active_protocol(self)
+
+        # Add self as a log observer to push logs to the client.
+        log.add_observer(self)
 
 
     def onOpen(self):
@@ -88,14 +95,16 @@ class WSProto(websocket.WebSocketServerProtocol):
         else:
             self.factory.event_manager.set_log_level(namespace, level)
             # Log message on the specified logger/level to feed user back.
-            log = logger.Logger(namespace=namespace)
-            method = getattr(log, level)
-            method('log level set')
+            level = logger.LogLevel.levelWithName(level)
+            logger.Logger(namespace=namespace).emit(level, 'log level set')
 
 
     def onClose(self, wasClean, code, reason):
 
         # Twisted/Autobahn calls this when a websocket connection is closed.
+
+        # Can't push logs to the client anymore.
+        log.remove_observer(self)
 
         _log.info('ws clse')
         self.factory.set_protocol_gone(self)
@@ -119,21 +128,30 @@ class WSProto(websocket.WebSocketServerProtocol):
         the client will plot in a chart.
         """
 
-        values['ts'] = datetime.datetime.now().isoformat()
+        values['ts'] = datetime.now().isoformat()
         self._send_message_dict('chart-data', values)
 
 
-    def push_log_message(self, text):
+    def __call__(self, event):
 
-        """
-        Called by our factory to send log messages to the client.
+        # Called by Twisted when delivering a log event to this observer.
 
-        Log messages are objects with a single 'text' attribute and will be
-        displayed by the client.
-        """
+        # Format a message with four space-separated elements:
+        # - Fixed width, capitalized first letter of log level.
+        # - Fixed width, seconds and milliseconds of event timestamp.
+        # - Variable width, logger namespace.
+        # - Variable width, formatted message itself.
+
+        log_datetime = datetime.fromtimestamp(event['log_time'])
+        log_message = '%s %s %s %s' % (
+            event['log_level'].name[0].upper(),
+            log_datetime.strftime('%S.%f')[:6],
+            event.get('log_namespace', '-'),
+            logger.formatEvent(event),
+        )
 
         self._send_message_dict('log-message', {
-            'message': text,
+            'message': log_message,
         })
 
 
@@ -155,7 +173,6 @@ class WSFactory(websocket.WebSocketServerFactory):
         self.event_manager = event_manager
 
         event_manager.arduino_raw_data.calls(self._push_raw_data_to_client)
-        event_manager.log_message.calls(self._push_log_msg_to_client)
 
 
     def set_active_protocol(self, active_proto):
@@ -190,16 +207,6 @@ class WSFactory(websocket.WebSocketServerFactory):
 
         if self._connected_protocol:
             self._connected_protocol.push_raw_data(**values)
-
-
-    def _push_log_msg_to_client(self, message):
-
-        """
-        Sends the log `message` to the connected protocol, if any.
-        """
-
-        if self._connected_protocol:
-            self._connected_protocol.push_log_message(message)
 
 
 

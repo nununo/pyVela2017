@@ -8,8 +8,7 @@
 Holds logging related code.
 """
 
-from .log import setup, set_level
-from .bridge import LogBridge
+from .log import setup, set_level, add_observer, remove_observer
 
 
 # ----------------------------------------------------------------------------
