@@ -19,7 +19,6 @@ import events
 import player
 import log
 import inputs
-import webserver
 
 
 
@@ -77,10 +76,6 @@ def start_things(reactor, settings):
 
     # Create the player manager.
     player_manager = player.PlayerManager(reactor, event_manager, settings)
-
-
-    # Start the web server.
-    webserver.start(reactor, event_manager)
 
 
     # Create the input manager.
