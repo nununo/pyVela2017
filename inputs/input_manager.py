@@ -10,6 +10,7 @@ Asyncronous, Twisted based, input management.
 
 from . import network
 from . import arduino
+from . import web
 
 
 
@@ -72,6 +73,11 @@ class InputManager(object):
             thresholds,
             self._event_manager,
         )
+
+
+    def _create_input_web(self, interface='0.0.0.0', port=8080):
+
+        web.start(self._reactor, self._event_manager, interface, port)
 
 
 # ----------------------------------------------------------------------------

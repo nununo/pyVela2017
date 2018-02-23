@@ -23,7 +23,7 @@ import log
 
 
 
-_log = logger.Logger(namespace='webserver')
+_log = logger.Logger(namespace='inputs.web')
 
 
 
@@ -60,7 +60,7 @@ class WSProto(websocket.WebSocketServerProtocol):
 
         # Twisted/Autobahn calls this when a websocket message is received.
 
-        _log.info('ws mesg: p={p!r} b={b!r}', p=payload, b=isBinary)
+        _log.debug('ws mesg: p={p!r} b={b!r}', p=payload, b=isBinary)
 
         try:
             message = json.loads(payload.decode('utf-8'))
@@ -178,10 +178,10 @@ class WSFactory(websocket.WebSocketServerFactory):
 
 
 
-def start(reactor, event_manager):
+def start(reactor, event_manager, interface, port):
 
     """
-    Starts listening for websocket connections.
+    Starts listening for HTTP connections.
     """
 
     ws_factory = WSFactory(event_manager)
@@ -192,9 +192,8 @@ def start(reactor, event_manager):
     root_resource.putChild(b'ws', ws_resource)
     site = server.Site(root_resource)
 
-    # TODO: Should port/interface be configurable?
-    reactor.listenTCP(8080, site, interface='0.0.0.0')
-    _log.info('listening for HTTP connections on 0.0.0.0:8080')
+    reactor.listenTCP(port, site, interface=interface)
+    _log.warn('listening for HTTP on {i}:{p}', i=interface, p=port)
 
 
 # ----------------------------------------------------------------------------
