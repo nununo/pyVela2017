@@ -1,26 +1,29 @@
 # ----------------------------------------------------------------------------
 # vim: ts=4:sw=4:et
 # ----------------------------------------------------------------------------
-# webserver/websocket.py
+# webserver/server.py
 # ----------------------------------------------------------------------------
 
 """
-An asyncronous, Twisted/Autobahn based, websocket server.
+An asyncronous, Twisted/Autobahn based, HTTP/websocket server.
 """
 
 from datetime import datetime
 import json
+import os
 
 from zope.interface import provider
 from twisted import logger
+from twisted.web import server, static
 
 from autobahn.twisted import websocket
+from autobahn.twisted import resource
 
 import log
 
 
 
-_log = logger.Logger(namespace='webserver.ws')
+_log = logger.Logger(namespace='webserver')
 
 
 
@@ -50,7 +53,7 @@ class WSProto(websocket.WebSocketServerProtocol):
 
         # Twisted/Autobahn calls this when a websocket connection is ready.
 
-        _log.info('{p.host}:{p.port} connected', p=self.transport.getPeer())
+        _log.warn('{p.host}:{p.port} connected', p=self.transport.getPeer())
 
 
     def onMessage(self, payload, isBinary):
@@ -109,7 +112,7 @@ class WSProto(websocket.WebSocketServerProtocol):
         # Can't push arduino raw data to the client anymore.
         self.factory.event_manager.arduino_raw_data.no_longer_calls(self._push_raw_data)
 
-        _log.info('{p.host}:{p.port} disconnected', p=self.transport.getPeer())
+        _log.warn('{p.host}:{p.port} disconnected', p=self.transport.getPeer())
 
 
     def _send_message_dict(self, message_type, message_dict):
@@ -175,19 +178,25 @@ class WSFactory(websocket.WebSocketServerFactory):
 
 
 
-def setup_websocket(reactor, event_manager):
+def start(reactor, event_manager):
 
     """
     Starts listening for websocket connections.
     """
 
-    factory = WSFactory(event_manager)
+    ws_factory = WSFactory(event_manager)
+    ws_resource = resource.WebSocketResource(ws_factory)
 
-    # TODO: Should port/interface be configurable? Client may need adjustments.
-    reactor.listenTCP(8081, factory, interface='0.0.0.0')
-    _log.info('listening for WSCK connections on 0.0.0.0:8081')
+    web_root = os.path.abspath(os.path.join(os.path.dirname(__file__), 'web-root'))
+    root_resource = static.File(web_root, ignoredExts=('.gz',))
+    root_resource.putChild(b'ws', ws_resource)
+    site = server.Site(root_resource)
+
+    # TODO: Should port/interface be configurable?
+    reactor.listenTCP(8080, site, interface='0.0.0.0')
+    _log.info('listening for HTTP connections on 0.0.0.0:8080')
 
 
 # ----------------------------------------------------------------------------
-# webserver/websocket.py
+# webserver/server.py
 # ----------------------------------------------------------------------------

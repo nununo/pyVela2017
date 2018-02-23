@@ -79,9 +79,8 @@ def start_things(reactor, settings):
     player_manager = player.PlayerManager(reactor, event_manager, settings)
 
 
-    # Start the HTTP and websocket servers.
-    webserver.setup_webserver(reactor)
-    webserver.setup_websocket(reactor, event_manager)
+    # Start the web server.
+    webserver.start(reactor, event_manager)
 
 
     # Create the input manager.
