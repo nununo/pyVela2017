@@ -60,7 +60,7 @@ class WSProto(websocket.WebSocketServerProtocol):
 
         # Twisted/Autobahn calls this when a websocket message is received.
 
-        _log.info('ws mesg: p={p!r} b={b!r}', p=payload, b=isBinary)
+        _log.debug('ws mesg: p={p!r} b={b!r}', p=payload, b=isBinary)
 
         try:
             message = json.loads(payload.decode('utf-8'))
@@ -193,7 +193,7 @@ def start(reactor, event_manager, interface, port):
     site = server.Site(root_resource)
 
     reactor.listenTCP(port, site, interface=interface)
-    _log.info('listening for HTTP on {i}:{p}', i=interface, p=port)
+    _log.warn('listening for HTTP on {i}:{p}', i=interface, p=port)
 
 
 # ----------------------------------------------------------------------------
