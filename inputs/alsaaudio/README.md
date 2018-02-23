@@ -67,5 +67,7 @@ Implementation
 * Discard the initial output (actually sent to stderr).
 * Parse each incoming "max peak" line and trigger level changes.
 
-**IMPORTANT**: Will need cleanup on stop!
+**IMPORTANT**:
+* Running `arecord` under `nice` may be a good idea (note: after having it running for a while, I felt some sluggishness on `candle2017.py` -- spawing processes, etc -- and it triggered a few *unhandled deferred* DBus related errors like "The name <player-name> was not provided by any .service files"... strange! also: may want to wrap all DBus calls in improved exception handling)
+* Will need cleanup on stop!
 
