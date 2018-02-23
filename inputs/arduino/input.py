@@ -10,8 +10,10 @@ High level Arduino input.
 
 from collections import deque
 
+from twisted.internet import defer
 from twisted import logger
 
+from inputs import input_base
 from . import serial
 
 
@@ -21,7 +23,7 @@ _log = logger.Logger(namespace='inputs.arduino')
 
 
 
-class ArduinoInput(object):
+class ArduinoInput(input_base.InputBase):
 
     """
     Processes serial received PDUs (protocol data units) that are integers that
@@ -32,13 +34,29 @@ class ArduinoInput(object):
     in turn, to fire `change_play_level` events via the `event_manager`.
     """
 
-    def __init__(self, reactor, device_file, baud_rate, thresholds, event_manager):
+    def __init__(self, reactor, event_manager, device_file, baud_rate, thresholds):
 
-        self._sp = serial.create_port(reactor, device_file, baud_rate, self._pdu_received)
-        self._event_manager = event_manager
-        self._pdus = deque(maxlen=_INPUT_SIZE)
+        super(ArduinoInput, self).__init__(reactor, event_manager)
+        self._device_file = device_file
+        self._baud_rate = baud_rate
         self._thresholds = thresholds
+
+        self._pdus = deque(maxlen=_INPUT_SIZE)
         self._last_play_level = 0
+
+        self._serial_port = None
+
+
+    @defer.inlineCallbacks
+    def start(self):
+
+        self._serial_port = serial.create_port(
+            self._reactor,
+            self._device_file,
+            self._baud_rate,
+            self._pdu_received,
+        )
+        yield defer.succeed(None)
 
 
     def _pdu_received(self, pdu):

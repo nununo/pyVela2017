@@ -8,9 +8,22 @@
 Asyncronous, Twisted based, input management.
 """
 
+from twisted.internet import defer
+from twisted import logger
+
 from . import network
 from . import arduino
 from . import web
+
+
+
+_log = logger.Logger(namespace='inputs')
+
+_INPUT_CLASSES = {
+    'network': network.Input,
+    'arduino': arduino.Input,
+    'web': web.Input,
+}
 
 
 
@@ -23,7 +36,7 @@ class InputManager(object):
     def __init__(self, reactor, event_manager, settings):
 
         """
-        Initializes configured inputs:
+        Initializes the instance:
         - `reactor` is the Twisted reactor.
         - `event_manager` # TODO: update this
         - `settings` is a dict containing the 'inputs' key.
@@ -31,53 +44,38 @@ class InputManager(object):
 
         self._reactor = reactor
         self._event_manager = event_manager
+        self._settings = settings
 
         self._inputs = []
-        self._create_inputs(settings)
 
 
-    def _create_inputs(self, settings):
+    @defer.inlineCallbacks
+    def start(self):
 
         """
-        Create each input configured in settings['inputs'].
+        Instantiates each configured input, returning a deferred that
+        fires on completion.
         """
 
-        for input_type, input_settings in settings['inputs'].items():
+        _log.info('starting inputs')
+        for input_type, input_settings in self._settings['inputs'].items():
             try:
-                method = getattr(self, '_create_input_%s' % (input_type,))
-            except AttributeError:
-                raise ValueError('invalid input type %r' % (input_type,))
-
+                input_class = _INPUT_CLASSES[input_type]
+            except KeyError:
+                _log.error('invalid input type: {it!r}', it=input_type)
+                raise
             try:
-                _input_object = method(**input_settings)
-            except TypeError as e:
-                raise ValueError('invalid %r setting: %s' % (input_type, e))
-
-
-    def _create_input_network(self, port, interface='0.0.0.0'):
-
-        network.initialize(
-            self._reactor,
-            port,
-            interface,
-            self._event_manager,
-        )
-
-
-    def _create_input_arduino(self, device_file, baud_rate, thresholds):
-
-        arduino.initialize(
-            self._reactor,
-            device_file,
-            baud_rate,
-            thresholds,
-            self._event_manager,
-        )
-
-
-    def _create_input_web(self, interface='0.0.0.0', port=8080):
-
-        web.start(self._reactor, self._event_manager, interface, port)
+                input = input_class(self._reactor, self._event_manager, **input_settings)
+            except Exception as e:
+                _log.error('bad input {it!r} settings: {e!r}', it=input_type, e=e)
+                raise
+            try:
+                yield input.start()
+            except Exception as e:
+                _log.error('failed input {it!r} start: {e!r}', it=input_type, e=e)
+                raise
+            self._inputs.append(input)
+        _log.info('started inputs')
 
 
 # ----------------------------------------------------------------------------

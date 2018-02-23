@@ -10,14 +10,11 @@ An asyncronous, Twisted/Autobahn based, HTTP/websocket server.
 
 from datetime import datetime
 import json
-import os
 
 from zope.interface import provider
 from twisted import logger
-from twisted.web import server, static
 
 from autobahn.twisted import websocket
-from autobahn.twisted import resource
 
 import log
 
@@ -175,25 +172,6 @@ class WSFactory(websocket.WebSocketServerFactory):
 
         super(WSFactory, self).__init__(*args, **kwargs)
         self.event_manager = event_manager
-
-
-
-def start(reactor, event_manager, interface, port):
-
-    """
-    Starts listening for HTTP connections.
-    """
-
-    ws_factory = WSFactory(event_manager)
-    ws_resource = resource.WebSocketResource(ws_factory)
-
-    web_root = os.path.abspath(os.path.join(os.path.dirname(__file__), 'web-root'))
-    root_resource = static.File(web_root, ignoredExts=('.gz',))
-    root_resource.putChild(b'ws', ws_resource)
-    site = server.Site(root_resource)
-
-    reactor.listenTCP(port, site, interface=interface)
-    _log.warn('listening for HTTP on {i}:{p}', i=interface, p=port)
 
 
 # ----------------------------------------------------------------------------

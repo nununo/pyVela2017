@@ -78,9 +78,13 @@ def start_things(reactor, settings):
     player_manager = player.PlayerManager(reactor, event_manager, settings)
 
 
-    # Create the input manager.
-    # TODO: `_input_manager` either goes away or is used on exit/cleanup.
-    _input_manager = inputs.InputManager(reactor, event_manager, settings)
+    # Create and initialize the input manager.
+    input_manager = inputs.InputManager(reactor, event_manager, settings)
+    try:
+        yield input_manager.start()
+    except Exception as e:
+        # May fail setting up configured inputs, logs should help diagnose.
+        raise SystemExit(-1)
 
 
     # Ensure a clean stop.
@@ -92,7 +96,7 @@ def start_things(reactor, settings):
         yield player_manager.start()
     except Exception:
         # May fail at launching child processes, logs should help diagnose.
-        raise SystemExit(-1)
+        raise SystemExit(-2)
 
     # Not done until the player manager is done.
     yield player_manager.done
