@@ -8,18 +8,18 @@
 High level Arduino input.
 """
 
+
 from collections import deque
 
 from twisted.internet import defer
-from twisted import logger
 
 from inputs import input_base
 from . import serial
+from . common import log
+
 
 
 _INPUT_SIZE = 25
-
-_log = logger.Logger(namespace='inputs.arduino')
 
 
 
@@ -56,7 +56,11 @@ class ArduinoInput(input_base.InputBase):
             self._baud_rate,
             self._pdu_received,
         )
-        _log.info('started: {d!r} open at {b} baud', d=self._device_file, b=self._baud_rate)
+        log.info(
+            'started: {d!r} open at {b} baud',
+            d=self._device_file,
+            b=self._baud_rate,
+        )
         yield defer.succeed(None)
 
 
@@ -67,9 +71,9 @@ class ArduinoInput(input_base.InputBase):
 
         # Keep track of this PDU and calculate the new aggregated derivative.
         self._pdus.append(pdu)
-        _log.debug('pdus: {p!r}', p=self._pdus)
+        log.debug('pdus: {p!r}', p=self._pdus)
         agg_d = self._aggregated_derivative()
-        _log.debug('aggregated derivative: {ad!r}', ad=agg_d)
+        log.debug('aggregated derivative: {ad!r}', ad=agg_d)
 
         # Notify about the "raw data" we just received.
         self._event_manager.arduino_raw_data(raw=pdu, agd=agg_d)

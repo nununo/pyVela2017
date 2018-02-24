@@ -11,10 +11,7 @@ Low level, serial Arduino input.
 from twisted.internet import serialport, protocol
 from twisted.protocols import basic
 
-from twisted import logger
-
-
-_log = logger.Logger(namespace='inputs.arduino.serial')
+from . common import log
 
 
 
@@ -33,7 +30,6 @@ class _ArduinoProtocol(basic.LineReceiver):
 
     def __init__(self, pdu_received_callable):
 
-        self._log = logger.Logger(namespace='inputs.arduino.proto')
         self._pdu_received_callable = pdu_received_callable
 
 
@@ -41,7 +37,7 @@ class _ArduinoProtocol(basic.LineReceiver):
 
         # Called by Twisted when the serial connection is up.
 
-        self._log.info('connection made')
+        log.debug('connection made')
 
 
     def lineReceived(self, line):
@@ -49,17 +45,17 @@ class _ArduinoProtocol(basic.LineReceiver):
         # Called by Twisted when a PDU is received.
         # `line` should be a two byte little endian integer.
 
-        self._log.debug('data received: {d!r}', d=line)
+        log.debug('data received: {d!r}', d=line)
         try:
             pdu = int.from_bytes(line, byteorder='little')
         except (TypeError, ValueError):
-            self._log.warn('bad value: {d!r}', d=line)
+            log.warn('bad value: {d!r}', d=line)
             return
 
         try:
             self._pdu_received_callable(pdu)
         except Exception as e:
-            self._log.warn('callable exception: {e!s}', e=e)
+            log.warn('callable exception: {e!s}', e=e)
 
 
     def rawDataReceived(self, data):
@@ -69,14 +65,14 @@ class _ArduinoProtocol(basic.LineReceiver):
         # It is here to ensure a complete protocol implementation, given that
         # the parent class does not implement it.
 
-        self._log.warn('unexpected data: {d!r}', d=data)
+        log.warn('unexpected data: {d!r}', d=data)
 
 
     def connectionLost(self, reason=protocol.connectionDone):
 
         # Called by Twisted when the serial connection is dropped.
 
-        self._log.info('connection lost')
+        log.debug('connection lost')
 
 
 
@@ -92,7 +88,7 @@ def create_port(reactor, device_filename, baudrate, pdu_received_callable):
     try:
         port = serialport.SerialPort(proto, device_filename, reactor, baudrate=baudrate)
     except Exception as e:
-        _log.warn('serial port opening failed: {f}', f=e)
+        log.warn('serial port opening failed: {f}', f=e)
         port = None
     return port
 
