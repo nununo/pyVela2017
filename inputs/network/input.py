@@ -10,10 +10,14 @@ The TCP network connection input.
 
 
 from twisted.internet import defer
+from twisted import logger
 
 from inputs import input_base
 from . import protocol
-from . common import log
+
+
+
+_log = logger.Logger(namespace='inputs.network')
 
 
 
@@ -37,7 +41,7 @@ class NetworkInput(input_base.InputBase):
             self._factory,
             interface=self._interface
         )
-        log.info('started: listening on {i}:{p}', i=self._interface, p=self._port)
+        _log.info('started: listening on {i}:{p}', i=self._interface, p=self._port)
         yield defer.succeed(None)
 
 
@@ -45,7 +49,7 @@ class NetworkInput(input_base.InputBase):
     def stop(self):
 
         yield self._listening_port.stopListening()
-        log.info('stopped: no longer listening')
+        _log.info('stopped: no longer listening')
 
 
 # ----------------------------------------------------------------------------

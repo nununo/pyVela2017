@@ -12,7 +12,9 @@ from twisted.internet import protocol
 from twisted.protocols import basic
 from twisted import logger
 
-from .common import log
+
+
+_log = logger.Logger(namespace='inputs.network')
 
 
 
@@ -30,18 +32,18 @@ class ControlProtocol(basic.LineReceiver):
 
         # Called by Twisted for each established connection.
 
-        log.info('connection made!')
+        _log.info('connection made!')
 
 
     def lineReceived(self, line):
 
         # Called by Twisted for each CRLF terminated line received.
 
-        log.info('received {l!r}', l=line)
+        _log.info('received {l!r}', l=line)
         try:
             level = int(line.strip())
         except Exception:
-            log.warn('ignored {l!r}', l=line)
+            _log.warn('ignored {l!r}', l=line)
         else:
             self.factory.event_manager.change_play_level(level, 'network')
 
@@ -53,14 +55,14 @@ class ControlProtocol(basic.LineReceiver):
         # It is here to ensure a complete protocol implementation, given that
         # the parent class does not implement it.
 
-        log.warn('unexpected data: {d!r}', d=data)
+        _log.warn('unexpected data: {d!r}', d=data)
 
 
     def connectionLost(self, reason=protocol.connectionDone):
 
         # Called by Twisted after a connection is terminated.
 
-        log.info('connection lost')
+        _log.info('connection lost')
 
 
 
