@@ -1,21 +1,22 @@
 # ----------------------------------------------------------------------------
 # vim: ts=4:sw=4:et
 # ----------------------------------------------------------------------------
-# inputs/arduino/serial.py
+# inputs/arduino/protocol.py
 # ----------------------------------------------------------------------------
 
 """
-Low level, serial Arduino input.
+Low level, serial Arduino input protocol.
 """
 
-from twisted.internet import serialport, protocol
+
+from twisted.internet import protocol, defer
 from twisted.protocols import basic
 
 from . common import log
 
 
 
-class _ArduinoProtocol(basic.LineReceiver):
+class ArduinoProtocol(basic.LineReceiver):
 
     # The Arduino serial connections sends a stream of three-byte PDUs:
     # - The first byte is 0x20.
@@ -31,6 +32,7 @@ class _ArduinoProtocol(basic.LineReceiver):
     def __init__(self, pdu_received_callable):
 
         self._pdu_received_callable = pdu_received_callable
+        self.disconnected = None
 
 
     def connectionMade(self):
@@ -38,6 +40,7 @@ class _ArduinoProtocol(basic.LineReceiver):
         # Called by Twisted when the serial connection is up.
 
         log.debug('connection made')
+        self.disconnected = defer.Deferred()
 
 
     def lineReceived(self, line):
@@ -73,26 +76,9 @@ class _ArduinoProtocol(basic.LineReceiver):
         # Called by Twisted when the serial connection is dropped.
 
         log.debug('connection lost')
-
-
-
-def create_port(reactor, device_filename, baudrate, pdu_received_callable):
-
-    """
-    Connects to the serial port given by `device_filename` at `baudrate`.
-
-    Will call `pdu_received_callable` for each received PDU.
-    """
-
-    proto = _ArduinoProtocol(pdu_received_callable)
-    try:
-        port = serialport.SerialPort(proto, device_filename, reactor, baudrate=baudrate)
-    except Exception as e:
-        log.warn('serial port opening failed: {f}', f=e)
-        port = None
-    return port
+        self.disconnected.callback(None)
 
 
 # ----------------------------------------------------------------------------
-# inputs/arduio/serial.py
+# inputs/arduino/protocol.py
 # ----------------------------------------------------------------------------

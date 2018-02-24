@@ -52,6 +52,13 @@ class WebInput(input_base.InputBase):
         yield defer.succeed(None)
 
 
+    @defer.inlineCallbacks
+    def stop(self):
+
+        yield self._listening_port.stopListening()
+        log.info('stopped: no longer listening')
+
+
 # ----------------------------------------------------------------------------
 # inputs/web/input.py
 # ----------------------------------------------------------------------------

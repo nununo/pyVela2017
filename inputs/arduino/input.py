@@ -11,10 +11,10 @@ High level Arduino input.
 
 from collections import deque
 
-from twisted.internet import defer
+from twisted.internet import defer, serialport
 
 from inputs import input_base
-from . import serial
+from . import protocol
 from . common import log
 
 
@@ -44,24 +44,49 @@ class ArduinoInput(input_base.InputBase):
         self._pdus = deque(maxlen=_INPUT_SIZE)
         self._last_play_level = 0
 
+        self._serial_protocol = None
         self._serial_port = None
 
 
     @defer.inlineCallbacks
     def start(self):
 
-        self._serial_port = serial.create_port(
-            self._reactor,
-            self._device_file,
-            self._baud_rate,
-            self._pdu_received,
-        )
+        self._serial_protocol = protocol.ArduinoProtocol(self._pdu_received)
+        try:
+            self._serial_port = serialport.SerialPort(
+                self._serial_protocol,
+                self._device_file,
+                self._reactor,
+                baudrate=self._baud_rate,
+            )
+        except Exception as e:
+            log.warn('serial port opening failed: {f}', f=e)
+            raise
         log.info(
             'started: {d!r} open at {b} baud',
             d=self._device_file,
             b=self._baud_rate,
         )
         yield defer.succeed(None)
+
+
+    @defer.inlineCallbacks
+    def stop(self):
+
+        log.debug('stopping')
+
+        # Signal the serial port for disconnection...
+        self._serial_port.loseConnection()
+
+        # ...then wait on the protocol for the confirmation.
+        disconnected_deferred = self._serial_protocol.disconnected
+        disconnected_deferred.addTimeout(5, self._reactor)
+        try:
+            yield disconnected_deferred
+        except Exception as e:
+            log.warn('stopping failed: {e!r}', e=e)
+        else:
+            log.info('stopped')
 
 
     def _pdu_received(self, pdu):
