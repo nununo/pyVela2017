@@ -13,7 +13,7 @@ from twisted.internet import defer
 
 from inputs import input_base
 from . import protocol
-from . common import log as _log
+from . common import log
 
 
 
@@ -37,7 +37,7 @@ class NetworkInput(input_base.InputBase):
             self._factory,
             interface=self._interface
         )
-        _log.info('started: listening on {i}:{p}', i=self._interface, p=self._port)
+        log.info('started: listening on {i}:{p}', i=self._interface, p=self._port)
         yield defer.succeed(None)
 
 
