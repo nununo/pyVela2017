@@ -94,8 +94,7 @@ def start_things(reactor, settings):
             raise SystemExit(-index)
 
 
-    # Not done until the player manager is done.
-    # TODO: Generalize to all startables? Maybe we should.
+    # Don't exit unless the player manager is ever done.
     yield player_manager.done
 
 
