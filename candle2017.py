@@ -62,60 +62,56 @@ def start_things(reactor, settings):
     Exits when the player manager terminates.
     """
 
-    # Decouples callers from callees, who "subscribe" to events "fired" by callers.
-    event_manager = events.EventManager()
-
     # Setup the logging system.
     log_level = settings.get('loglevel', 'warn')
     log_levels = settings.get('loglevels', {})
     log.setup(level=log_level, namespace_levels=log_levels)
 
-    # Tell the event manager what to do with `set_log_level` events.
+
+    # Create an event manager and tell it what to with `set_log_level` events.
+    event_manager = events.EventManager()
     event_manager.set_log_level.calls(log.set_level)
 
 
-    # Create the player manager.
+    # Create the input and player managers.
+    input_manager = inputs.InputManager(reactor, event_manager, settings)
     player_manager = player.PlayerManager(reactor, event_manager, settings)
 
-
-    # Create and initialize the input manager.
-    input_manager = inputs.InputManager(reactor, event_manager, settings)
-    try:
-        yield input_manager.start()
-    except Exception as e:
-        # May fail setting up configured inputs, logs should help diagnose.
-        raise SystemExit(-1)
+    # Both will be ayncrhronously started and stopped.
+    startables = (input_manager, player_manager)
 
 
-    # Ensure a clean stop.
-    stoppables = (input_manager, player_manager)
-    reactor.addSystemEventTrigger('before', 'shutdown', stop_things, stoppables)
+    # Before starting, ensure a clean stop.
+    reactor.addSystemEventTrigger('before', 'shutdown', stop_things, startables)
 
 
-    # Start the player manager.
-    try:
-        yield player_manager.start()
-    except Exception:
-        # May fail at launching child processes, logs should help diagnose.
-        raise SystemExit(-2)
+    # Start all things.
+    for index, startable in enumerate(startables, start=1):
+        try:
+            yield startable.start()
+        except Exception:
+            # On failure logs should help diagnose.
+            raise SystemExit(-index)
+
 
     # Not done until the player manager is done.
+    # TODO: Generalize to all startables? Maybe we should.
     yield player_manager.done
 
 
 
 @defer.inlineCallbacks
-def stop_things(stoppables):
+def stop_things(startables):
 
     """
     Asyncronous, Twisted based, cleanup.
 
-    Asks each stoppable to stop.
+    Asks each startable to stop.
     """
 
-    for stoppable in stoppables:
+    for startable in startables:
         try:
-            yield stoppable.stop()
+            yield startable.stop()
         except Exception:
             # Nothing much we an do, move on.
             pass
