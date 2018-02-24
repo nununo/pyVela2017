@@ -172,7 +172,7 @@ Development Notes
 
 Lint with:
 ```
-$ pylint candle2017 events/ inputs/ player/ webserver/ log/
+$ pylint candle2017 events/ inputs/ player/ log/
 ```
 
 
