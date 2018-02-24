@@ -57,7 +57,7 @@ class InputManager(object):
         fires on completion.
         """
 
-        _log.info('starting inputs')
+        _log.info('starting')
         for input_type, input_settings in self._settings['inputs'].items():
             try:
                 input_class = _INPUT_CLASSES[input_type]
@@ -75,7 +75,7 @@ class InputManager(object):
                 _log.error('failed {it!r} input start: {e!r}', it=input_type, e=e)
                 raise
             self._inputs.append((input_type, input))
-        _log.info('started inputs')
+        _log.info('started')
 
 
     @defer.inlineCallbacks
