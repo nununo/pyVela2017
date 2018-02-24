@@ -32,7 +32,7 @@ class ArduinoProtocol(basic.LineReceiver):
     def __init__(self, pdu_received_callable):
 
         self._pdu_received_callable = pdu_received_callable
-        self.disconnected = None
+        self.disconnected = defer.Deferred()
 
 
     def connectionMade(self):
@@ -40,7 +40,6 @@ class ArduinoProtocol(basic.LineReceiver):
         # Called by Twisted when the serial connection is up.
 
         log.debug('connection made')
-        self.disconnected = defer.Deferred()
 
 
     def lineReceived(self, line):
