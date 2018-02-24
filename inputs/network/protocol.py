@@ -12,8 +12,7 @@ from twisted.internet import protocol
 from twisted.protocols import basic
 from twisted import logger
 
-
-_log = logger.Logger(namespace='inputs.network')
+from .common import log as _log
 
 
 
@@ -78,6 +77,9 @@ class ControlFactory(protocol.Factory):
         # The event manager is used to fire `change_play_level` events.
 
         self.event_manager = event_manager
+
+        # Twisted not to log messages about us.
+        self.noisy = False
 
 
 # ----------------------------------------------------------------------------

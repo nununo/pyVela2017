@@ -67,12 +67,12 @@ class InputManager(object):
             try:
                 input = input_class(self._reactor, self._event_manager, **input_settings)
             except Exception as e:
-                _log.error('bad input {it!r} settings: {e!r}', it=input_type, e=e)
+                _log.error('bad {it!r} input settings: {e!r}', it=input_type, e=e)
                 raise
             try:
                 yield input.start()
             except Exception as e:
-                _log.error('failed input {it!r} start: {e!r}', it=input_type, e=e)
+                _log.error('failed {it!r} input start: {e!r}', it=input_type, e=e)
                 raise
             self._inputs.append(input)
         _log.info('started inputs')

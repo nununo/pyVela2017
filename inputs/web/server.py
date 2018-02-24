@@ -16,11 +16,8 @@ from twisted import logger
 
 from autobahn.twisted import websocket
 
-import log
-
-
-
-_log = logger.Logger(namespace='inputs.web')
+from . common import log as _log
+import log as log_package
 
 
 
@@ -40,7 +37,7 @@ class WSProto(websocket.WebSocketServerProtocol):
         # Twisted/Autobahn calls this when a websocket connection is establised.
 
         # Add self as a log observer to push logs to the client.
-        log.add_observer(self)
+        log_package.add_observer(self)
 
         # Handle `arduino_raw_data` by pushing it to the client.
         self.factory.event_manager.arduino_raw_data.calls(self._push_raw_data)
@@ -104,7 +101,7 @@ class WSProto(websocket.WebSocketServerProtocol):
         # Twisted/Autobahn calls this when a websocket connection is closed.
 
         # Can't push logs to the client anymore.
-        log.remove_observer(self)
+        log_package.remove_observer(self)
 
         # Can't push arduino raw data to the client anymore.
         self.factory.event_manager.arduino_raw_data.no_longer_calls(self._push_raw_data)

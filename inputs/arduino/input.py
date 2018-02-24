@@ -56,6 +56,7 @@ class ArduinoInput(input_base.InputBase):
             self._baud_rate,
             self._pdu_received,
         )
+        _log.info('started: {d!r} open at {b} baud', d=self._device_file, b=self._baud_rate)
         yield defer.succeed(None)
 
 
