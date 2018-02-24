@@ -22,7 +22,7 @@ class InputBase(object):
 
         """
         `reactor` is the Twisted reactor.
-        `event_manager` # TODO: update this
+        `event_manager` used to fire/handle events.
         """
 
         self._reactor = reactor

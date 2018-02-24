@@ -38,7 +38,7 @@ class InputManager(object):
         """
         Initializes the instance:
         - `reactor` is the Twisted reactor.
-        - `event_manager` # TODO: update this
+        - `event_manager` usable by inputs to fire/handle events.
         - `settings` is a dict containing the 'inputs' key.
         """
 
@@ -53,7 +53,7 @@ class InputManager(object):
     def start(self):
 
         """
-        Instantiates each configured input, returning a deferred that
+        Instantiates and starts each configured input, returning a deferred that
         fires on completion.
         """
 
@@ -65,16 +65,16 @@ class InputManager(object):
                 _log.error('invalid input type: {it!r}', it=input_type)
                 raise
             try:
-                input = input_class(self._reactor, self._event_manager, **input_settings)
+                input_obj = input_class(self._reactor, self._event_manager, **input_settings)
             except Exception as e:
                 _log.error('bad {it!r} input settings: {e!r}', it=input_type, e=e)
                 raise
             try:
-                yield input.start()
+                yield input_obj.start()
             except Exception as e:
                 _log.error('failed {it!r} input start: {e!r}', it=input_type, e=e)
                 raise
-            self._inputs.append((input_type, input))
+            self._inputs.append((input_type, input_obj))
         _log.info('started')
 
 
@@ -87,9 +87,9 @@ class InputManager(object):
         """
 
         _log.info('stopping inputs')
-        for input_type, input in self._inputs:
+        for input_type, input_obj in self._inputs:
             try:
-                yield input.stop()
+                yield input_obj.stop()
             except Exception as e:
                 _log.error('failed input {it!r} stop: {e!r}', it=input_type, e=e)
         _log.info('stopped inputs')

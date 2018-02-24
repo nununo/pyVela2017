@@ -23,6 +23,12 @@ _log = logger.Logger(namespace='inputs.network')
 
 class NetworkInput(input_base.InputBase):
 
+    """
+    Network input.
+
+    Processes incoming CRLF terminated ASCII text lines.
+    """
+
     def __init__(self, reactor, event_manager, interface='0.0.0.0', port=10000):
 
         super(NetworkInput, self).__init__(reactor, event_manager)

@@ -21,7 +21,11 @@ _log = logger.Logger(namespace='inputs.arduino')
 
 class ArduinoProtocol(basic.LineReceiver):
 
-    # The Arduino serial connections sends a stream of three-byte PDUs:
+    """
+   Arduino serial connection protocol.
+    """
+
+    # The Arduino serial connection sends a stream of three-byte PDUs:
     # - The first byte is 0x20.
     # - The second and third bytes are a 16 bit little endian integer.
 

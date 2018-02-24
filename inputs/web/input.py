@@ -27,6 +27,14 @@ _log = logger.Logger(namespace='inputs.web')
 
 class WebInput(input_base.InputBase):
 
+    """
+    The web input class.
+
+    Serves a simple HTML + Javascript interface accepting websocket based
+    control and pushing out useful monitoring information (so not strictly
+    an input).
+    """
+
     def __init__(self, reactor, event_manager, interface='0.0.0.0', port=8080):
 
         super(WebInput, self).__init__(reactor, event_manager)
