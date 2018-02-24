@@ -63,6 +63,14 @@ class EventManager(object):
             return new_event
 
 
+    def __getitem__(self, name):
+
+        # Alternative name based access, useful for dynamic names:
+        # Callers may prefer `em[name]` to `getattr(em, name)`.
+
+        return self.__getattr__(name)
+
+
 # ----------------------------------------------------------------------------
 # event/event_manager.py
 # ----------------------------------------------------------------------------

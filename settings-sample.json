@@ -21,8 +21,12 @@
     "inputs": {
         "arduino": {
             "device_file": "/dev/ttyACM0",
-            "baud_rate": 9600,
-            "thresholds": [7, 20, 30]
+            "baud_rate": 9600
+        },
+        "agd": {
+            "buffer_size": 25,
+            "thresholds": [7, 20, 30],
+            "source": "arduino"
         },
         "network": {
             "port": 10000
