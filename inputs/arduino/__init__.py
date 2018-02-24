@@ -8,16 +8,7 @@
 The serial based Arduino input.
 """
 
-from .input import ArduinoInput
-
-
-def initialize(*args, **kwargs):
-
-    """
-    Initializes the Arduino input.
-    """
-
-    return ArduinoInput(*args, **kwargs)
+from .input import ArduinoInput as Input
 
 
 # ----------------------------------------------------------------------------

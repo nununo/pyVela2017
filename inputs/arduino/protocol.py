@@ -1,26 +1,31 @@
 # ----------------------------------------------------------------------------
 # vim: ts=4:sw=4:et
 # ----------------------------------------------------------------------------
-# inputs/arduino/serial.py
+# inputs/arduino/protocol.py
 # ----------------------------------------------------------------------------
 
 """
-Low level, serial Arduino input.
+Low level, serial Arduino input protocol.
 """
 
-from twisted.internet import serialport, protocol
-from twisted.protocols import basic
 
+from twisted.internet import protocol, defer
+from twisted.protocols import basic
 from twisted import logger
 
 
-_log = logger.Logger(namespace='inputs.arduino.serial')
+
+_log = logger.Logger(namespace='inputs.arduino')
 
 
 
-class _ArduinoProtocol(basic.LineReceiver):
+class ArduinoProtocol(basic.LineReceiver):
 
-    # The Arduino serial connections sends a stream of three-byte PDUs:
+    """
+   Arduino serial connection protocol.
+    """
+
+    # The Arduino serial connection sends a stream of three-byte PDUs:
     # - The first byte is 0x20.
     # - The second and third bytes are a 16 bit little endian integer.
 
@@ -33,15 +38,15 @@ class _ArduinoProtocol(basic.LineReceiver):
 
     def __init__(self, pdu_received_callable):
 
-        self._log = logger.Logger(namespace='inputs.arduino.proto')
         self._pdu_received_callable = pdu_received_callable
+        self.disconnected = defer.Deferred()
 
 
     def connectionMade(self):
 
         # Called by Twisted when the serial connection is up.
 
-        self._log.info('connection made')
+        _log.debug('connection made')
 
 
     def lineReceived(self, line):
@@ -49,17 +54,17 @@ class _ArduinoProtocol(basic.LineReceiver):
         # Called by Twisted when a PDU is received.
         # `line` should be a two byte little endian integer.
 
-        self._log.debug('data received: {d!r}', d=line)
+        _log.debug('data received: {d!r}', d=line)
         try:
             pdu = int.from_bytes(line, byteorder='little')
         except (TypeError, ValueError):
-            self._log.warn('bad value: {d!r}', d=line)
+            _log.warn('bad value: {d!r}', d=line)
             return
 
         try:
             self._pdu_received_callable(pdu)
         except Exception as e:
-            self._log.warn('callable exception: {e!s}', e=e)
+            _log.warn('callable exception: {e!s}', e=e)
 
 
     def rawDataReceived(self, data):
@@ -69,34 +74,17 @@ class _ArduinoProtocol(basic.LineReceiver):
         # It is here to ensure a complete protocol implementation, given that
         # the parent class does not implement it.
 
-        self._log.warn('unexpected data: {d!r}', d=data)
+        _log.warn('unexpected data: {d!r}', d=data)
 
 
     def connectionLost(self, reason=protocol.connectionDone):
 
         # Called by Twisted when the serial connection is dropped.
 
-        self._log.info('connection lost')
-
-
-
-def create_port(reactor, device_filename, baudrate, pdu_received_callable):
-
-    """
-    Connects to the serial port given by `device_filename` at `baudrate`.
-
-    Will call `pdu_received_callable` for each received PDU.
-    """
-
-    proto = _ArduinoProtocol(pdu_received_callable)
-    try:
-        port = serialport.SerialPort(proto, device_filename, reactor, baudrate=baudrate)
-    except Exception as e:
-        _log.warn('serial port opening failed: {f}', f=e)
-        port = None
-    return port
+        _log.debug('connection lost')
+        self.disconnected.callback(None)
 
 
 # ----------------------------------------------------------------------------
-# inputs/arduio/serial.py
+# inputs/arduino/protocol.py
 # ----------------------------------------------------------------------------

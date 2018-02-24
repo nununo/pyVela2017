@@ -120,7 +120,7 @@ $
 
 **Web based network monitoring and control**
 
-* Point a web browser to http://\<raspberry-pi-IPv\>:8080/.
+* Point a web browser to http://\<raspberry-pi-IP\>:\<port\>/, where <port> is defined by `inputs.web.port` in the configuration (defaults to 8080).
 * Monitor the realtime "wind sensor" reading in the top left chart.
 * Track log messages on the top right pane.
 * Use the buttons on the bottom to trigger video level changes.
@@ -145,6 +145,8 @@ Most settings are, hopefully, self-explanatory. Here's a quick rundown:
 | inputs.arduino.baud_rate         | Baud rate of the "wind sensor" communication.                   |
 | inputs.arduino.thresholds        | Array of three integers: adjust "wind sensor" responsiveness.   |
 | inputs.network.port              | TCP port where raw network connections will be accepted in.     |
+| inputs.web.interface             | IP interface listening for HTTP connections.                    |
+| inputs.web.port                  | TCP port listening HTTP connections.                            |
 | levels.*.folder                  | Relative path to directory containing that level's video files. |
 | levels.*.fadein                  | Fade in time, in secods, for this level's video files.          |
 | levels.*.fadeout                 | Fade out time, in seconds, for this level's video files.        |
@@ -170,7 +172,7 @@ Development Notes
 
 Lint with:
 ```
-$ pylint candle2017 events/ inputs/ player/ webserver/ log/
+$ pylint candle2017 events/ inputs/ player/ log/
 ```
 
 

@@ -1,11 +1,11 @@
 # ----------------------------------------------------------------------------
 # vim: ts=4:sw=4:et
 # ----------------------------------------------------------------------------
-# webserver/websocket.py
+# inputs/web/server.py
 # ----------------------------------------------------------------------------
 
 """
-An asyncronous, Twisted/Autobahn based, websocket server.
+An asyncronous, Twisted/Autobahn based, HTTP/websocket server.
 """
 
 from datetime import datetime
@@ -16,11 +16,11 @@ from twisted import logger
 
 from autobahn.twisted import websocket
 
-import log
+import log as log_package
 
 
 
-_log = logger.Logger(namespace='webserver.ws')
+_log = logger.Logger(namespace='inputs.web')
 
 
 
@@ -40,7 +40,7 @@ class WSProto(websocket.WebSocketServerProtocol):
         # Twisted/Autobahn calls this when a websocket connection is establised.
 
         # Add self as a log observer to push logs to the client.
-        log.add_observer(self)
+        log_package.add_observer(self)
 
         # Handle `arduino_raw_data` by pushing it to the client.
         self.factory.event_manager.arduino_raw_data.calls(self._push_raw_data)
@@ -50,14 +50,14 @@ class WSProto(websocket.WebSocketServerProtocol):
 
         # Twisted/Autobahn calls this when a websocket connection is ready.
 
-        _log.info('{p.host}:{p.port} connected', p=self.transport.getPeer())
+        _log.warn('{p.host}:{p.port} connected', p=self.transport.getPeer())
 
 
     def onMessage(self, payload, isBinary):
 
         # Twisted/Autobahn calls this when a websocket message is received.
 
-        _log.info('ws mesg: p={p!r} b={b!r}', p=payload, b=isBinary)
+        _log.debug('ws mesg: p={p!r} b={b!r}', p=payload, b=isBinary)
 
         try:
             message = json.loads(payload.decode('utf-8'))
@@ -104,12 +104,12 @@ class WSProto(websocket.WebSocketServerProtocol):
         # Twisted/Autobahn calls this when a websocket connection is closed.
 
         # Can't push logs to the client anymore.
-        log.remove_observer(self)
+        log_package.remove_observer(self)
 
         # Can't push arduino raw data to the client anymore.
         self.factory.event_manager.arduino_raw_data.no_longer_calls(self._push_raw_data)
 
-        _log.info('{p.host}:{p.port} disconnected', p=self.transport.getPeer())
+        _log.warn('{p.host}:{p.port} disconnected', p=self.transport.getPeer())
 
 
     def _send_message_dict(self, message_type, message_dict):
@@ -174,20 +174,6 @@ class WSFactory(websocket.WebSocketServerFactory):
         self.event_manager = event_manager
 
 
-
-def setup_websocket(reactor, event_manager):
-
-    """
-    Starts listening for websocket connections.
-    """
-
-    factory = WSFactory(event_manager)
-
-    # TODO: Should port/interface be configurable? Client may need adjustments.
-    reactor.listenTCP(8081, factory, interface='0.0.0.0')
-    _log.info('listening for WSCK connections on 0.0.0.0:8081')
-
-
 # ----------------------------------------------------------------------------
-# webserver/websocket.py
+# inputs/web/server.py
 # ----------------------------------------------------------------------------
