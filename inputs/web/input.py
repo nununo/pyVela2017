@@ -13,11 +13,15 @@ import os
 
 from twisted.internet import defer
 from twisted.web import server, static
+from twisted import logger
 from autobahn.twisted import resource
 
 from inputs import input_base
 from . import server as input_server
-from . common import log
+
+
+
+_log = logger.Logger(namespace='inputs.web')
 
 
 
@@ -48,7 +52,7 @@ class WebInput(input_base.InputBase):
             site,
             interface=self._interface,
         )
-        log.info('started: listening on {i}:{p}', i=self._interface, p=self._port)
+        _log.info('started: listening on {i}:{p}', i=self._interface, p=self._port)
         yield defer.succeed(None)
 
 
@@ -56,7 +60,7 @@ class WebInput(input_base.InputBase):
     def stop(self):
 
         yield self._listening_port.stopListening()
-        log.info('stopped: no longer listening')
+        _log.info('stopped: no longer listening')
 
 
 # ----------------------------------------------------------------------------
