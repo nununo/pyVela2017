@@ -17,7 +17,7 @@ from autobahn.twisted import resource
 
 from inputs import input_base
 from . import server as input_server
-from . common import log as _log
+from . common import log
 
 
 
@@ -48,7 +48,7 @@ class WebInput(input_base.InputBase):
             site,
             interface=self._interface,
         )
-        _log.info('started: listening on {i}:{p}', i=self._interface, p=self._port)
+        log.info('started: listening on {i}:{p}', i=self._interface, p=self._port)
         yield defer.succeed(None)
 
 

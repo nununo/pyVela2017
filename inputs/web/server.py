@@ -16,7 +16,7 @@ from twisted import logger
 
 from autobahn.twisted import websocket
 
-from . common import log as _log
+from . common import log
 import log as log_package
 
 
@@ -47,19 +47,19 @@ class WSProto(websocket.WebSocketServerProtocol):
 
         # Twisted/Autobahn calls this when a websocket connection is ready.
 
-        _log.warn('{p.host}:{p.port} connected', p=self.transport.getPeer())
+        log.warn('{p.host}:{p.port} connected', p=self.transport.getPeer())
 
 
     def onMessage(self, payload, isBinary):
 
         # Twisted/Autobahn calls this when a websocket message is received.
 
-        _log.debug('ws mesg: p={p!r} b={b!r}', p=payload, b=isBinary)
+        log.debug('ws mesg: p={p!r} b={b!r}', p=payload, b=isBinary)
 
         try:
             message = json.loads(payload.decode('utf-8'))
         except ValueError:
-            _log.warn('invalid payload ignored: {p!r}', p=payload)
+            log.warn('invalid payload ignored: {p!r}', p=payload)
         else:
             method_name = '_action_%s' % message.get('action', 'invalid')
             method = getattr(self, method_name, self._action_invalid)
@@ -69,7 +69,7 @@ class WSProto(websocket.WebSocketServerProtocol):
     @staticmethod
     def _action_invalid(message):
 
-        _log.warn('invalid message: {m!r}', m=message)
+        log.warn('invalid message: {m!r}', m=message)
 
 
     def _action_change_level(self, message):
@@ -77,7 +77,7 @@ class WSProto(websocket.WebSocketServerProtocol):
         try:
             level = message['level']
         except KeyError:
-            _log.warn('missing level: {m!r}', m=message)
+            log.warn('missing level: {m!r}', m=message)
         else:
             self.factory.event_manager.change_play_level(level, comment='web')
 
@@ -88,7 +88,7 @@ class WSProto(websocket.WebSocketServerProtocol):
             namespace = message['namespace']
             level = message['level']
         except KeyError:
-            _log.warn('missing level/namespace: {m!r}', m=message)
+            log.warn('missing level/namespace: {m!r}', m=message)
         else:
             self.factory.event_manager.set_log_level(namespace, level)
             # Log message on the specified logger/level to feed user back.
@@ -106,7 +106,7 @@ class WSProto(websocket.WebSocketServerProtocol):
         # Can't push arduino raw data to the client anymore.
         self.factory.event_manager.arduino_raw_data.no_longer_calls(self._push_raw_data)
 
-        _log.warn('{p.host}:{p.port} disconnected', p=self.transport.getPeer())
+        log.warn('{p.host}:{p.port} disconnected', p=self.transport.getPeer())
 
 
     def _send_message_dict(self, message_type, message_dict):
