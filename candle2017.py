@@ -88,8 +88,8 @@ def start_things(reactor, settings):
 
 
     # Ensure a clean stop.
-    stop_args = (input_manager, player_manager)
-    reactor.addSystemEventTrigger('before', 'shutdown', stop_things, *stop_args)
+    stoppables = (input_manager, player_manager)
+    reactor.addSystemEventTrigger('before', 'shutdown', stop_things, stoppables)
 
 
     # Start the player manager.
@@ -105,17 +105,20 @@ def start_things(reactor, settings):
 
 
 @defer.inlineCallbacks
-def stop_things(input_manager, player_manager):
+def stop_things(stoppables):
 
     """
     Asyncronous, Twisted based, cleanup.
 
-    Asks the player manage to stop which, in turn, will stop the spawned player
-    processes.
+    Asks each stoppable to stop.
     """
 
-    yield input_manager.stop()
-    yield player_manager.stop()
+    for stoppable in stoppables:
+        try:
+            yield stoppable.stop()
+        except Exception:
+            # Nothing much we an do, move on.
+            pass
 
 
 
