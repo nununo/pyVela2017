@@ -10,16 +10,13 @@ An asyncronous, Twisted/Autobahn based, HTTP/websocket server.
 
 from datetime import datetime
 import json
-import os
 
 from zope.interface import provider
 from twisted import logger
-from twisted.web import server, static
 
 from autobahn.twisted import websocket
-from autobahn.twisted import resource
 
-import log
+import log as log_package
 
 
 
@@ -43,7 +40,7 @@ class WSProto(websocket.WebSocketServerProtocol):
         # Twisted/Autobahn calls this when a websocket connection is establised.
 
         # Add self as a log observer to push logs to the client.
-        log.add_observer(self)
+        log_package.add_observer(self)
 
         # Handle `arduino_raw_data` by pushing it to the client.
         self.factory.event_manager.arduino_raw_data.calls(self._push_raw_data)
@@ -107,7 +104,7 @@ class WSProto(websocket.WebSocketServerProtocol):
         # Twisted/Autobahn calls this when a websocket connection is closed.
 
         # Can't push logs to the client anymore.
-        log.remove_observer(self)
+        log_package.remove_observer(self)
 
         # Can't push arduino raw data to the client anymore.
         self.factory.event_manager.arduino_raw_data.no_longer_calls(self._push_raw_data)
@@ -175,25 +172,6 @@ class WSFactory(websocket.WebSocketServerFactory):
 
         super(WSFactory, self).__init__(*args, **kwargs)
         self.event_manager = event_manager
-
-
-
-def start(reactor, event_manager, interface, port):
-
-    """
-    Starts listening for HTTP connections.
-    """
-
-    ws_factory = WSFactory(event_manager)
-    ws_resource = resource.WebSocketResource(ws_factory)
-
-    web_root = os.path.abspath(os.path.join(os.path.dirname(__file__), 'web-root'))
-    root_resource = static.File(web_root, ignoredExts=('.gz',))
-    root_resource.putChild(b'ws', ws_resource)
-    site = server.Site(root_resource)
-
-    reactor.listenTCP(port, site, interface=interface)
-    _log.warn('listening for HTTP on {i}:{p}', i=interface, p=port)
 
 
 # ----------------------------------------------------------------------------

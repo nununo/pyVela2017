@@ -8,7 +8,7 @@
 Holds web interface related code.
 """
 
-from .server import start
+from .input import WebInput as Input
 
 
 # ----------------------------------------------------------------------------

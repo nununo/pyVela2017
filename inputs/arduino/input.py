@@ -8,20 +8,27 @@
 High level Arduino input.
 """
 
+
 from collections import deque
 
+from twisted.internet import defer, serialport
 from twisted import logger
 
-from . import serial
+from inputs import input_base
+from . import protocol
+
 
 
 _INPUT_SIZE = 25
+
+
 
 _log = logger.Logger(namespace='inputs.arduino')
 
 
 
-class ArduinoInput(object):
+
+class ArduinoInput(input_base.InputBase):
 
     """
     Processes serial received PDUs (protocol data units) that are integers that
@@ -32,13 +39,59 @@ class ArduinoInput(object):
     in turn, to fire `change_play_level` events via the `event_manager`.
     """
 
-    def __init__(self, reactor, device_file, baud_rate, thresholds, event_manager):
+    def __init__(self, reactor, event_manager, device_file, baud_rate, thresholds):
 
-        self._sp = serial.create_port(reactor, device_file, baud_rate, self._pdu_received)
-        self._event_manager = event_manager
-        self._pdus = deque(maxlen=_INPUT_SIZE)
+        super(ArduinoInput, self).__init__(reactor, event_manager)
+        self._device_file = device_file
+        self._baud_rate = baud_rate
         self._thresholds = thresholds
+
+        self._pdus = deque(maxlen=_INPUT_SIZE)
         self._last_play_level = 0
+
+        self._serial_protocol = None
+        self._serial_port = None
+
+
+    @defer.inlineCallbacks
+    def start(self):
+
+        self._serial_protocol = protocol.ArduinoProtocol(self._pdu_received)
+        try:
+            self._serial_port = serialport.SerialPort(
+                self._serial_protocol,
+                self._device_file,
+                self._reactor,
+                baudrate=self._baud_rate,
+            )
+        except Exception as e:
+            _log.warn('serial port opening failed: {f}', f=e)
+            raise
+        _log.info(
+            'started: {d!r} open at {b} baud',
+            d=self._device_file,
+            b=self._baud_rate,
+        )
+        yield defer.succeed(None)
+
+
+    @defer.inlineCallbacks
+    def stop(self):
+
+        _log.debug('stopping')
+
+        # Signal the serial port for disconnection...
+        self._serial_port.loseConnection()
+
+        # ...then wait on the protocol for the confirmation.
+        disconnected_deferred = self._serial_protocol.disconnected
+        disconnected_deferred.addTimeout(5, self._reactor)
+        try:
+            yield disconnected_deferred
+        except Exception as e:
+            _log.warn('stopping failed: {e!r}', e=e)
+        else:
+            _log.info('stopped')
 
 
     def _pdu_received(self, pdu):
