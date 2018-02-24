@@ -12,14 +12,19 @@ High level Arduino input.
 from collections import deque
 
 from twisted.internet import defer, serialport
+from twisted import logger
 
 from inputs import input_base
 from . import protocol
-from . common import log
 
 
 
 _INPUT_SIZE = 25
+
+
+
+_log = logger.Logger(namespace='inputs.arduino')
+
 
 
 
@@ -60,9 +65,9 @@ class ArduinoInput(input_base.InputBase):
                 baudrate=self._baud_rate,
             )
         except Exception as e:
-            log.warn('serial port opening failed: {f}', f=e)
+            _log.warn('serial port opening failed: {f}', f=e)
             raise
-        log.info(
+        _log.info(
             'started: {d!r} open at {b} baud',
             d=self._device_file,
             b=self._baud_rate,
@@ -73,7 +78,7 @@ class ArduinoInput(input_base.InputBase):
     @defer.inlineCallbacks
     def stop(self):
 
-        log.debug('stopping')
+        _log.debug('stopping')
 
         # Signal the serial port for disconnection...
         self._serial_port.loseConnection()
@@ -84,9 +89,9 @@ class ArduinoInput(input_base.InputBase):
         try:
             yield disconnected_deferred
         except Exception as e:
-            log.warn('stopping failed: {e!r}', e=e)
+            _log.warn('stopping failed: {e!r}', e=e)
         else:
-            log.info('stopped')
+            _log.info('stopped')
 
 
     def _pdu_received(self, pdu):
@@ -96,9 +101,9 @@ class ArduinoInput(input_base.InputBase):
 
         # Keep track of this PDU and calculate the new aggregated derivative.
         self._pdus.append(pdu)
-        log.debug('pdus: {p!r}', p=self._pdus)
+        _log.debug('pdus: {p!r}', p=self._pdus)
         agg_d = self._aggregated_derivative()
-        log.debug('aggregated derivative: {ad!r}', ad=agg_d)
+        _log.debug('aggregated derivative: {ad!r}', ad=agg_d)
 
         # Notify about the "raw data" we just received.
         self._event_manager.arduino_raw_data(raw=pdu, agd=agg_d)

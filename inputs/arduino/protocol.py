@@ -11,8 +11,11 @@ Low level, serial Arduino input protocol.
 
 from twisted.internet import protocol, defer
 from twisted.protocols import basic
+from twisted import logger
 
-from . common import log
+
+
+_log = logger.Logger(namespace='inputs.arduino')
 
 
 
@@ -39,7 +42,7 @@ class ArduinoProtocol(basic.LineReceiver):
 
         # Called by Twisted when the serial connection is up.
 
-        log.debug('connection made')
+        _log.debug('connection made')
 
 
     def lineReceived(self, line):
@@ -47,17 +50,17 @@ class ArduinoProtocol(basic.LineReceiver):
         # Called by Twisted when a PDU is received.
         # `line` should be a two byte little endian integer.
 
-        log.debug('data received: {d!r}', d=line)
+        _log.debug('data received: {d!r}', d=line)
         try:
             pdu = int.from_bytes(line, byteorder='little')
         except (TypeError, ValueError):
-            log.warn('bad value: {d!r}', d=line)
+            _log.warn('bad value: {d!r}', d=line)
             return
 
         try:
             self._pdu_received_callable(pdu)
         except Exception as e:
-            log.warn('callable exception: {e!s}', e=e)
+            _log.warn('callable exception: {e!s}', e=e)
 
 
     def rawDataReceived(self, data):
@@ -67,14 +70,14 @@ class ArduinoProtocol(basic.LineReceiver):
         # It is here to ensure a complete protocol implementation, given that
         # the parent class does not implement it.
 
-        log.warn('unexpected data: {d!r}', d=data)
+        _log.warn('unexpected data: {d!r}', d=data)
 
 
     def connectionLost(self, reason=protocol.connectionDone):
 
         # Called by Twisted when the serial connection is dropped.
 
-        log.debug('connection lost')
+        _log.debug('connection lost')
         self.disconnected.callback(None)
 
 
