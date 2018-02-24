@@ -74,8 +74,25 @@ class InputManager(object):
             except Exception as e:
                 _log.error('failed {it!r} input start: {e!r}', it=input_type, e=e)
                 raise
-            self._inputs.append(input)
+            self._inputs.append((input_type, input))
         _log.info('started inputs')
+
+
+    @defer.inlineCallbacks
+    def stop(self):
+
+        """
+        Instantiates each configured input, returning a deferred that
+        fires on completion.
+        """
+
+        _log.info('stopping inputs')
+        for input_type, input in self._inputs:
+            try:
+                yield input.stop()
+            except Exception as e:
+                _log.error('failed input {it!r} stop: {e!r}', it=input_type, e=e)
+        _log.info('stopped inputs')
 
 
 # ----------------------------------------------------------------------------

@@ -88,7 +88,8 @@ def start_things(reactor, settings):
 
 
     # Ensure a clean stop.
-    reactor.addSystemEventTrigger('before', 'shutdown', stop_things, player_manager)
+    stop_args = (input_manager, player_manager)
+    reactor.addSystemEventTrigger('before', 'shutdown', stop_things, *stop_args)
 
 
     # Start the player manager.
@@ -104,7 +105,7 @@ def start_things(reactor, settings):
 
 
 @defer.inlineCallbacks
-def stop_things(player_manager):
+def stop_things(input_manager, player_manager):
 
     """
     Asyncronous, Twisted based, cleanup.
@@ -113,6 +114,7 @@ def stop_things(player_manager):
     processes.
     """
 
+    yield input_manager.stop()
     yield player_manager.stop()
 
 
