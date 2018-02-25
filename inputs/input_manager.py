@@ -11,8 +11,9 @@ Asyncronous, Twisted based, input management.
 from twisted.internet import defer
 from twisted import logger
 
-from . import network
+from . import agd
 from . import arduino
+from . import network
 from . import web
 
 
@@ -20,8 +21,9 @@ from . import web
 _log = logger.Logger(namespace='inputs')
 
 _INPUT_CLASSES = {
-    'network': network.Input,
+    'agd': agd.Input,
     'arduino': arduino.Input,
+    'network': network.Input,
     'web': web.Input,
 }
 

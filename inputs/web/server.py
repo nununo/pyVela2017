@@ -42,8 +42,8 @@ class WSProto(websocket.WebSocketServerProtocol):
         # Add self as a log observer to push logs to the client.
         log_package.add_observer(self)
 
-        # Handle `arduino_raw_data` by pushing it to the client.
-        self.factory.event_manager.arduino_raw_data.calls(self._push_raw_data)
+        # Handle `agd_output` by pushing it as chart data to the client.
+        self.factory.event_manager.agd_output.calls(self._push_chart_data)
 
 
     def onOpen(self):
@@ -106,8 +106,8 @@ class WSProto(websocket.WebSocketServerProtocol):
         # Can't push logs to the client anymore.
         log_package.remove_observer(self)
 
-        # Can't push arduino raw data to the client anymore.
-        self.factory.event_manager.arduino_raw_data.no_longer_calls(self._push_raw_data)
+        # Can't push chart data to the client anymore.
+        self.factory.event_manager.agd_output.no_longer_calls(self._push_chart_data)
 
         _log.warn('{p.host}:{p.port} disconnected', p=self.transport.getPeer())
 
@@ -121,13 +121,11 @@ class WSProto(websocket.WebSocketServerProtocol):
         self.sendMessage(msg, isBinary=False)
 
 
-    def _push_raw_data(self, **values):
+    def _push_chart_data(self, **values):
 
         """
-        Called by our factory to send raw data to the client.
-
-        Raw data is an object containing time and an integer reading which
-        the client will plot in a chart.
+        Pushes `values` as chart data updates to the client, adding a `ts`
+        property with the current timestamp.
         """
 
         values['ts'] = datetime.now().isoformat()

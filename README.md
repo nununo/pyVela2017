@@ -97,7 +97,8 @@ As an interactive art project, using it is about interacting with it. There are 
 **"Wind sensor" interaction**
 
 * Requires "wind sensor" to be present.
-* May need adjustments to `inputs.arduino.thresholds` in the configuration.
+* Requires `inputs.agd.source` to be set to `"arduino"`, which is the default.
+* May need adjustments to `inputs.agd.buffer_size` and `inputs.agd.thresholds` in the configuration.
 * Blow on the sensor and watch the candle react.
 
 **Raw TCP network control**
@@ -143,7 +144,9 @@ Most settings are, hopefully, self-explanatory. Here's a quick rundown:
 | loglevel.*                       | Per component log level.                                        |
 | inputs.arduino.device_file       | Absolute path to the serial device file of the "wind sensor".   |
 | inputs.arduino.baud_rate         | Baud rate of the "wind sensor" communication.                   |
-| inputs.arduino.thresholds        | Array of three integers: adjust "wind sensor" responsiveness.   |
+| inputs.agd.source                | Input sensor source name: currently only `arduino` is supported. |
+| inputs.agd.buffer_size           | Input sensor buffer size.
+| inputs.agd.thresholds            | Input sensor thresholds: adjusts "input sensor" responsiveness. |
 | inputs.network.port              | TCP port where raw network connections will be accepted in.     |
 | inputs.web.interface             | IP interface listening for HTTP connections.                    |
 | inputs.web.port                  | TCP port listening HTTP connections.                            |
