@@ -95,12 +95,14 @@ class DBusManager(object):
         # sets the DBUS_SESSION_BUS_ADDRESS environment variable (so that we
         # and our child processes can connect to it).
 
+        stdout_queue = defer.DeferredQueue()
+
         self.log.info('spawning dbus daemon {ddb!r}', ddb=self._dbus_daemon_bin)
         self._dbus_proto = process.spawn(
             self.reactor,
             [self._dbus_daemon_bin, '--session', '--print-address', '--nofork'],
             'player.proc.dbus-daemon',
-            track_output=True,
+            out_callable=lambda data: stdout_queue.put(data),
         )
         self.log.debug('waiting for dbus daemon start')
         yield self._dbus_proto.started
@@ -109,7 +111,7 @@ class DBusManager(object):
         # Get the first line of output, containing the bus address.
         output_data = None
         try:
-            output_deferred = self._dbus_proto.out_queue.get()
+            output_deferred = stdout_queue.get()
             output_deferred.addTimeout(5, self.reactor)
             output_data = yield output_deferred
             output_text = output_data.decode('utf-8')
