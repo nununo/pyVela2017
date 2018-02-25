@@ -26,7 +26,9 @@ Minimum Requirements
 
 Full Requirements
 -----------------
-For full *interactivity*, a serial input device attached to a some kind of "wind sensor" is needed, such that blowing into the video triggers natural candle reactions (more on this later).
+For full interactivity, a serial input device attached to a some kind of "wind sensor" is needed, such that blowing into the video triggers natural candle reactions (more on this later).
+
+Optional audio based input requires an audio input device (a USB microphone or webcam) and the raspbian `alsa-utils` package; with the right settings, blowing into the microphone will trigger natural candle reactions.
 
 
 Installation
@@ -129,6 +131,14 @@ $
 > Important: multiple browser connections are accepted simultaneously; no effort to authenticate or limit the amount of connections is made.
 
 
+**ALSA Audio based input**
+
+* Requires configuration of an ALSA audio input device.
+* Adjust `inputs.audio.*` settings.
+* Set `inputs.agd.source` to `"audio"`.
+* May need adjustments to `inputs.agd.buffer_size` and `inputs.agd.thresholds` in the configuration.
+
+
 Configuration
 -------------
 When running, the configuration is sourced from the file `settings.json`. As its name implies, it is a JSON formatted file containing all the configurable settings.
@@ -144,6 +154,14 @@ Most settings are, hopefully, self-explanatory. Here's a quick rundown:
 | loglevel.*                       | Per component log level.                                        |
 | inputs.arduino.device_file       | Absolute path to the serial device file of the "wind sensor".   |
 | inputs.arduino.baud_rate         | Baud rate of the "wind sensor" communication.                   |
+| inputs.audio.nice_bin            | Absolute path to the `nice` executable.                         |
+| inputs.audio.arecord_bin         | Absolute path to the `arecord` executable.                      |
+| inputs.audio.device              | ALSA device as obtained from the output `arecord -L`.           |
+| inputs.audio.channels            | Number of channels to "listen on".                              |
+| inputs.audio.format              | Audio capture format, to be used in `arecord`'s `--format` option. |
+| inputs.audio.rate                | Audio capture rate, to be used in `arecord`'s `--rate` option. |
+| inputs.audio.buffer_time         | Audio capture buffer size, to be used in `arecord`'s `--buffer-size` option. |
+| inputs.audio.respawn_delay       | Delay, in seconds, to wait for `arecord` process respawn (no respawns will be attempted if negative). |
 | inputs.agd.source                | Input sensor source name: currently only `arduino` is supported. |
 | inputs.agd.buffer_size           | Input sensor buffer size.
 | inputs.agd.thresholds            | Input sensor thresholds: adjusts "input sensor" responsiveness. |
