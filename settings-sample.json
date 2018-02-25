@@ -15,6 +15,7 @@
         "inputs.agd": "warn",
         "inputs.arduino": "warn",
         "inputs.audio": "warn",
+        "inputs.audio.proc": "warn",
         "inputs.network": "warn",
         "inputs.web": "warn",
         "txdbus": "warn",
