@@ -12,21 +12,34 @@
         "player.proc": "warn",
         "player.each": "warn",
         "inputs": "warn",
-        "inputs.network": "warn",
+        "inputs.agd": "warn",
         "inputs.arduino": "warn",
+        "inputs.audio": "warn",
+        "inputs.audio.proc": "warn",
+        "inputs.network": "warn",
         "inputs.web": "warn",
         "txdbus": "warn",
         "events": "warn"
     },
     "inputs": {
-        "arduino": {
-            "device_file": "/dev/ttyACM0",
-            "baud_rate": 9600
-        },
         "agd": {
             "buffer_size": 25,
             "thresholds": [7, 20, 30],
             "source": "arduino"
+        },
+        "arduino": {
+            "device_file": "/dev/ttyACM0",
+            "baud_rate": 9600
+        },
+        "audio": {
+            "nice_bin": "/usr/bin/nice",
+            "arecord_bin": "/usr/bin/arecord",
+            "device": "hw:CARD=H2300,DEV=0",
+            "channels": 2,
+            "format": "S16_LE",
+            "rate": 8000,
+            "buffer_time": 200000,
+            "respawn_delay": 1
         },
         "network": {
             "port": 10000

@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------
 # vim: ts=4:sw=4:et
 # ----------------------------------------------------------------------------
-# player/process.py
+# common/process.py
 # ----------------------------------------------------------------------------
 
 """
@@ -22,19 +22,17 @@ class _TrackProcessProtocol(protocol.ProcessProtocol):
     - `started`: deferred that fires with PID when the process is started.
     - `stopped`: deferred that fires with exit code when the process terminates.
 
-    If initialized with `track_output` to True, additionally exposes:
-    - `out_queue`: deferred queue that fires with process stdout data.
-    - `err_queue`: deferred queue that fires with process stderr data.
+    If set, calls `out_callable` with process stdout data.
+    If set, calls `err_callable` with process stderr data.
     """
 
-    def __init__(self, name, track_output=False):
+    def __init__(self, name, out_callable=None, err_callable=None):
 
-        self.log = logger.Logger(namespace='player.proc.%s' % (name,))
+        self.log = logger.Logger(namespace=name)
         self.started = defer.Deferred()
         self.stopped = defer.Deferred()
-        self.out_queue = defer.DeferredQueue() if track_output else None
-        self.err_queue = defer.DeferredQueue() if track_output else None
-        self._track_output = track_output
+        self._out_callable = out_callable
+        self._err_callable = err_callable
         self.pid = None
 
 
@@ -52,8 +50,8 @@ class _TrackProcessProtocol(protocol.ProcessProtocol):
         # Called by Twisted when the process writes to its standard output.
 
         self.log.debug('stdout: {d!r}', d=data)
-        if self._track_output:
-            self.out_queue.put(data)
+        if self._out_callable:
+            self._out_callable(data)
 
 
     def errReceived(self, data):
@@ -61,8 +59,8 @@ class _TrackProcessProtocol(protocol.ProcessProtocol):
         # Called by Twisted when the process writes to its standard error.
 
         self.log.debug('stderr: {d!r}', d=data)
-        if self._track_output:
-            self.err_queue.put(data)
+        if self._err_callable:
+            self._err_callable(data)
 
 
     def terminate(self):
@@ -89,21 +87,24 @@ class _TrackProcessProtocol(protocol.ProcessProtocol):
 
 
 
-def spawn(reactor, cmd_args, name, track_output=False):
+def spawn(reactor, cmd_args, name, out_callable=None, err_callable=None):
 
     """
     Simple wrapper around Twisted's IReactorProcess.spawnProcess.
 
     Assumes the executable is the first entry in `cmd_args` and ensures
     the current process environment is passed down to the spawned process;
-    when `track_output` is True, the returned protocol instance uses two
-    deferred queues that fire with the spawned process stdout and stderr
-    data.
+    if `out_callable` / `err_callable` are set, they will be called with
+    the spawned process stdout / stderr outputs.
 
     Returns the associated process protocol instance.
     """
 
-    process_proto = _TrackProcessProtocol(name, track_output=track_output)
+    process_proto = _TrackProcessProtocol(
+        name,
+        out_callable=out_callable,
+        err_callable=err_callable,
+    )
     executable = cmd_args[0]
 
     # env=None, below, is relevant: it ensures that environment variables
@@ -121,5 +122,5 @@ def spawn(reactor, cmd_args, name, track_output=False):
 
 
 # ----------------------------------------------------------------------------
-# player/process.py
+# common/process.py
 # ----------------------------------------------------------------------------

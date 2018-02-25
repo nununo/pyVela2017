@@ -13,6 +13,7 @@ from twisted import logger
 
 from . import agd
 from . import arduino
+from . import audio
 from . import network
 from . import web
 
@@ -23,6 +24,7 @@ _log = logger.Logger(namespace='inputs')
 _INPUT_CLASSES = {
     'agd': agd.Input,
     'arduino': arduino.Input,
+    'audio': audio.Input,
     'network': network.Input,
     'web': web.Input,
 }

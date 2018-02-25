@@ -18,7 +18,7 @@ from twisted import logger
 
 from txdbus import error, interface as txdbus_interface
 
-from . import process
+from common import process
 from .misc import sleep
 
 
@@ -177,7 +177,7 @@ class OMXPlayer(object):
         self._process_protocol = process.spawn(
             self._reactor,
             args,
-            self.dbus_player_name,
+            'player.proc.%s' % (self.dbus_player_name,),
         )
 
 
