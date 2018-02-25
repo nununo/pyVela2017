@@ -41,7 +41,7 @@ class AudioInput(input_base.InputBase):
             '--rate=%s' % (rate,),
             '--buffer-size=%s' % (buffer_time,),
         ]
-        self._respawn_delay = respawn_delay
+        self._respawn_delay = float(respawn_delay)
         self._arecord_proto = None
 
 
@@ -71,8 +71,16 @@ class AudioInput(input_base.InputBase):
 
     def _arecord_stopped(self, exit_code):
 
-        _log.warn('arecord stopped')
+        _log.warn('arecord stopped with exit code {ec!r}', ec=exit_code)
         self._arecord_proto = None
+
+        respawn_delay = self._respawn_delay
+        if respawn_delay < 0:
+            _log.warn('will not re-spawn arecord')
+            return
+
+        _log.warn('re-spawning arecord in {d:.3f} seconds', d=respawn_delay)
+        self._reactor.callLater(respawn_delay, self._spawn_arecord)
 
 
     @defer.inlineCallbacks
