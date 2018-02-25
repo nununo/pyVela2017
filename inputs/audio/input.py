@@ -39,10 +39,13 @@ class AudioInput(input_base.InputBase):
             '--channels=%s' % (channels,),
             '--format=%s' % (format,),
             '--rate=%s' % (rate,),
-            '--buffer-size=%s' % (buffer_time,),
+            '--buffer-time=%s' % (buffer_time,),
+            '-vvv',
+            '/dev/null',
         ]
         self._respawn_delay = float(respawn_delay)
         self._arecord_proto = None
+        self._output_callable = event_manager.audio
 
 
     @defer.inlineCallbacks
@@ -61,6 +64,7 @@ class AudioInput(input_base.InputBase):
             self._reactor,
             self._spawn_args,
             'inputs.audio.proc',
+            err_callable=self._handle_arecord_output,
         )
         _log.debug('waiting arecord start')
         yield self._arecord_proto.started
@@ -81,6 +85,20 @@ class AudioInput(input_base.InputBase):
 
         _log.warn('re-spawning arecord in {d:.3f} seconds', d=respawn_delay)
         self._reactor.callLater(respawn_delay, self._spawn_arecord)
+
+
+    def _handle_arecord_output(self, data):
+
+        _log.debug('arecord output data={d!r}', d=data)
+        if not data.startswith(b'Max peak'):
+            return
+
+        try:
+            reading = int(data[data.rfind(b' ')+1:-2])
+        except Exception as e:
+            _log.warn('bad data {d!r}: {e!r}', d=data, e=e)
+        else:
+            self._output_callable(reading)
 
 
     @defer.inlineCallbacks
