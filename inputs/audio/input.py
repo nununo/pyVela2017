@@ -26,12 +26,21 @@ class AudioInput(input_base.InputBase):
     """
     Audio input.
     """
-    # TODO: Improve docstring
+
+    # Spawns ALSA's arecord utility as a sub-process and tracks its
+    # very-very-verbose mode output on stderr, that produces lines like:
+    #
+    #   "Max peak (800 samples): 0x00007ffc #################### 99%"
+    #
+    # These are parsed into individual integer readings and output via the
+    # `event_manager.audio` call.
 
     def __init__(self, reactor, event_manager, nice_bin, arecord_bin,
                  device, channels, format, rate, buffer_time, respawn_delay):
 
         super(AudioInput, self).__init__(reactor, event_manager)
+
+        # Note: running arecord under nice seems to be a good idea.
         self._spawn_args = [
             nice_bin,
             arecord_bin,
@@ -45,6 +54,8 @@ class AudioInput(input_base.InputBase):
         ]
         self._respawn_delay = float(respawn_delay)
         self._arecord_proto = None
+
+        # Someone, somewhere, can track our readings via the `event_manager`.
         self._output_callable = event_manager.audio
 
 
@@ -75,6 +86,8 @@ class AudioInput(input_base.InputBase):
 
     def _arecord_stopped(self, exit_code):
 
+        # Called when the arecord process exits.
+
         _log.warn('arecord stopped with exit code {ec!r}', ec=exit_code)
         self._arecord_proto = None
 
@@ -88,6 +101,8 @@ class AudioInput(input_base.InputBase):
 
 
     def _handle_arecord_output(self, data):
+
+        # Called for each stderr output "block" from the arecord process.
 
         _log.debug('arecord output data={d!r}', d=data)
         if not data.startswith(b'Max peak'):
