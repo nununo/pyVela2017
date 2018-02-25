@@ -193,7 +193,7 @@ Development Notes
 
 Lint with:
 ```
-$ pylint candle2017 events/ inputs/ player/ log/
+$ pylint candle2017 common/ events/ inputs/ player/ log/
 ```
 
 

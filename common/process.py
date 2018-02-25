@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------
 # vim: ts=4:sw=4:et
 # ----------------------------------------------------------------------------
-# player/process.py
+# common/process.py
 # ----------------------------------------------------------------------------
 
 """
@@ -29,7 +29,7 @@ class _TrackProcessProtocol(protocol.ProcessProtocol):
 
     def __init__(self, name, track_output=False):
 
-        self.log = logger.Logger(namespace='player.proc.%s' % (name,))
+        self.log = logger.Logger(namespace=name)
         self.started = defer.Deferred()
         self.stopped = defer.Deferred()
         self.out_queue = defer.DeferredQueue() if track_output else None
@@ -121,5 +121,5 @@ def spawn(reactor, cmd_args, name, track_output=False):
 
 
 # ----------------------------------------------------------------------------
-# player/process.py
+# common/process.py
 # ----------------------------------------------------------------------------

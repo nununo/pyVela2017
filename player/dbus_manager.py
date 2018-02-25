@@ -15,7 +15,7 @@ from twisted import logger
 
 from txdbus import client as txdbus_client
 
-from . import process
+from common import process
 
 
 
@@ -99,7 +99,7 @@ class DBusManager(object):
         self._dbus_proto = process.spawn(
             self.reactor,
             [self._dbus_daemon_bin, '--session', '--print-address', '--nofork'],
-            'dbus-daemon',
+            'player.proc.dbus-daemon',
             track_output=True,
         )
         self.log.debug('waiting for dbus daemon start')
