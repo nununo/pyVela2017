@@ -43,7 +43,7 @@ class WSProto(websocket.WebSocketServerProtocol):
         log_package.add_observer(self)
 
         # Handle `agd_output` by pushing it as chart data to the client.
-        self.factory.event_manager.agd_output.calls(self._push_chart_data)
+        self.factory.wiring.wire.agd_output.calls_to(self._push_chart_data)
 
 
     def onOpen(self):
@@ -82,7 +82,7 @@ class WSProto(websocket.WebSocketServerProtocol):
         except KeyError:
             _log.warn('missing level: {m!r}', m=message)
         else:
-            self.factory.event_manager.change_play_level(level, comment='web')
+            self.factory.wiring.change_play_level(level, comment='web')
 
 
     def _action_set_log_level(self, message):
@@ -93,7 +93,7 @@ class WSProto(websocket.WebSocketServerProtocol):
         except KeyError:
             _log.warn('missing level/namespace: {m!r}', m=message)
         else:
-            self.factory.event_manager.set_log_level(namespace, level)
+            self.factory.wiring.set_log_level(namespace, level)
             # Log message on the specified logger/level to feed user back.
             level = logger.LogLevel.levelWithName(level)
             logger.Logger(namespace=namespace).emit(level, 'log level set')
@@ -107,7 +107,7 @@ class WSProto(websocket.WebSocketServerProtocol):
         log_package.remove_observer(self)
 
         # Can't push chart data to the client anymore.
-        self.factory.event_manager.agd_output.no_longer_calls(self._push_chart_data)
+        self.factory.wiring.unwire.agd_output.calls_to(self._push_chart_data)
 
         _log.warn('{p.host}:{p.port} disconnected', p=self.transport.getPeer())
 
@@ -164,12 +164,12 @@ class WSFactory(websocket.WebSocketServerFactory):
 
     protocol = WSProto
 
-    def __init__(self, event_manager, *args, **kwargs):
-
-        # Protocol instances use `event_manager`.
+    def __init__(self, wiring, *args, **kwargs):
 
         super(WSFactory, self).__init__(*args, **kwargs)
-        self.event_manager = event_manager
+
+        # Used by protocol to call `change_play_level` and `set_log_level`.
+        self.wiring = wiring
 
 
 # ----------------------------------------------------------------------------

@@ -29,13 +29,13 @@ class NetworkInput(input_base.InputBase):
     Processes incoming CRLF terminated ASCII text lines.
     """
 
-    def __init__(self, reactor, event_manager, interface='0.0.0.0', port=10000):
+    def __init__(self, reactor, wiring, interface='0.0.0.0', port=10000):
 
-        super(NetworkInput, self).__init__(reactor, event_manager)
+        super(NetworkInput, self).__init__(reactor, wiring)
         self._interface = interface
         self._port = port
 
-        self._factory = protocol.ControlFactory(event_manager)
+        self._factory = protocol.ControlFactory(wiring)
         self._listening_port = None
 
 

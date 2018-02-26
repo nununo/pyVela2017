@@ -29,17 +29,19 @@ class AggregatedDerivative(input_base.InputBase):
     Aggregated derivative input processor.
 
     Keeps track of the last `buffer_size` readings and calculates an aggregated
-    derivative which is compared to the given `thresholds` and, in turn, fires
-    `change_play_level` events via the `event_manager`.
+    derivative which is compared to the given `thresholds` and, in turn, calls
+    `change_play_level` on the `wiring`.
     """
 
-    def __init__(self, reactor, event_manager, buffer_size, thresholds, source):
+    def __init__(self, reactor, wiring, buffer_size, thresholds, source):
 
-        super(AggregatedDerivative, self).__init__(reactor, event_manager)
+        super(AggregatedDerivative, self).__init__(reactor, wiring)
 
         self._thresholds = thresholds
         self._source_name = source
-        event_manager[source].calls(self._input_received)
+
+        # TODO: wires should allow "wiring.wire[source].calls_to(...)"
+        getattr(wiring.wire, source).calls_to(self._input_received)
 
         self._readings = deque(maxlen=buffer_size)
         self._last_play_level = 0
@@ -69,7 +71,7 @@ class AggregatedDerivative(input_base.InputBase):
         _log.debug('readings={r!r}', r=self._readings)
 
         # Output both the raw reading as well as the aggregated derivative.
-        self._event_manager.agd_output(raw=reading, agd=agd)
+        self._wiring.agd_output(raw=reading, agd=agd)
 
         # Find if the aggregated derivative is over any of the thresholds and
         # request a level change, if that is the case.
@@ -80,7 +82,7 @@ class AggregatedDerivative(input_base.InputBase):
         if play_level != self._last_play_level:
             self._last_play_level = play_level
             source_name = 'agd-%s == %r' % (self._source_name, agd)
-            self._event_manager.change_play_level(play_level, source_name)
+            self._wiring.change_play_level(play_level, source_name)
 
 
     @staticmethod

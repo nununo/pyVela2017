@@ -14,5 +14,6 @@ six==1.11.0
 Twisted==17.9.0
 txaio==2.8.2
 txdbus==1.1.0
+wires==18.1.0b1
 wrapt==1.10.11
 zope.interface==4.4.3
