@@ -45,7 +45,7 @@ class ControlProtocol(basic.LineReceiver):
         except Exception:
             _log.warn('ignored {l!r}', l=line)
         else:
-            self.factory.event_manager.change_play_level(level, 'network')
+            self.factory.wiring.change_play_level(level, 'network')
 
 
     def rawDataReceived(self, data):
@@ -74,11 +74,10 @@ class ControlFactory(protocol.Factory):
 
     protocol = ControlProtocol
 
-    def __init__(self, event_manager):
+    def __init__(self, wiring):
 
-        # The event manager is used to fire `change_play_level` events.
-
-        self.event_manager = event_manager
+        # Used by our protocols to call wired `change_play_level`.
+        self.wiring = wiring
 
         # Twisted not to log messages about us.
         self.noisy = False

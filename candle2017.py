@@ -14,8 +14,8 @@ import os
 import sys
 
 from twisted.internet import task, defer
+import wires
 
-import events
 import player
 import log
 import inputs
@@ -68,14 +68,15 @@ def start_things(reactor, settings):
     log.setup(level=log_level, namespace_levels=log_levels)
 
 
-    # Create an event manager and tell it what to with `set_log_level` events.
-    event_manager = events.EventManager()
-    event_manager.set_log_level.calls(log.set_level)
+    # Create a call wiring object and tell it what to with `set_log_level` events.
+    # TODO: Use the global wires singleton instead and avoid passing this around?
+    wiring = wires.Wires()
+    wiring.wire.set_log_level.calls_to(log.set_level)
 
 
     # Create the input and player managers.
-    input_manager = inputs.InputManager(reactor, event_manager, settings)
-    player_manager = player.PlayerManager(reactor, event_manager, settings)
+    input_manager = inputs.InputManager(reactor, wiring, settings)
+    player_manager = player.PlayerManager(reactor, wiring, settings)
 
     # Both will be ayncrhronously started and stopped.
     startables = (input_manager, player_manager)

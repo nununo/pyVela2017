@@ -32,15 +32,15 @@ class ArduinoInput(input_base.InputBase):
     Processes serial received PDUs (protocol data units) that are integers that
     will be bigger when the sensors detect "more wind".
 
-    Produces output by firing `arduino` events via the `event_manager`.
+    Produces output by calling `arduino` on the `wiring`.
     """
 
-    def __init__(self, reactor, event_manager, device_file, baud_rate):
+    def __init__(self, reactor, wiring, device_file, baud_rate):
 
-        super(ArduinoInput, self).__init__(reactor, event_manager)
+        super(ArduinoInput, self).__init__(reactor, wiring)
         self._device_file = device_file
         self._baud_rate = baud_rate
-        self._output_callable = event_manager.arduino
+        self._output_callable = wiring.arduino
 
         self._serial_protocol = None
         self._serial_port = None

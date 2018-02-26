@@ -33,12 +33,12 @@ class AudioInput(input_base.InputBase):
     #   "Max peak (800 samples): 0x00007ffc #################### 99%"
     #
     # These are parsed into individual integer readings and output via the
-    # `event_manager.audio` call.
+    # `wiring.audio` call.
 
-    def __init__(self, reactor, event_manager, nice_bin, arecord_bin,
+    def __init__(self, reactor, wiring, nice_bin, arecord_bin,
                  device, channels, format, rate, buffer_time, respawn_delay):
 
-        super(AudioInput, self).__init__(reactor, event_manager)
+        super(AudioInput, self).__init__(reactor, wiring)
 
         # Note: running arecord under nice seems to be a good idea.
         self._spawn_args = [
@@ -55,8 +55,8 @@ class AudioInput(input_base.InputBase):
         self._respawn_delay = float(respawn_delay)
         self._arecord_proto = None
 
-        # Someone, somewhere, can track our readings via the `event_manager`.
-        self._output_callable = event_manager.audio
+        # Someone, somewhere, can track our readings via the `wiring`.
+        self._output_callable = wiring.audio
 
 
     @defer.inlineCallbacks

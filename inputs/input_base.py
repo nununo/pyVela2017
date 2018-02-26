@@ -18,15 +18,15 @@ class InputBase(object):
     Input base class.
     """
 
-    def __init__(self, reactor, event_manager):
+    def __init__(self, reactor, wiring):
 
         """
         `reactor` is the Twisted reactor.
-        `event_manager` used to fire/handle events.
+        `wiring` used to fire/handle events.
         """
 
         self._reactor = reactor
-        self._event_manager = event_manager
+        self._wiring = wiring
 
 
     @defer.inlineCallbacks

@@ -35,9 +35,9 @@ class WebInput(input_base.InputBase):
     an input).
     """
 
-    def __init__(self, reactor, event_manager, interface='0.0.0.0', port=8080):
+    def __init__(self, reactor, wiring, interface='0.0.0.0', port=8080):
 
-        super(WebInput, self).__init__(reactor, event_manager)
+        super(WebInput, self).__init__(reactor, wiring)
         self._interface = interface
         self._port = port
 
@@ -47,7 +47,7 @@ class WebInput(input_base.InputBase):
     @defer.inlineCallbacks
     def start(self):
 
-        ws_factory = input_server.WSFactory(self._event_manager)
+        ws_factory = input_server.WSFactory(self._wiring)
         ws_resource = resource.WebSocketResource(ws_factory)
 
         web_root = os.path.abspath(os.path.join(os.path.dirname(__file__), 'web-root'))

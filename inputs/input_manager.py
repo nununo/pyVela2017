@@ -37,17 +37,17 @@ class InputManager(object):
     Initializes inputs and mediates their feeds to a player manager.
     """
 
-    def __init__(self, reactor, event_manager, settings):
+    def __init__(self, reactor, wiring, settings):
 
         """
         Initializes the instance:
         - `reactor` is the Twisted reactor.
-        - `event_manager` usable by inputs to fire/handle events.
+        - `wiring` usable by inputs to fire/handle event-like calls.
         - `settings` is a dict containing the 'inputs' key.
         """
 
         self._reactor = reactor
-        self._event_manager = event_manager
+        self._wiring = wiring
         self._settings = settings
 
         self._inputs = []
@@ -69,7 +69,7 @@ class InputManager(object):
                 _log.error('invalid input type: {it!r}', it=input_type)
                 raise
             try:
-                input_obj = input_class(self._reactor, self._event_manager, **input_settings)
+                input_obj = input_class(self._reactor, self._wiring, **input_settings)
             except Exception as e:
                 _log.error('bad {it!r} input settings: {e!r}', it=input_type, e=e)
                 raise
