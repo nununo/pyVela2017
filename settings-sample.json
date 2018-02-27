@@ -21,17 +21,25 @@
         "txdbus": "warn",
         "events": "warn"
     },
-    "inputs": {
-        "agd": {
+    "inputs": [
+        {
+            "input_type": "web",
+            "interface": "0.0.0.0",
+            "port": 8080
+        },
+        {
+            "input_type": "agd",
             "buffer_size": 25,
             "thresholds": [7, 20, 30],
             "source": "arduino"
         },
-        "arduino": {
+        {
+            "input_type": "arduino",
             "device_file": "/dev/ttyACM0",
             "baud_rate": 9600
         },
-        "audio": {
+        {
+            "input_type": "audio",
             "nice_bin": "/usr/bin/nice",
             "arecord_bin": "/usr/bin/arecord",
             "device": "hw:CARD=H2300,DEV=0",
@@ -41,14 +49,11 @@
             "buffer_time": 200000,
             "respawn_delay": 1
         },
-        "network": {
+        {
+            "input_type": "network",
             "port": 10000
-        },
-        "web": {
-            "interface": "0.0.0.0",
-            "port": 8080
         }
-    },
+    ],
     "levels": {
         "0": {
             "folder": "../videos/0",

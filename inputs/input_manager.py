@@ -62,14 +62,15 @@ class InputManager(object):
         """
 
         _log.info('starting')
-        for input_type, input_settings in self._settings['inputs'].items():
+        for input_item in self._settings['inputs']:
+            input_type = input_item.pop('input_type', None)
             try:
                 input_class = _INPUT_CLASSES[input_type]
             except KeyError:
                 _log.error('invalid input type: {it!r}', it=input_type)
                 raise
             try:
-                input_obj = input_class(self._reactor, self._wiring, **input_settings)
+                input_obj = input_class(self._reactor, self._wiring, **input_item)
             except Exception as e:
                 _log.error('bad {it!r} input settings: {e!r}', it=input_type, e=e)
                 raise

@@ -46,6 +46,9 @@ class AggregatedDerivative(input_base.InputBase):
         self._readings = deque(maxlen=buffer_size)
         self._last_play_level = 0
 
+        for level, value in enumerate(thresholds, start=1):
+            wiring.agd_threshold(level, value)
+
 
     @defer.inlineCallbacks
     def start(self):

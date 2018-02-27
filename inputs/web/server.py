@@ -52,6 +52,10 @@ class WSProto(websocket.WebSocketServerProtocol):
 
         _log.warn('{p.host}:{p.port} connected', p=self.transport.getPeer())
 
+        # Push known thresholds if available
+        for level, value in self.factory.agd_thresholds.items():
+            self._push_agd_threshold(level, value)
+
 
     def onMessage(self, payload, isBinary):
 
@@ -132,6 +136,18 @@ class WSProto(websocket.WebSocketServerProtocol):
         self._send_message_dict('chart-data', values)
 
 
+    def _push_agd_threshold(self, level, value):
+
+        """
+        """
+
+        self._send_message_dict('chart-threshold', {
+            "level": level,
+            "value": value,
+        })
+        _log.info("sent agd threshold: {l!r}={v!r}", v=value, l=level)
+
+
     def __call__(self, event):
 
         # Called by Twisted when delivering a log event to this observer.
@@ -168,8 +184,17 @@ class WSFactory(websocket.WebSocketServerFactory):
 
         super(WSFactory, self).__init__(*args, **kwargs)
 
+        self.agd_thresholds = {}
+
         # Used by protocol to call `change_play_level` and `set_log_level`.
         self.wiring = wiring
+
+        wiring.wire.agd_threshold.calls_to(self._store_agd_threshold)
+
+
+    def _store_agd_threshold(self, level, value):
+
+        self.agd_thresholds[level] = value
 
 
 # ----------------------------------------------------------------------------

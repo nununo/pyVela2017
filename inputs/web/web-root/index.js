@@ -262,7 +262,7 @@ function _update_chart_threshold(data_object) {
     chart.options.annotation.annotations[data_object.level-1].value = data_object.value;
     // We could skip chart.update():
     // Motive: data keeps coming in, this is superfluous.
-    chart.update()
+    chart.update();
 }
 
 
