@@ -44,12 +44,17 @@ class AggregatedDerivative(input_base.InputBase):
         # TODO: wires should allow "wiring.wire[source].calls_to(...)"
         getattr(wiring.wire, source).calls_to(self._input_received)
 
-        self._readings = deque(maxlen=buffer_size)
+        self._agd = 0
+        self._derivatives = deque(maxlen=buffer_size)
+        self._buffer_size = buffer_size
+        self._last_reading = None
         self._last_play_level = 0
 
+        # Notify of current thresholds: web client will use this.
         for level, value in enumerate(thresholds, start=1):
             wiring.notify_agd_threshold(level, value)
 
+        # Wire threshold change requests to ourselves.
         wiring.wire.set_agd_threshold.calls_to(self._set_threshold)
 
 
@@ -81,12 +86,10 @@ class AggregatedDerivative(input_base.InputBase):
 
     def _input_received(self, reading):
 
-        # Track reading and calculate the aggregated derivative.
-        self._readings.append(reading)
-        agd = self._aggregated_derivative()
+        _log.info('reading={r!r}', r=reading)
 
-        _log.info('reading={r!r}, agd={a!r}', r=reading, a=agd)
-        _log.debug('readings={r!r}', r=self._readings)
+        self._update_aggregated_derivative(reading)
+        agd = self._agd
 
         # Output both the raw reading as well as the aggregated derivative.
         self._wiring.agd_output(raw=reading, agd=agd)
@@ -103,40 +106,50 @@ class AggregatedDerivative(input_base.InputBase):
             self._wiring.change_play_level(play_level, source_name)
 
 
-    @staticmethod
-    def _pairs_from(iterable):
+    def _update_aggregated_derivative(self, reading):
 
         """
-        Generates (i0, i1), (i1, i2), (i2, i3), ... tuples from `iterable`.
+        Updates the aggregated derivative based on the current state:
+        - Aggregated derivative.
+        - Current and previous readings.
+        - Last known, up to `buffer_size`, derivatives.
         """
 
-        i = iter(iterable)
-        try:
-            one = next(i)
-            while True:
-                other = next(i)
-                yield one, other
-                one = other
-        except StopIteration:
-            pass
+        # NOTE
+        # ----
+        # This is a computationally optimized version of AGD calculation.
+        # It is equivalent to:
+        # - Starting off with AGD = 0.
+        # - Keeping track of `buffer_size` readings.
+        # - Aggregating buffered reading derivatives, in order such that:
+        #   - If a derivative is >=0 add it to AGD.
+        #   - Otherwise, set AGD to 0.
 
+        derivative_count = len(self._derivatives)
+        if not derivative_count and self._last_reading is None:
+            # No stored derivatives, no _last reading.
+            self._last_reading = reading
+            return
 
-    def _aggregated_derivative(self):
+        # We know the last reading and thus determine the derivative.
+        derivative = reading - self._last_reading
+        self._last_reading = reading
 
-        """
-        Calculates the aggregated derivative over `buffer_size` readings:
-        - Aggregates consecutive reading deltas as long as they are >= 0.
-        - If any consecutive runing delta is negative, sets the aggregation to 0.
-        """
+        if derivative < 0:
+            # Rule: negative derivative clears everything.
+            self._agd = 0
+            self._derivatives.clear()
+            return
 
-        result = 0
-        for one, next_one in self._pairs_from(self._readings):
-            derivative = next_one - one
-            if derivative >= 0:
-                result += derivative
-            else:
-                result = 0
-        return result
+        if derivative_count < self._buffer_size:
+            # Derivative "buffer" not full, just aggregate the derivative.
+            self._agd += derivative
+            self._derivatives.append(derivative)
+        else:
+            # Derivative buffer full: aggregate derivative minus oldest one.
+            oldest_derivative = self._derivatives[0]
+            self._agd += derivative - oldest_derivative
+            self._derivatives.append(derivative)
 
 
 # ----------------------------------------------------------------------------
