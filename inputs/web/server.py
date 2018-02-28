@@ -56,6 +56,10 @@ class WSProto(websocket.WebSocketServerProtocol):
         for level, value in self.factory.agd_thresholds.items():
             self._push_agd_threshold(level, value)
 
+        self.factory.wiring.wire.notify_agd_threshold.calls_to(
+            self._push_agd_threshold
+        )
+
 
     def onMessage(self, payload, isBinary):
 
@@ -89,6 +93,17 @@ class WSProto(websocket.WebSocketServerProtocol):
             self.factory.wiring.change_play_level(level, comment='web')
 
 
+    def _action_set_threshold(self, message):
+
+        try:
+            level = message['level']
+            value = message['value']
+        except KeyError:
+            _log.warn('missing level/value: {m!r}', m=message)
+        else:
+            self.factory.wiring.set_agd_threshold(level, value)
+
+
     def _action_set_log_level(self, message):
 
         try:
@@ -112,6 +127,11 @@ class WSProto(websocket.WebSocketServerProtocol):
 
         # Can't push chart data to the client anymore.
         self.factory.wiring.unwire.agd_output.calls_to(self._push_chart_data)
+
+        # Can't push threshold updates to the client anymore.
+        self.factory.wiring.wire.notify_agd_threshold.calls_to(
+            self._push_agd_threshold
+        )
 
         _log.warn('{p.host}:{p.port} disconnected', p=self.transport.getPeer())
 
@@ -189,7 +209,7 @@ class WSFactory(websocket.WebSocketServerFactory):
         # Used by protocol to call `change_play_level` and `set_log_level`.
         self.wiring = wiring
 
-        wiring.wire.agd_threshold.calls_to(self._store_agd_threshold)
+        wiring.wire.notify_agd_threshold.calls_to(self._store_agd_threshold)
 
 
     def _store_agd_threshold(self, level, value):

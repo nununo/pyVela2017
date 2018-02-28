@@ -275,8 +275,7 @@ function _prompt_level_threshold(level) {
     if ( isNaN(new_value) ) {
         return;
     }
-    // TODO: Send action to server, instead.
-    _update_chart_threshold({level: level, value: new_value});
+    set_threshold(level, new_value);
 }
 
 
@@ -334,6 +333,18 @@ window.onload = function() {
     chart = create_chart();
     socket = create_websocket();
     log = document.getElementById("log");
+}
+
+
+
+// threshold change request handler
+
+function set_threshold(level, value) {
+    _socket_send({
+        action: "set_threshold",
+        level: level,
+        value: value
+    });
 }
 
 
