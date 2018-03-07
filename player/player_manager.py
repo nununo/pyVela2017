@@ -51,10 +51,8 @@ class PlayerManager(object):
         self.log = logger.Logger(namespace='player.mngr')
 
         self.reactor = reactor
+        self._wiring = wiring
         self.settings = settings
-
-        # TODO: Review where/when to call this.
-        wiring.wire.change_play_level.calls_to(self._change_play_level)
 
         # part of our public interface, OMXPlayer will use this
         self.dbus_mgr = DBusManager(reactor, settings)
@@ -71,7 +69,6 @@ class PlayerManager(object):
         self._update_ld_lib_path()
         self._find_files()
 
-        self._ready = False
         self._stopping = False
         self.done = defer.Deferred()
 
@@ -137,7 +134,9 @@ class PlayerManager(object):
             yield self._create_player(level)
 
         yield self.players[0].play()
-        self._ready = True
+
+        # Ready to respond to change level requests.
+        self._wiring.wire.change_play_level.calls_to(self._change_play_level)
 
         self.log.info('started')
 
@@ -184,8 +183,6 @@ class PlayerManager(object):
         - Startup isn't completed.
         - `new_level` is less than or equal to the currently running level.
         """
-        if not self._ready:
-            return
 
         self.log.info('new_level={l!r} comment={c!r}', l=new_level, c=comment)
 
@@ -216,13 +213,12 @@ class PlayerManager(object):
         Asks all players to stop (IOW: terminate) and exits cleanly.
         """
         if self._stopping:
-            if self._ready:
-                self.log.warn('stopping in progress')
             return
 
         self.log.info('stopping')
 
         self._stopping = True
+        self._wiring.unwire.change_play_level.calls_to(self._change_play_level)
         for level, player in self.players.items():
             self.log.info('stopping player level={l!r}', l=level)
             yield player.stop(skip_dbus)
@@ -230,7 +226,6 @@ class PlayerManager(object):
         self.log.info('cleaning up dbus manager')
         yield self.dbus_mgr.cleanup()
         self.log.info('cleaned up dbus manager')
-        self._ready = False
 
         self.log.info('stopped')
         self.done.callback(None)
