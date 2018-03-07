@@ -69,7 +69,6 @@ def start_things(reactor, settings):
 
 
     # Create a call wiring object and tell it what to with `set_log_level` events.
-    # TODO: Use the global wires singleton instead and avoid passing this around?
     wiring = wires.Wires()
     wiring.wire.set_log_level.calls_to(log.set_level)
 
@@ -90,8 +89,10 @@ def start_things(reactor, settings):
     for index, startable in enumerate(startables, start=1):
         try:
             yield startable.start()
-        except Exception:
+        except Exception as e:
             # On failure logs should help diagnose.
+            msg = 'Failed starting: %s\n' % e
+            sys.stderr.write(msg.encode('utf-8'))
             raise SystemExit(-index)
 
 
