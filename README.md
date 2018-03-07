@@ -4,13 +4,13 @@ Candle 2017
 About
 -----
 
-**Candle 2017** is a reimplementation of an interactive art project by Nuno Godinho (https://projects.nunogodinho.com/candle/).
+**Candle 2017** is a re-implementation of an interactive art project by Nuno Godinho (https://projects.nunogodinho.com/candle/).
 
-Originally written in C++ using OpenFrameworks, Nuno never got it to run with acceptable performance on the desired target platform, a Raspberri Pi; it required being driven by a much more powerful and expensive system, like a Mac Mini.
+Originally written in C++ using OpenFrameworks, Nuno never got it to run with acceptable performance on the desired target platform, a Raspberry Pi; it required being driven by a much more powerful and expensive system, like a Mac Mini.
 
-This project is a Python reimplementation that succeeds in delivering the required performance on a Raspberri Pi.
+This project is a Python implementation that succeeds in delivering the required performance on a Raspberry Pi.
 
-> Heads up: there are no silver bullets here! It's not like Python on a Raspberry Pi is suddenly more performant than well written C++ code on a Mac Mini. It just takes a completely different approach, better leveraging the available resources on the smaller system.
+> Heads up: there are no silver bullets here! It's not like Python on a Raspberry Pi has suddenly more performance than well written C++ code on a Mac Mini. It just takes a completely different approach, better leveraging the available resources on the smaller system.
 
 
 Minimum Requirements
@@ -26,9 +26,16 @@ Minimum Requirements
 
 Full Requirements
 -----------------
-For full interactivity, a serial input device attached to a some kind of "wind sensor" is needed, such that blowing into the video triggers natural candle reactions (more on this later).
+For full interactivity, some kind of "input sensor" is needed.
 
-Optional audio based input requires an audio input device (a USB microphone or webcam) and the raspbian `alsa-utils` package; with the right settings, blowing into the microphone will trigger natural candle reactions.
+As of this writing, two distinct "input sensor" types are supported:
+
+* The original "blow sensor", as used in the art project itself, comprised of multiple "bend sensors" wired to an arduino that, in turn, continuously delivers "bend readings": these will be bigger as the "wind blowing towards the screen" strength increases, forcing the "bend sensors" to move.
+
+* An alternative "audio sensor", much simpler and accessible, based on sound input; this requires prior setup of the ALSA subsystem such that, for example, a USB microphone or webcam audio can be used.
+
+Either "input sensor" can be tuned in a way such that varying inputs (more/less wind or louder/softer sound) trigger natural candle reactions, including blowing out the candle.
+
 
 
 Installation
@@ -38,6 +45,11 @@ Install the required raspbian packages:
 ```
 $ sudo apt-get update
 $ sudo apt-get install python3 python3-virtualenv omxplayer dbus git
+```
+
+If using an "audio sensor":
+```
+$ sudo apt-get install alsa-utils
 ```
 
 Clone the repository and setup a virtual environment:
@@ -51,13 +63,13 @@ $ pip install -r requirements.txt
 
 Put the video files in place:
 * The default configuration expects a directory named `videos` to be present side by side with the source directory.
-* It should have four subdirectories, each containing one or more candle burning videos:
+* It should have four sub-directories, each containing one or more candle burning videos:
   * `0`: played in a loop when no interaction is detected.
   * `1`: triggered by *light blowing*.
   * `2`: triggered by *medium blowing*.
   * `3`: triggered by *strong blowing* (in the original project, the burning flame is blown out).
 
-Copy `settings-sample.json` to `settings.json` and adapt it according to your environment. See Configuration section below for details. 
+Copy `settings-sample.json` to `settings.json` and adapt it according to your environment. See the Configuration section below for details. 
 
 
  
@@ -79,22 +91,30 @@ $ python candle2017.py
 
 
 Once running:
-* Log messages will be output to `stderr`; see below to learn how to adjust logging details.
-* Four `omxplayer.bin` processes should be running as child processes.
+* The Python process running `candle2017.py` should have the following children:
+  * One `dbus-daemon` process.
+  * Four `omxplayer.bin` processes.
+  * One `arecord` process, if the "audio" input is included in the configuration.
 * One of the videos in the `videos/0` directory should be playing, in a loop.
+* Log messages will be output to `stderr`; see below to learn how to adjust logging details.
 
 Stopping:
 * Hit CTRL-C on the shell that launched the program.
 * Send a SIGTERM to the Python process running `candle2017.py`.
 
+> Note: Sending a SIGTERM to the `dbus-daemon` process will also stop everything, but it is not the cleanest way to do so.
 
-> Integrating **Vela 2017** with system services, ensuring automatic startup/shutdown with the system is handled via the supplied `candle2017.service` file; refer to its internal comments on how to set that up.
+
+Automatic start/stop with system startup/shutdown
+-------------------------------------------------
+
+Integrating **Candle 2017** with system services, ensuring automatic startup/shutdown with the system is handled via the supplied `candle2017.service` file. Please refer to its internal comments on how to set that up.
 
 
 
 Using
 -----
-As an interactive art project, using it is about interacting with it. There are currently three ways to interact:
+As an interactive art project, using it is about interacting with it. There are currently four ways to interact:
 
 **"Wind sensor" interaction**
 
@@ -102,10 +122,12 @@ As an interactive art project, using it is about interacting with it. There are 
 * Requires `inputs.agd.source` to be set to `"arduino"`, which is the default.
 * May need adjustments to `inputs.agd.buffer_size` and `inputs.agd.thresholds` in the configuration.
 * Blow on the sensor and watch the candle react.
+* It is recommended to remove the "audio" input from the `settings.json` file.
+
 
 **Raw TCP network control**
 
-* Use telnet or netcat to establish a TCP connection towards the Raspberri Pi on the TCP port defined by `inputs.network.port` in the configuration (defaults to 10000).
+* Use telnet or netcat to establish a TCP connection towards the Raspberry Pi on the TCP port defined by `inputs.network.port` in the configuration (defaults to 10000).
 * Send commands terminated with CRLF.
 * Commands are digits terminated by CRLF that trigger the respective level videos.
 
@@ -121,10 +143,12 @@ $
 > Important: multiple network connections are accepted simultaneously; no effort to authenticate or limit the amount of connections is made.
 
 
+
 **Web based network monitoring and control**
 
 * Point a web browser to http://\<raspberry-pi-IP\>:\<port\>/, where <port> is defined by `inputs.web.port` in the configuration (defaults to 8080).
-* Monitor the realtime "wind sensor" reading in the top left chart.
+* Monitor the real-time "wind sensor" reading in the top left chart.
+* Observe the "agd" thresholds and click them to adjust.
 * Track log messages on the top right pane.
 * Use the buttons on the bottom to trigger video level changes.
 
@@ -137,6 +161,8 @@ $
 * Adjust `inputs.audio.*` settings.
 * Set `inputs.agd.source` to `"audio"`.
 * May need adjustments to `inputs.agd.buffer_size` and `inputs.agd.thresholds` in the configuration.
+* Produce different sound levels (including blowing into the microphone) and watch the candle react.
+* It is recommended to remove the "arduino" input from the `settings.json` file.
 
 
 Configuration
@@ -161,7 +187,7 @@ Most settings are, hopefully, self-explanatory. Here's a quick rundown:
 | inputs.audio.format              | Audio capture format, to be used in `arecord`'s `--format` option. |
 | inputs.audio.rate                | Audio capture rate, to be used in `arecord`'s `--rate` option. |
 | inputs.audio.buffer_time         | Audio capture buffer size, to be used in `arecord`'s `--buffer-size` option. |
-| inputs.audio.respawn_delay       | Delay, in seconds, to wait for `arecord` process respawn (no respawns will be attempted if negative). |
+| inputs.audio.respawn_delay       | Delay, in seconds, to wait for `arecord` process re-spawn (no re-spawns will be attempted if negative). |
 | inputs.agd.source                | Input sensor source name: currently only `arduino` is supported. |
 | inputs.agd.buffer_size           | Input sensor buffer size.
 | inputs.agd.thresholds            | Input sensor thresholds: adjusts "input sensor" responsiveness. |
@@ -169,7 +195,7 @@ Most settings are, hopefully, self-explanatory. Here's a quick rundown:
 | inputs.web.interface             | IP interface listening for HTTP connections.                    |
 | inputs.web.port                  | TCP port listening HTTP connections.                            |
 | levels.*.folder                  | Relative path to directory containing that level's video files. |
-| levels.*.fadein                  | Fade in time, in secods, for this level's video files.          |
+| levels.*.fadein                  | Fade in time, in seconds, for this level's video files.          |
 | levels.*.fadeout                 | Fade out time, in seconds, for this level's video files.        |
 
 
@@ -193,11 +219,12 @@ Development Notes
 
 Lint with:
 ```
-$ pylint candle2017 common/ events/ inputs/ player/ log/
+$ pylint candle2017 common/ inputs/ player/ log/
 ```
 
 
 Authors
 -------
-* Nuno Godinho
-* Tiago Montes
+* Nuno Godinho (@nununo)
+* Tiago Montes (@tmontes)
+
