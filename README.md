@@ -22,12 +22,12 @@ Minimum Requirements
   * OMXPlayer.
   * DBus.
   * git.
-* Four sets of candle burning video files, you will have to create:
-  * Level 0: stable candle burning with no interference, played in a loop.
-  * Level 1: candle flame flickering, responding to light blowing.
-  * Level 2: candle flame flickering, responding to medium blowing.
-  * Level 3: candle flame blowing out, responding to strong blowing.
-  * Any of these sets can contain multiple files: **Candle 2017** will select one at random from a given level, when the respective interaction is triggered.
+* Four sets of candle burning video files, you will have to create yourself:
+  * Level 0 videos: stable candle burning with no interference.
+  * Level 1 videos: candle flame flickering, responding to light blowing.
+  * Level 2 videos: candle flame flickering, responding to medium blowing.
+  * Level 3 videos: candle flame blowing out, responding to strong blowing.
+  * Any of these sets can (and should, for a more natural experience) contain multiple files: one will be selected at random from a given level, to be played when the respective interaction is triggered (the exception being level 0 videos whereby one will be selected at startup time and played continuously in a loop).
 
 With these in place you will be able to explore **Candle 2017** and trigger candle reactions artificially, either via a web based monitoring and controlling interface or via a simpler network based control interface (more on this, below).
 
