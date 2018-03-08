@@ -4,7 +4,9 @@ Candle 2017
 About
 -----
 
-**Candle 2017** is a re-implementation of an interactive art project by Nuno Godinho (https://projects.nunogodinho.com/candle/), whereby a beautifully framed high quality display shows a candle burning video against a pitch black background. Blowing into the display triggers natural candle reactions: the flame flickers more or less depending on the blowing strength and can even be fully blown out with a strong enough blow (and, if so, the base candle burning video is smoothly faded in after a few seconds).
+**Candle 2017** is a re-implementation of an interactive art project by Nuno Godinho <sup id="a1">[1](#f1)</sup>, whereby a beautifully framed high quality display shows a candle burning video, against a pitch black background. Blowing into the display triggers natural candle reactions: the flame flickers more or less depending on the blowing strength and can even be fully blown out with a strong enough blow -- when so, the base candle burning video is restarted and smoothly faded in after a few seconds.
+
+<sup id="f1">[1]</sup> https://projects.nunogodinho.com/candle (back)[#a1]
 
 Originally written in C++ using OpenFrameworks, Nuno never got it to run with acceptable performance on the desired target platform, a Raspberry Pi; it required being driven by a much more powerful and expensive system, like a Mac Mini.
 
@@ -21,14 +23,14 @@ Minimum Requirements
   * OMXPlayer.
   * DBus.
   * git.
-* Four sets of candle burning video files [1]:
+* Four sets of candle burning video files [2]:
   * Level 0: stable candle burning with no interference, played in a loop.
   * Level 1: candle flame flickering, responding to light blowing.
   * Level 2: candle flame flickering, responding to medium blowing.
   * Level 3: candle flame blowing out, responding to strong blowing.
   * Any of these sets can contain multiple files: **Candle 2017** will select one at random from a given level, when the respective interaction is triggered.
 
-[1] You will need to create these yourself.
+[2] You will need to create these yourself.
 
 
 With these in place you will be able to explore **Candle 2017** and trigger candle reactions artificially, either via a web based monitoring and controlling interface or via a simpler network based control interface (more on this, below).
@@ -41,14 +43,14 @@ For full, natural interactivity, an input sensor is needed.
 
 As of this writing, two distinct input sensor types are supported:
 
-* The original "wind sensor", as used in the art project itself, comprised of multiple "bend/flex sensors" [2] integrated within the display frame, wired to an arduino that, in turn, continuously delivers "bend readings": these will be bigger as the "wind blowing towards the screen" strength increases, forcing the "bend/flex sensors" to move.
+* The original "wind sensor", as used in the art project itself, comprised of multiple "bend/flex sensors" [3] integrated within the display frame, wired to an arduino that, in turn, continuously delivers "bend readings": these will be bigger as the "wind blowing towards the screen" strength increases, forcing the "bend/flex sensors" to move.
 
 * An alternative "audio sensor", much simpler and accessible, based on sound input; this requires prior setup of the ALSA subsystem such that, for example, a USB microphone or webcam audio can be used: naturally, this input sensor reacts to directed blows and also to environment sound pressure/level.
 
 Either input sensor is fed into an input processor, called AGD, that can be tuned in a way such that varying inputs (more/less wind or louder/softer sound) trigger the natural candle reactions by playing videos in different levels.
 
 
-[2] See https://en.wikipedia.org/wiki/Flex_sensor.
+[3] See https://en.wikipedia.org/wiki/Flex_sensor.
 
 
 
