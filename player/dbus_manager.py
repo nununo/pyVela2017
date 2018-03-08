@@ -102,7 +102,7 @@ class DBusManager(object):
             self.reactor,
             [self._dbus_daemon_bin, '--session', '--print-address', '--nofork'],
             'player.proc.dbus-daemon',
-            out_callable=lambda data: stdout_queue.put(data),
+            out_callable=stdout_queue.put,
         )
         self.log.debug('waiting for dbus daemon start')
         yield self._dbus_proto.started
