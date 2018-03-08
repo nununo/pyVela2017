@@ -87,7 +87,7 @@ A simplified overview of the input chain is depicted below:
     +-------------------+
 ```
 
-Note that AGD will only process one input, either the "wind sensor" or the "audio sensor";in the example above, the "audio sensor" is not used.
+Note that AGD will only process one input, either the "wind sensor" or the "audio sensor"; in the example above, the "audio sensor" is not used.
 
 
 
@@ -118,7 +118,43 @@ Put the video files in place:
 * The default configuration expects a directory named `videos` to be present side by side with the source directory.
 * It should have four sub-directories, named `0`, `1`, `2` and  `3`, each containing the candle burning video files, as described in the *Minimum Requirements* section, above.
 
-Copy `settings-sample.json` to `settings.json` and adapt it according to your environment, paying particular attention to the input configuration. For more details, refer to the *Configuratio Referencen* section, below.
+
+
+
+Configuration
+-------------
+
+Before running, putting a configuration in place that is appropriate to the environment is strictly required. For that, copy `settings-sample.json` to `settings.json` and then edit the copy, as needed.
+
+
+At least the `inputs` entry should be reviewed:
+
+* If using a "wind sensor":
+  * Ensure that `inputs.agd.source` is set to `arduino`.
+  * Remove the `audio` input entry.
+  * Review the `input.arduino.*` settings.
+  * For details about building a "wind sensor", see the section *About the "wind sensor"*, below.
+
+* If using an "audio sensor":
+  * Ensure that `inputs.agd.source` is set to `audio`.
+  * Remove the `arduino` input entry.
+  * Review the `input.audio.*` settings.
+  * For details about setting up and testing an "audio sensor", see the section *About the "audio sensor"*, below.
+
+* If no input sensor is used:
+  * Remove the `arduino` input entry.
+  * Remove the `audio` input entry.
+  * Remove the `agd` input entry.
+
+* About the web based input:
+  * If present, it *must* be declared before any other.
+  * Not strictly required but its monitoring and diagnosing abilities may prove useful.
+  * Review the `input.web.*` settings.
+
+* About the network input:
+  * Can be removed.
+  * If present, review the `input.network.*` settings.
+
 
 
  
@@ -275,6 +311,28 @@ If anyone wants to have a go at it, the general idea, from this project's perspe
 
 > Note: We've also successfully built a "wind sensor" variation with a [microbit](https://microbit-micropython.readthedocs.io/) and a single "bend sensor" for a Python only solution.
 
+
+
+
+About the "audio sensor"
+-----------------------
+The "audio sensor" leverages the `arecord` ALSA utility's capability of monitoring an audio input without actually recording any audio.
+
+Under the hood, **Candle 2017** spawns an `arecord` instance with a command line like:
+```
+$ arecord --device==<device> --channels=<channels> --duration=0 --format <format> --rate=<rate> --buffer-time=<buffer_time> -vvv /dev/null
+```
+
+Each of the above `<value>` is sourced from the `settings.json` file under `inputs.audio.*`. Additionally, the actual `arecord` process is spawned under `nice` such that the audio capturing process does not interfere with the interactive responsiveness.
+
+To test and adjust your "audio sensor":
+
+* Run `arecord -L` to obtain a list of active ALSA devices.
+* Run an `arecord` command line like the one above and observe the terminal based output: it should continuously print lines representing the input signal level.
+* Try blowing, speaking, singing or shouting at the microphone and observe the level changes.
+* Use the `alsamixer` utility to adjust the input gain, as needed, being careful enough to select the correct "sound card" and "capturing" view.
+
+Once an apparently usable configuration is found, it can be reflected in the `settings.json` file.
 
 
 
