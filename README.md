@@ -85,7 +85,6 @@ A simplified overview of the input chain is depicted below:
     +-------------------+                               |
     |   network input   |-------------------------------+
     +-------------------+
-
 ```
 
 Note that AGD will only process one input, either the "wind sensor" or the "audio sensor";in the example above, the "audio sensor" is not used.
