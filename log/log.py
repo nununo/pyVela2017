@@ -48,11 +48,7 @@ class _TwistedLoggerHandler(logging.Handler):
         namespace = '%s%s' % (self._prefix, record.name)
         rounded_level = 10 * (record.levelno // 10)
         log_level = self._LEVELS.get(rounded_level, LogLevel.error)
-        # TODO: Use self.format instead?
-        try:
-            message = record.msg % record.args
-        except Exception:
-            message = record.msg
+        message = self.format(record)
         Logger(namespace=namespace).emit(log_level, message)
 
 
