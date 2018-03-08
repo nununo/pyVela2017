@@ -13,7 +13,7 @@ This project is a Python implementation that succeeds in delivering the required
 > Heads up: there are no silver bullets here! It's not like Python on a Raspberry Pi has suddenly more performance than well written C++ code on a Mac Mini. It just takes a completely different approach, better leveraging the available resources on the smaller system.
 
 
-<sup id="f1">[1]</sup> Check it out at https://projects.nunogodinho.com/candle. [^](#a1)
+<b id="f1">[1]</b> Learn more about it at https://projects.nunogodinho.com/candle, including pictures and a video of it in action. [[^^^]](#a1)
 
 
 Minimum Requirements
@@ -34,7 +34,7 @@ Minimum Requirements
 With these in place you will be able to explore **Candle 2017** and trigger candle reactions artificially, either via a web based monitoring and controlling interface or via a simpler network based control interface (more on this, below).
 
 
-<sup id="f2">[2]</sup> You will need to create these yourself. [^](#a2)
+<b id="f2">[2]</b> You will need to create these yourself. [[^^^]](#a2)
 
 
 
@@ -52,7 +52,7 @@ As of this writing, two distinct input sensor types are supported:
 Either input sensor is fed into an input processor, called AGD, that can be tuned in a way such that varying inputs (more/less wind or louder/softer sound) trigger the natural candle reactions by playing videos in different levels.
 
 
-<sup id="f3">[3]</sup> See https://en.wikipedia.org/wiki/Flex_sensor. [^](#a3)
+<b id="f3">[3]</b> See https://en.wikipedia.org/wiki/Flex_sensor. [[^^^]](#a3)
 
 
 
