@@ -4,7 +4,7 @@ Candle 2017
 About
 -----
 
-**Candle 2017** is a re-implementation of an interactive art project by Nuno Godinho (https://projects.nunogodinho.com/candle/).
+**Candle 2017** is a re-implementation of an interactive art project by Nuno Godinho (https://projects.nunogodinho.com/candle/), whereby a beautifully framed high quality display shows a candle burning video against a pitch black background. Blowing into the display triggers natural candle reactions: the flame flickers more or less depending on the blowing strength and can even be fully blown out with a strong enough blow (and, if so, the base candle burning video is smoothly faded in after a few seconds).
 
 Originally written in C++ using OpenFrameworks, Nuno never got it to run with acceptable performance on the desired target platform, a Raspberry Pi; it required being driven by a much more powerful and expensive system, like a Mac Mini.
 
@@ -21,20 +21,34 @@ Minimum Requirements
   * OMXPlayer.
   * DBus.
   * git.
-* Candle burning videos (you'll need to create these yourself).
+* Four sets of candle burning video files [1]:
+  * Level 0: stable candle burning with no interference, played in a loop.
+  * Level 1: candle flame flickering, responding to light blowing.
+  * Level 2: candle flame flickering, responding to medium blowing.
+  * Level 3: candle flame blowing out, responding to strong blowing.
+  * Any of these sets can contain multiple files: **Candle 2017** will select one at random from a given level, when the respective interaction is triggered.
+
+[1] You will need to create these yourself.
+
+
+With these in place you will be able to explore **Candle 2017** and trigger candle reactions artificially, either via a web based monitoring and controlling interface or via a simpler network based control interface (more on this, below).
+
 
 
 Full Requirements
 -----------------
-For full interactivity, some kind of "input sensor" is needed.
+For full, natural interactivity, an input sensor is needed.
 
-As of this writing, two distinct "input sensor" types are supported:
+As of this writing, two distinct input sensor types are supported:
 
-* The original "blow sensor", as used in the art project itself, comprised of multiple "bend sensors" wired to an arduino that, in turn, continuously delivers "bend readings": these will be bigger as the "wind blowing towards the screen" strength increases, forcing the "bend sensors" to move.
+* The original "wind sensor", as used in the art project itself, comprised of multiple "bend/flex sensors" [2] integrated within the display frame, wired to an arduino that, in turn, continuously delivers "bend readings": these will be bigger as the "wind blowing towards the screen" strength increases, forcing the "bend/flex sensors" to move.
 
-* An alternative "audio sensor", much simpler and accessible, based on sound input; this requires prior setup of the ALSA subsystem such that, for example, a USB microphone or webcam audio can be used.
+* An alternative "audio sensor", much simpler and accessible, based on sound input; this requires prior setup of the ALSA subsystem such that, for example, a USB microphone or webcam audio can be used: naturally, this input sensor reacts to directed blows and also to environment sound pressure/level.
 
-Either "input sensor" can be tuned in a way such that varying inputs (more/less wind or louder/softer sound) trigger natural candle reactions, including blowing out the candle.
+Either input sensor is fed into an input processor, called AGD, that can be tuned in a way such that varying inputs (more/less wind or louder/softer sound) trigger the natural candle reactions by playing videos in different levels.
+
+
+[2] See https://en.wikipedia.org/wiki/Flex_sensor.
 
 
 
@@ -63,13 +77,9 @@ $ pip install -r requirements.txt
 
 Put the video files in place:
 * The default configuration expects a directory named `videos` to be present side by side with the source directory.
-* It should have four sub-directories, each containing one or more candle burning videos:
-  * `0`: played in a loop when no interaction is detected.
-  * `1`: triggered by *light blowing*.
-  * `2`: triggered by *medium blowing*.
-  * `3`: triggered by *strong blowing* (in the original project, the burning flame is blown out).
+* It should have four sub-directories, named `0`, `1`, `2` and  `3`, each containing one or more candle burning videos of the given level, as described in the requirements.
 
-Copy `settings-sample.json` to `settings.json` and adapt it according to your environment. See the Configuration section below for details. 
+Copy `settings-sample.json` to `settings.json` and adapt it according to your environment, paying particular attention to the input configuration. For more details, refer to the *Configuration* section, below.
 
 
  
