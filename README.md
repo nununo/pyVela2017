@@ -49,6 +49,49 @@ Either input sensor is fed into an input processor, called AGD, that can be tune
 
 
 
+Operation Overview
+------------------
+
+At a very high level, **Candle 2017** is an interactive video player: it plays one of the existing level 0 video files in a loop, while monitoring for inputs: varying input signals then trigger the playing of level 1 to 3 videos, smoothly cross-faded with the base level 0 video, for a mostly natural video experience.
+
+Four input types are supported:
+* A "wind sensor".
+* An "audio sensor".
+* A web based interface.
+* A raw TCP network interface.
+
+
+Of these, the last two are mostly used for testing and diagnostics, while the first two support the full natural experience: either the "wind sensor" or the "audio sensor" produce a continuous stream of numeric readings where larger numbers correspond to more wind or more sound, respectively.
+
+Such stream of readings from either the "wind sensor" or the "audio sensor" is handled by an internal processing component called AGD which, in turn, triggers video level playing changes, depending on its own settings.
+
+AGD keeps track of the latest N readings and calculates a particular form of "aggregated derivative" over those readings: whenever the calculated value rises above a given video level's threshold, AGD triggers that particular video level to start playing.
+
+
+A simplified overview of the input chain is depicted below:
+```
+    +-------------------+
+    |    wind sensor    |------+            
+    +-------------------+      |       +---------+
+                               +------>|   AGD   |------+
+    +-------------------+              +---------+      |
+    |    audio sensor   |---X                           |
+    +-------------------+                               |
+                                                        |       /
+    +-------------------+                               +------>| current playing
+    | web input/monitor |-------------------------------------->| video level
+    +-------------------+                               +------>| should change
+                                                        |       \
+    +-------------------+                               |
+    |   network input   |-------------------------------+
+    +-------------------+
+
+```
+
+Note that AGD will only process one input, either the "wind sensor" or the "audio sensor";in the example above, the "audio sensor" is not used.
+
+
+
 Installation
 ------------
 
@@ -76,7 +119,7 @@ Put the video files in place:
 * The default configuration expects a directory named `videos` to be present side by side with the source directory.
 * It should have four sub-directories, named `0`, `1`, `2` and  `3`, each containing the candle burning video files, as described in the *Minimum Requirements* section, above.
 
-Copy `settings-sample.json` to `settings.json` and adapt it according to your environment, paying particular attention to the input configuration. For more details, refer to the *Configuration* section, below.
+Copy `settings-sample.json` to `settings.json` and adapt it according to your environment, paying particular attention to the input configuration. For more details, refer to the *Configuratio Referencen* section, below.
 
 
  
@@ -183,11 +226,11 @@ $
 
 
 
-Configuration
--------------
-When running, the configuration is sourced from the file `settings.json`. As its name implies, it is a JSON formatted file containing all the configurable settings.
+Configuration Reference
+-----------------------
+When running, the configuration is sourced at startup from the file `settings.json`. As its name implies, it is a JSON formatted file containing all the configurable settings.
 
-Most settings are, hopefully, self-explanatory. Here's a quick rundown:
+Here's a rundown on each available setting and its purpose:
 
 | setting                          | description                                                     |
 |----------------------------------|-----------------------------------------------------------------|
