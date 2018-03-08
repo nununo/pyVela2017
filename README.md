@@ -22,14 +22,14 @@ Minimum Requirements
   * OMXPlayer.
   * DBus.
   * git.
-* Four sets of candle burning video files, you will have to create yourself:
+* Four sets of candle burning video files, that you will have to create yourself:
   * Level 0 videos: stable candle burning with no interference.
   * Level 1 videos: candle flame flickering, responding to light blowing.
   * Level 2 videos: candle flame flickering, responding to medium blowing.
   * Level 3 videos: candle flame blowing out, responding to strong blowing.
   * Any of these sets can (and should, for a more natural experience) contain multiple files: one will be selected at random from a given level, to be played when the respective interaction is triggered (the exception being level 0 videos whereby one will be selected at startup time and played continuously in a loop).
 
-With these in place you will be able to explore **Candle 2017** and trigger candle reactions artificially, either via a web based monitoring and controlling interface or via a simpler network based control interface (more on this, below).
+With these in place you will be able to explore **Candle 2017** and trigger candle reactions artificially, either via a web based monitoring and controlling interface or via a simpler network based control interface; for details on this see the *Using* section, below.
 
 
 
@@ -37,11 +37,9 @@ With these in place you will be able to explore **Candle 2017** and trigger cand
 
 Full Requirements
 -----------------
-For full, natural interactivity, an input sensor is needed.
+For full, natural interactivity, an input sensor is required. As of this writing, two types of input sensor are supported:
 
-As of this writing, two distinct input sensor types are supported:
-
-* The original "wind sensor", as used in the art project itself, comprised of multiple [bend/flex sensors](https://en.wikipedia.org/wiki/Flex_sensor) integrated within the display frame, wired to an arduino that, in turn, continuously delivers "bend readings": these will be bigger as the "wind blowing towards the screen" strength increases, forcing the "bend/flex sensors" to move.
+* The original "wind sensor", as used in the art project itself, comprised of multiple [bend/flex sensors](https://en.wikipedia.org/wiki/Flex_sensor) integrated in the display frame assembly, wired to an arduino that, in turn, continuously delivers "bend readings" to the Raspberry Pi, via a serial USB connection: these will be bigger as the "wind blowing towards the screen" strength increases, forcing the "bend/flex sensors" to move.
 
 * An alternative "audio sensor", much simpler and accessible, based on sound input; this requires prior setup of the ALSA subsystem such that, for example, a USB microphone or webcam audio can be used: naturally, this input sensor reacts to directed blows and also to environment sound pressure/level.
 
@@ -76,7 +74,7 @@ $ pip install -r requirements.txt
 
 Put the video files in place:
 * The default configuration expects a directory named `videos` to be present side by side with the source directory.
-* It should have four sub-directories, named `0`, `1`, `2` and  `3`, each containing one or more candle burning videos of the given level, as described in the requirements.
+* It should have four sub-directories, named `0`, `1`, `2` and  `3`, each containing the candle burning video files, as described in the *Minimum Requirements* section, above.
 
 Copy `settings-sample.json` to `settings.json` and adapt it according to your environment, paying particular attention to the input configuration. For more details, refer to the *Configuration* section, below.
 
@@ -100,11 +98,11 @@ $ python candle2017.py
 
 
 Once running:
-* The Python process running `candle2017.py` should have the following children:
+* The Python process running `candle2017.py` should have the following child processes:
   * One `dbus-daemon` process.
   * Four `omxplayer.bin` processes.
   * One `arecord` process, if the "audio" input is included in the configuration.
-* One of the videos in the `videos/0` directory should be playing, in a loop.
+* One of the videos in the videos `0` directory should be playing, in a loop.
 * Log messages will be output to `stderr`; see below to learn how to adjust logging details.
 
 Stopping:
@@ -123,15 +121,47 @@ Integrating **Candle 2017** with system services, ensuring automatic startup/shu
 
 Using
 -----
-As an interactive art project, using it is about interacting with it. There are currently four ways to interact:
+As an interactive art project, using it is about interacting with it. There are currently four possible ways to interact:
 
-**"Wind sensor" interaction**
+
+**"Wind sensor" setup and interaction**
 
 * Requires "wind sensor" to be present.
-* Requires `inputs.agd.source` to be set to `"arduino"`, which is the default.
-* May need adjustments to `inputs.agd.buffer_size` and `inputs.agd.thresholds` in the configuration.
+* Adjust the `settings.json` such that:
+  * `inputs.arduino.*` point to the correct serial device file at the correct baud rate.
+  * Set `inputs.agd.source` to `arduino`, which is the default.
+  * Remove the `audio` input entry.
+  * May need adjustments to `inputs.agd.buffer_size` and `inputs.agd.thresholds`.
 * Blow on the sensor and watch the candle react.
-* It is recommended to remove the "audio" input from the `settings.json` file.
+* The *Web based monitoring and control*, described below, is a very useful tool in monitoring the input signal and adjusting the AGD thresholds that trigger different level interactions.
+
+
+
+**"Audio sensor" interaction**
+
+* Requires the availability of an ALSA supported audio input device.
+* Adjust the `settings.json` such that:
+  * `inputs.audio.*` point to the correct audio device with adequate capture settings.
+  * Set `inputs.agd.source` to `"audio"`.
+  * Remove the `arduino` input entry.
+  * May need adjustments to `inputs.agd.buffer_size` and `inputs.agd.thresholds`.
+* Produce different sound levels (including blowing into the microphone) and watch the candle react.
+* The *Web based monitoring and control*, described below, is a very useful tool in monitoring the input signal and adjusting the AGD thresholds that trigger different level interactions.
+
+
+
+**Web based monitoring and control**
+
+* Point a web browser to http://\<raspberry-pi-IP\>:\<port\>/, where \<port> is defined by `inputs.web.port` in the configuration (defaults to 8080).
+* Monitor the real-time input sensor RAW value and AGD result in the top left chart.
+* Observe the AGD thresholds, obtained from `inputs.agd.thresholds` in the configuration, and click them to adjust.
+* Track log messages on the top right pane.
+* Use the orange buttons on the bottom to manually trigger video level changes.
+* Use the drop-down selectors and the green button to change logging levels at run-time.
+
+> Important: multiple browser connections are accepted simultaneously; no effort to authenticate or limit the amount of connections is made.
+
+
 
 
 **Raw TCP network control**
@@ -151,27 +181,6 @@ $
 
 > Important: multiple network connections are accepted simultaneously; no effort to authenticate or limit the amount of connections is made.
 
-
-
-**Web based network monitoring and control**
-
-* Point a web browser to http://\<raspberry-pi-IP\>:\<port\>/, where <port> is defined by `inputs.web.port` in the configuration (defaults to 8080).
-* Monitor the real-time "wind sensor" reading in the top left chart.
-* Observe the "agd" thresholds and click them to adjust.
-* Track log messages on the top right pane.
-* Use the buttons on the bottom to trigger video level changes.
-
-> Important: multiple browser connections are accepted simultaneously; no effort to authenticate or limit the amount of connections is made.
-
-
-**ALSA Audio based input**
-
-* Requires configuration of an ALSA audio input device.
-* Adjust `inputs.audio.*` settings.
-* Set `inputs.agd.source` to `"audio"`.
-* May need adjustments to `inputs.agd.buffer_size` and `inputs.agd.thresholds` in the configuration.
-* Produce different sound levels (including blowing into the microphone) and watch the candle react.
-* It is recommended to remove the "arduino" input from the `settings.json` file.
 
 
 Configuration
@@ -208,9 +217,11 @@ Most settings are, hopefully, self-explanatory. Here's a quick rundown:
 | levels.*.fadeout                 | Fade out time, in seconds, for this level's video files.        |
 
 
+
+
 About the "wind sensor"
 -----------------------
-The "wind sensor" used in the project is built out of an Arduino and some electronics amplifying and filtering the signals obtained from two "bend sensors".
+The "wind sensor" used in the project is built out of an Arduino and some electronics amplifying and filtering the signals obtained from two "bend/flex sensors".
 
 If anyone wants to have a go at it, the general idea, from this project's perspective is that the "wind sensor" input, configurable via `inputs.arduino.*` in the settings:
 
@@ -220,7 +231,9 @@ If anyone wants to have a go at it, the general idea, from this project's perspe
   * The first byte should be 0x20.
   * The second and third bytes should be a 16 bit little endian integer, between 0 and 1023, where bigger means "more wind".
 
-PS: We've also prototyped a "wind sensor" with a microbit (https://microbit-micropython.readthedocs.io/) and a single "bend sensor" for a Python only solution.
+> Note: We've also successfully built a "wind sensor" variation with a [microbit](https://microbit-micropython.readthedocs.io/) and a single "bend sensor" for a Python only solution.
+
+
 
 
 Development Notes
@@ -234,6 +247,7 @@ $ pylint candle2017 common/ inputs/ player/ log/
 
 Authors
 -------
-* Nuno Godinho (@nununo)
-* Tiago Montes (@tmontes)
+* [Nuno Godinho](https://github.com/nununo)
+* [Tiago Montes](https://github.com/tmontes)
+
 
