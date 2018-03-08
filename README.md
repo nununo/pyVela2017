@@ -206,9 +206,9 @@ Most settings are, hopefully, self-explanatory. Here's a quick rundown:
 | inputs.audio.rate                | Audio capture rate, to be used in `arecord`'s `--rate` option. |
 | inputs.audio.buffer_time         | Audio capture buffer size, to be used in `arecord`'s `--buffer-size` option. |
 | inputs.audio.respawn_delay       | Delay, in seconds, to wait for `arecord` process re-spawn (no re-spawns will be attempted if negative). |
-| inputs.agd.source                | Input sensor source name: currently only `arduino` is supported. |
-| inputs.agd.buffer_size           | Input sensor buffer size.
-| inputs.agd.thresholds            | Input sensor thresholds: adjusts "input sensor" responsiveness. |
+| inputs.agd.source                | Input sensor source name: one of `arduino` or `audio`. |
+| inputs.agd.buffer_size           | Input processor buffer size.
+| inputs.agd.thresholds            | Input processor thresholds: adjusts "input sensor" responsiveness. |
 | inputs.network.port              | TCP port where raw network connections will be accepted in.     |
 | inputs.web.interface             | IP interface listening for HTTP connections.                    |
 | inputs.web.port                  | TCP port listening HTTP connections.                            |
