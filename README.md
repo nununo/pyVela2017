@@ -4,7 +4,7 @@ Candle 2017
 About
 -----
 
-**Candle 2017** is a re-implementation of an interactive art project by Nuno Godinho<sup id="a1">[[1]](#f1)</sup>, whereby a beautifully framed high quality display shows a candle burning video, against a pitch black background. Blowing into the display triggers natural candle reactions: the flame flickers more or less depending on the blowing strength and can even be fully blown out with a strong enough blow -- when so, the base candle burning video is restarted and smoothly faded in after a few seconds.
+**Candle 2017** is a re-implementation of an [interactive art project by Nuno Godinho](https://projects.nunogodinho.com/candle), whereby a beautifully framed high quality display shows a candle burning video, against a pitch black background. Blowing into the display triggers natural candle reactions: the flame flickers more or less depending on the blowing strength and can even be fully blown out with a strong enough blow - when so, the base candle burning video is restarted and smoothly faded in after a few seconds.
 
 Originally written in C++ using OpenFrameworks, Nuno never got it to run with acceptable performance on the desired target platform, a Raspberry Pi; it required being driven by a much more powerful and expensive system, like a Mac Mini.
 
@@ -12,8 +12,6 @@ This project is a Python implementation that succeeds in delivering the required
 
 > Heads up: there are no silver bullets here! It's not like Python on a Raspberry Pi has suddenly more performance than well written C++ code on a Mac Mini. It just takes a completely different approach, better leveraging the available resources on the smaller system.
 
-
-<b id="f1">[1]</b> Learn more about it at https://projects.nunogodinho.com/candle, including pictures and a video of it in action. [[^^^]](#a1)
 
 
 Minimum Requirements
@@ -24,7 +22,7 @@ Minimum Requirements
   * OMXPlayer.
   * DBus.
   * git.
-* Four sets of candle burning video files<sup id="a2">[[2]](#f2)</sup>:
+* Four sets of candle burning video files, you will have to create:
   * Level 0: stable candle burning with no interference, played in a loop.
   * Level 1: candle flame flickering, responding to light blowing.
   * Level 2: candle flame flickering, responding to medium blowing.
@@ -33,8 +31,6 @@ Minimum Requirements
 
 With these in place you will be able to explore **Candle 2017** and trigger candle reactions artificially, either via a web based monitoring and controlling interface or via a simpler network based control interface (more on this, below).
 
-
-<b id="f2">[2]</b> You will need to create these yourself. [[^^^]](#a2)
 
 
 
@@ -45,14 +41,12 @@ For full, natural interactivity, an input sensor is needed.
 
 As of this writing, two distinct input sensor types are supported:
 
-* The original "wind sensor", as used in the art project itself, comprised of multiple "bend/flex sensors"<sup id="a3">[[3]](#f3)</sup> integrated within the display frame, wired to an arduino that, in turn, continuously delivers "bend readings": these will be bigger as the "wind blowing towards the screen" strength increases, forcing the "bend/flex sensors" to move.
+* The original "wind sensor", as used in the art project itself, comprised of multiple [bend/flex sensors](https://en.wikipedia.org/wiki/Flex_sensor) integrated within the display frame, wired to an arduino that, in turn, continuously delivers "bend readings": these will be bigger as the "wind blowing towards the screen" strength increases, forcing the "bend/flex sensors" to move.
 
 * An alternative "audio sensor", much simpler and accessible, based on sound input; this requires prior setup of the ALSA subsystem such that, for example, a USB microphone or webcam audio can be used: naturally, this input sensor reacts to directed blows and also to environment sound pressure/level.
 
 Either input sensor is fed into an input processor, called AGD, that can be tuned in a way such that varying inputs (more/less wind or louder/softer sound) trigger the natural candle reactions by playing videos in different levels.
 
-
-<b id="f3">[3]</b> See https://en.wikipedia.org/wiki/Flex_sensor. [[^^^]](#a3)
 
 
 
