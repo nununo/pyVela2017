@@ -39,9 +39,9 @@ Full Requirements
 -----------------
 For full, natural interactivity, an input sensor is required. As of this writing, two types of input sensor are supported:
 
-* The original "wind sensor", as used in the art project itself, comprised of multiple [bend/flex sensors](https://en.wikipedia.org/wiki/Flex_sensor) integrated in the display frame assembly, wired to an arduino that, in turn, continuously delivers "bend readings" to the Raspberry Pi, via a serial USB connection: these will be bigger as the "wind blowing towards the screen" strength increases, forcing the "bend/flex sensors" to move.
+* The original "wind sensor", as used in the art project itself, is comprised of multiple [bend/flex sensors](https://en.wikipedia.org/wiki/Flex_sensor) integrated in the display frame assembly, wired to an arduino that, in turn, continuously delivers "bend readings" to the Raspberry Pi, via a serial USB connection: these will be bigger as the "wind blowing towards the screen" strength increases, forcing the "bend/flex sensors" to move.
 
-* An alternative "audio sensor", much simpler and accessible, based on sound input; this requires prior setup of the ALSA subsystem such that, for example, a USB microphone or webcam audio can be used: naturally, this input sensor reacts to directed blows and also to environment sound pressure/level.
+* An alternative "audio sensor", much simpler and accessible, based on sound input; this requires prior setup of the ALSA subsystem such that, for example, a USB microphone or webcam audio can be used: naturally, this input sensor reacts to both directed blows and environment sound pressure/level changes.
 
 Either input sensor is fed into an input processor, called AGD, that can be tuned in a way such that varying inputs (more/less wind or louder/softer sound) trigger the natural candle reactions by playing videos in different levels.
 
@@ -61,14 +61,14 @@ Four input types are supported:
 * A raw TCP network interface.
 
 
-Of these, the last two are mostly used for testing and diagnostics, while the first two support the full natural experience: either the "wind sensor" or the "audio sensor" produce a continuous stream of numeric readings where larger numbers correspond to more wind or more sound, respectively.
+Of these, the last two are mostly used for testing and diagnostics, while the first two support the full natural experience: both the "wind sensor" and the "audio sensor" produce a continuous stream of numeric readings where larger numbers correspond to more wind or more sound, respectively.
 
 Such stream of readings from either the "wind sensor" or the "audio sensor" is handled by an internal processing component called AGD which, in turn, triggers video level playing changes, depending on its own settings.
 
-AGD keeps track of the latest N readings and calculates a particular form of "aggregated derivative" over those readings: whenever the calculated value rises above a given video level's threshold, AGD triggers that particular video level to start playing.
+AGD keeps track of the latest N readings and calculates a particular form of "aggregated derivative" over those readings: whenever the calculated value rises above a given video level's configurable threshold, AGD triggers that particular video level to start playing.
 
 
-A simplified overview of the input chain is depicted below:
+An overview of the input chain is depicted below:
 ```
     +-------------------+
     |    wind sensor    |------+            
@@ -77,11 +77,11 @@ A simplified overview of the input chain is depicted below:
     +-------------------+              +---------+      |
     |    audio sensor   |---X                           |
     +-------------------+                               |
-                                                        |       /
-    +-------------------+                               +------>| current playing
-    | web input/monitor |-------------------------------------->| video level
-    +-------------------+                               +------>| should change
-                                                        |       \
+                                                        |       *- - - - - - - - -*
+    +-------------------+                               +------>| current playing |
+    | web input/monitor |-------------------------------------->|   video level   |
+    +-------------------+                               +------>| change triggers |
+                                                        |       *- - - - - - - - -*
     +-------------------+                               |
     |   network input   |-------------------------------+
     +-------------------+
@@ -205,11 +205,6 @@ As an interactive art project, using it is about interacting with it. There are 
 **"Wind sensor" setup and interaction**
 
 * Requires "wind sensor" to be present.
-* Adjust the `settings.json` such that:
-  * `inputs.arduino.*` point to the correct serial device file at the correct baud rate.
-  * Set `inputs.agd.source` to `arduino`, which is the default.
-  * Remove the `audio` input entry.
-  * May need adjustments to `inputs.agd.buffer_size` and `inputs.agd.thresholds`.
 * Blow on the sensor and watch the candle react.
 * The *Web based monitoring and control*, described below, is a very useful tool in monitoring the input signal and adjusting the AGD thresholds that trigger different level interactions.
 
@@ -218,11 +213,6 @@ As an interactive art project, using it is about interacting with it. There are 
 **"Audio sensor" interaction**
 
 * Requires the availability of an ALSA supported audio input device.
-* Adjust the `settings.json` such that:
-  * `inputs.audio.*` point to the correct audio device with adequate capture settings.
-  * Set `inputs.agd.source` to `"audio"`.
-  * Remove the `arduino` input entry.
-  * May need adjustments to `inputs.agd.buffer_size` and `inputs.agd.thresholds`.
 * Produce different sound levels (including blowing into the microphone) and watch the candle react.
 * The *Web based monitoring and control*, described below, is a very useful tool in monitoring the input signal and adjusting the AGD thresholds that trigger different level interactions.
 
