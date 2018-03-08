@@ -184,6 +184,10 @@ class PlayerManager(object):
 
         self.log.info('new_level={l!r} comment={c!r}', l=new_level, c=comment)
 
+        if new_level == 0:
+            self.log.info('will not go to rest ahead of time')
+            return
+
         if self._current_player is self.players[3]:
             self.log.info('will not override level 3 player')
             return
