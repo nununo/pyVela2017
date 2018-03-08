@@ -63,8 +63,8 @@ class PlayerManager(object):
         # keys/values: integer levels/OMXPlayer instances
         self.players = {}
 
-        # the level we're running, currently
-        self.current_level = 0
+        # the player currently running, if not level 0
+        self._current_player = None
 
         self._update_ld_lib_path()
         self._find_files()
@@ -116,9 +116,7 @@ class PlayerManager(object):
         """
         Part of the public API, used by OMXPlayer.
         """
-        result = self.settings['environment']['omxplayer_bin']
-        self.log.debug('executable is {e!r}', e=result)
-        return result
+        return self.settings['environment']['omxplayer_bin']
 
 
     @defer.inlineCallbacks
@@ -173,7 +171,7 @@ class PlayerManager(object):
             fadeout=self.settings['levels'][str(level)]['fadeout'],
         )
         self.players[level] = player
-        yield player.spawn(end_callable=lambda exit_code: self._player_ended(level))
+        yield player.spawn(end_callable=lambda _: self._player_ended(player, level))
 
 
     def _change_play_level(self, new_level, comment=''):
@@ -186,16 +184,23 @@ class PlayerManager(object):
 
         self.log.info('new_level={l!r} comment={c!r}', l=new_level, c=comment)
 
-        if new_level <= self.current_level:
+        if self._current_player is self.players[3]:
+            self.log.info('will not override level 3 player')
             return
 
-        player = self.players.get(new_level)
-        if player:
-            self.current_level = new_level
-            player.play()
+        new_player = self.players.get(new_level)
+        if new_player:
+            new_player.play()
+            if self._current_player:
+                self.log.debug('smoothly stopping current player')
+                self._current_player.fadeout_and_stop()
+            else:
+                self.log.debug('no current player to smoothly stop')
+            self._current_player = new_player
+            self.log.debug('current player updated')
 
 
-    def _player_ended(self, level):
+    def _player_ended(self, player, level):
 
         # Called when a player for `level` ends (see _create_player), ensures
         # that new player is created such that it is ready when needed.
@@ -204,7 +209,9 @@ class PlayerManager(object):
         if self._stopping:
             return
         self._create_player(level)
-        self.current_level = 0
+        if player is self._current_player:
+            self.log.debug('current player set to none')
+            self._current_player = None
 
 
     @defer.inlineCallbacks

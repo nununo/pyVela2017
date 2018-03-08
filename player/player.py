@@ -71,6 +71,8 @@ class OMXPlayer(object):
         # Lifecycle tracking.
         self._ready = defer.Deferred()
         self._stop_in_progress = False
+        self._fadeout_dc = None
+        self._fading_out = False
 
 
     def __repr__(self):
@@ -251,6 +253,8 @@ class OMXPlayer(object):
 
         self.log.info('stopping')
 
+        self._cancel_scheduled_fadeout()
+
         if self._process_protocol.stopped.called:
             # Prevent race condition: do nothing if process is gone.
             self.log.info('no process to stop', p=player_name)
@@ -375,9 +379,22 @@ class OMXPlayer(object):
 
         if not self.loop:
             delta_t = self._duration - self._fadeout - 0.1
-            self._reactor.callLater(delta_t, self.fadeout)
+            self._fadeout_dc = self._reactor.callLater(delta_t, self.fadeout)
 
         yield self.fadein()
+
+
+    def _cancel_scheduled_fadeout(self):
+
+        """
+        Cancel any eventually scheduled fadeout.
+        """
+
+        if self._fadeout_dc:
+            try:
+                self._fadeout_dc.cancel()
+            except Exception:
+                pass
 
 
     @defer.inlineCallbacks
@@ -447,10 +464,30 @@ class OMXPlayer(object):
         """
         yield self._wait_ready('fade out')
 
+        if self._fading_out:
+            self.log.info('fade out in progress')
+            return
+
         self.log.info('fade out starting')
+        self._cancel_scheduled_fadeout()
+
+        self._fading_out = True
         result = yield self._fade(self._fadeout, 255, 0)
+        self._fading_out = False
+
         self.log.info('fade out completed')
         defer.returnValue(result)
+
+
+    @defer.inlineCallbacks
+    def fadeout_and_stop(self):
+
+        """
+        Stops after a fade out.
+        """
+
+        yield self.fadeout()
+        yield self.stop()
 
 
     @defer.inlineCallbacks
