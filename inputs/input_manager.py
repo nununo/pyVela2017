@@ -16,6 +16,7 @@ from . import arduino
 from . import audio
 from . import network
 from . import web
+from . import usbhid
 
 
 
@@ -25,6 +26,7 @@ _INPUT_CLASSES = {
     'agd': agd.Input,
     'arduino': arduino.Input,
     'audio': audio.Input,
+    'usbhid': usbhid.Input,
     'network': network.Input,
     'web': web.Input,
 }
@@ -72,7 +74,8 @@ class InputManager(object):
             try:
                 input_obj = input_class(self._reactor, self._wiring, **input_item)
             except Exception as e:
-                _log.error('bad {it!r} input settings: {e!r}', it=input_type, e=e)
+                _log.error('bad {it!r} input settings {ii!r}: {e!r}',
+                           it=input_type, ii=input_item, e=e)
                 raise
             try:
                 yield input_obj.start()

@@ -308,6 +308,7 @@ Here's a rundown on each available setting and its purpose:
 | inputs.audio.respawn_delay       | Delay, in seconds, to wait for `arecord` process re-spawn (no re-spawns will be attempted if negative). |
 | inputs.usbhid.device_file        | Absolute path to a USB HID input event device file.             |
 | inputs.usbhid.event_name         | An event name (see *About USB HID devices*, below).             |
+| inputs.usbhid.negate             | `true` or `false`: if `true` readings will be negated.          |
 | inputs.agd.source                | Input sensor source name: one of `arduino` or `audio`.          |
 | inputs.agd.buffer_size           | Input processor buffer size.                                    |
 | inputs.agd.thresholds            | Input processor thresholds: adjusts "input sensor" responsiveness. |
