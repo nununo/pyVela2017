@@ -16,6 +16,7 @@
         "inputs.arduino": "warn",
         "inputs.audio": "warn",
         "inputs.audio.proc": "warn",
+        "inputs.usbhid": "warn",
         "inputs.network": "warn",
         "inputs.web": "warn",
         "txdbus": "warn",
@@ -48,6 +49,11 @@
             "rate": 8000,
             "buffer_time": 200000,
             "respawn_delay": 1
+        },
+        {
+            "input_type": "usbhid",
+            "device_file": "/dev/input/event0",
+            "event_name": "ABS_Y"
         },
         {
             "input_type": "network",
