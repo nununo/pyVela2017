@@ -307,8 +307,10 @@ Here's a rundown on each available setting and its purpose:
 | inputs.audio.buffer_time         | Audio capture buffer size, to be used in `arecord`'s `--buffer-size` option. |
 | inputs.audio.respawn_delay       | Delay, in seconds, to wait for `arecord` process re-spawn (no re-spawns will be attempted if negative). |
 | inputs.usbhid.device_file        | Absolute path to a USB HID input event device file.             |
-| inputs.usbhid.event_name         | An event name (see *About USB HID devices*, below).             |
-| inputs.usbhid.negate             | `true` or `false`: if `true` readings will be negated.          |
+| inputs.usbhid.reading_event_code | The event code to track readings from (see *About USB HID devices*, below). |
+| inputs.usbhid.reading_scale      | Reading multiplier (defaults to 1).                             |
+| inputs.usbhid.reading_offset     | Offset added to each reading (defaults to 0).                   |
+| inputs.usbhid.period             | How often, in seconds, to generate readings to AGD (defaults to 0.1). |
 | inputs.agd.source                | Input sensor source name: one of `arduino` or `audio`.          |
 | inputs.agd.buffer_size           | Input processor buffer size.                                    |
 | inputs.agd.thresholds            | Input processor thresholds: adjusts "input sensor" responsiveness. |
@@ -410,7 +412,7 @@ Device capabilities:
     Code BTN_MIDDLE 274
 ```
 
-Observe the lines under `EV_REL` containing `REL_X`, `REL_Y`: two good candidates to be used in `inputs.usbhid.event_name`, tracking, respectively, the horizontal or vertical mouse movement.
+Observe the lines under `EV_REL` containing `REL_X`, `REL_Y`: two good candidates to be used in `inputs.usbhid.reading_event_code`, tracking, respectively, the horizontal or vertical mouse movement.
 
 
 If instead the gamepad was selected, one could obtain:
@@ -470,7 +472,7 @@ Device capabilities:
     Code MSC_SCAN 4
 ```
 
-In this case, under `EV_ABS`, entries like `ABS_X`, `ABS_Y`, `ABS_Z` and `ABS_RZ` are found: these correspond to two analog sticks in the gamepad: any of those is a good candidate to be used in `inputs.usbhid.event_name`.
+In this case, under `EV_ABS`, entries like `ABS_X`, `ABS_Y`, `ABS_Z` and `ABS_RZ` are found: these correspond to each of the two axes in the two analog sticks in the gamepad: any is a good candidate to be used in `inputs.usbhid.reading_event_code`.
 
 
 

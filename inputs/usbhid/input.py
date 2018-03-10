@@ -29,19 +29,23 @@ class USBHIDInput(input_base.InputBase):
     Monitors USB HID events and delivers readings for the tracked event.
     """
 
-    def __init__(self, reactor, wiring, device_file, event_name, negate=False):
+    def __init__(self, reactor, wiring, device_file, reading_event_code,
+                 reading_scale=1, reading_offset=0, period=0.1):
 
         super(USBHIDInput, self).__init__(reactor, wiring)
         self._device_file = device_file
-        self._event_name = event_name
+        self._reading_event_code = reading_event_code
+        self._reading_scale = reading_scale
+        self._reading_offset = reading_offset
+        self._period = period
 
         self._reader = reader.InputDeviceReader(
             reactor,
             device_file,
-            event_name,
-            negate,
-            wiring.usbhid,
+            reading_event_code,
+            self._event_handler,
         )
+        self._reading = None
 
 
     @defer.inlineCallbacks
@@ -49,8 +53,27 @@ class USBHIDInput(input_base.InputBase):
 
         
         self._reader.start()
-        _log.info('started: tracking {e!r}@{d}', e=self._event_name, d=self._device_file)
+        _log.info('tracking {e} from {d}', e=self._reading_event_code, d=self._device_file)
+        self._send_reading_later()
         yield defer.succeed(None)
+
+
+    def _event_handler(self, event):
+
+        self._reading = event.value * self._reading_scale + self._reading_offset
+
+
+    def _send_reading_later(self):
+
+        self._delayed_call = self._reactor.callLater(self._period, self._send_reading)
+
+
+    def _send_reading(self):
+
+        value = self._reading
+        if value is not None:
+            self._wiring.usbhid(value)
+        self._send_reading_later()
 
 
     @defer.inlineCallbacks

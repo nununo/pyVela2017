@@ -54,8 +54,11 @@
         {
             "input_type": "usbhid",
             "device_file": "/dev/input/event0",
-            "event_name": "ABS_Y",
-            "negate": true
+            "reading_event_name": "ABS_Y",
+            "reading_scale": 1,
+            "reading_offset": 0,
+            "period": 0.1
+
         },
         {
             "input_type": "network",
