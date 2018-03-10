@@ -37,19 +37,18 @@ class AggregatedDerivative(input_base.InputBase):
 
         super(AggregatedDerivative, self).__init__(reactor, wiring)
 
-        self._wiring = wiring
         self._thresholds = thresholds
         self._source_name = source
-
-        # TODO: wires should allow "wiring.wire[source].calls_to(...)"
-        getattr(wiring.wire, source).calls_to(self._input_received)
 
         self._readings = deque(maxlen=buffer_size)
         self._last_play_level = 0
 
-        for level, value in enumerate(thresholds, start=1):
-            wiring.notify_agd_threshold(level, value)
+        # Handle the output produced by the selected input `source`.
+        # TODO: wires should allow "wiring.wire[source].calls_to(...)"
+        getattr(wiring.wire, source).calls_to(self._input_received)
 
+        # Handle requests to get/set AGD thresholds.
+        wiring.wire.request_agd_thresholds.calls_to(self._notify_agd_thresholds)
         wiring.wire.set_agd_threshold.calls_to(self._set_threshold)
 
 
@@ -65,6 +64,12 @@ class AggregatedDerivative(input_base.InputBase):
 
         _log.info('stopped')
         yield defer.succeed(None)
+
+
+    def _notify_agd_thresholds(self):
+
+        for level, value in enumerate(self._thresholds, start=1):
+            self._wiring.notify_agd_threshold(level, value)
 
 
     def _set_threshold(self, level, value):

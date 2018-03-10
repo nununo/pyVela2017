@@ -140,44 +140,33 @@ Configuration
 Before running, putting a configuration in place that is appropriate to the environment is strictly required. For that, copy `settings-sample.json` to `settings.json` and then edit the copy, as needed.
 
 
-At least the `inputs` entry should be reviewed:
+If using an input like a "wind sensor", an "audio sensor", or a USB HID device, the `inputs` entry must be reviewed:
 
 * If using a "wind sensor":
-  * Ensure that `inputs.agd.source` is set to `arduino`.
-  * Remove the `audio` input entry.
-  * Remove the `hid` input entry.
-  * Review the `input.arduino.*` settings.
+  * Set `inputs.arduino.enabled` to `true` and adjust the other `input.arduino.*` settings.
+  * Set `inputs.agd.enabled` to `true`.
+  * Set `inputs.agd.source` to `arduino`.
   * For details about building a "wind sensor", see the section *About the "wind sensor"*, below.
 
 * If using an "audio sensor":
-  * Ensure that `inputs.agd.source` is set to `audio`.
-  * Remove the `arduino` input entry.
-  * Remove the `hid` input entry.
-  * Review the `input.audio.*` settings.
+  * Set `inputs.audio.enabled` to `true` and adjust the other `input.audio.*` settings.
+  * Set `inputs.agd.enabled` to `true`.
+  * Set `inputs.agd.source` to `audio`.
   * For details about setting up and testing an "audio sensor", see the section *About the "audio sensor"*, below.
 
 * If using a USB HID input:
-  * Ensure that `inputs.agd.source` is set to `hid`.
-  * Remove the `arduino` input entry.
-  * Remove the `audio` input entry.
-  * Review the `input.hid.*` settings.
+  * Set `inputs.hid.enabled` to `true` and adjust the other `input.hid.*` settings.
+  * Set `inputs.agd.enabled` to `true`.
+  * Set `inputs.agd.source` to `hid`.
   * For details about setting up and testing a USB HID device, see the section *About USB HID devices*, below.
 
-
-* If no input sensor is used:
-  * Remove the `arduino` input entry.
-  * Remove the `audio` input entry.
-  * Remove the `hid` input entry.
-  * Remove the `agd` input entry.
-
 * About the web based input:
-  * If present, it *must* be declared before any other.
   * Not strictly required but its monitoring and diagnosing abilities may prove useful.
   * Review the `input.web.*` settings.
 
 * About the network input:
-  * Can be removed.
-  * If present, review the `input.network.*` settings.
+  * Can be disabled.
+  * If enabled, review the `input.network.*` settings.
 
 
 
@@ -316,8 +305,6 @@ Sets the default logging level for each internal component. These can be changed
 ### Inputs
 
 The `inputs` key is a list/array of dicts/objects containing one or more entries specifying the inputs to be used. Each such entry must have a `type` key/property, with the remaining keys/properties depending on that setting (which, for readability, are referenced below as `inputs.<type>.*`); additionally, each entry can be individually enabled/disabled depending on the boolean value of the `enabled` key/property.
-
-Limitation: the `web` input needs to be declared before `agd`, if used: otherwise, AGD threshold web based management does not operate properly.
 
 
 

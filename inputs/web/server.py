@@ -52,13 +52,13 @@ class WSProto(websocket.WebSocketServerProtocol):
 
         _log.warn('{p.host}:{p.port} connected', p=self.transport.getPeer())
 
-        # Push known thresholds if available
-        for level, value in self.factory.agd_thresholds.items():
-            self._push_agd_threshold(level, value)
-
+        # Handle AGD threshold notifications by pushing them to the client.
         self.factory.wiring.wire.notify_agd_threshold.calls_to(
             self._push_agd_threshold
         )
+
+        # Request notification of AGD thresholds.
+        self.factory.wiring.request_agd_thresholds()
 
 
     def onMessage(self, payload, isBinary):
@@ -129,7 +129,7 @@ class WSProto(websocket.WebSocketServerProtocol):
         self.factory.wiring.unwire.agd_output.calls_to(self._push_chart_data)
 
         # Can't push threshold updates to the client anymore.
-        self.factory.wiring.wire.notify_agd_threshold.calls_to(
+        self.factory.wiring.unwire.notify_agd_threshold.calls_to(
             self._push_agd_threshold
         )
 
@@ -204,17 +204,8 @@ class WSFactory(websocket.WebSocketServerFactory):
 
         super(WSFactory, self).__init__(*args, **kwargs)
 
-        self.agd_thresholds = {}
-
         # Used by protocol to call `change_play_level` and `set_log_level`.
         self.wiring = wiring
-
-        wiring.wire.notify_agd_threshold.calls_to(self._store_agd_threshold)
-
-
-    def _store_agd_threshold(self, level, value):
-
-        self.agd_thresholds[level] = value
 
 
 # ----------------------------------------------------------------------------
