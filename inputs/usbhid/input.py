@@ -33,8 +33,6 @@ class USBHIDInput(input_base.InputBase):
                  reading_scale=1, reading_offset=0, period=0.1):
 
         super(USBHIDInput, self).__init__(reactor, wiring)
-        self._device_file = device_file
-        self._reading_event_code = reading_event_code
         self._reading_scale = reading_scale
         self._reading_offset = reading_offset
         self._period = period
@@ -51,9 +49,8 @@ class USBHIDInput(input_base.InputBase):
     @defer.inlineCallbacks
     def start(self):
 
-        
         self._reader.start()
-        _log.info('tracking {e} from {d}', e=self._reading_event_code, d=self._device_file)
+        _log.info('started reading')
         self._send_reading_later()
         yield defer.succeed(None)
 
