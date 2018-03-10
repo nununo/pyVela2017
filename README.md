@@ -361,7 +361,7 @@ Limitation: the `web` input needs to be declared before `agd`, if used: otherwis
 
 | setting                          | description                                                     |
 |----------------------------------|-----------------------------------------------------------------|
-| inputs.agd.source                | Input sensor source name: one of `arduino` or `audio`.          |
+| inputs.agd.source                | Input sensor source name: one of `arduino`, `audio` or `hid`.   |
 | inputs.agd.buffer_size           | Input processor buffer size.                                    |
 | inputs.agd.thresholds            | Input processor thresholds: adjusts "input sensor" responsiveness. |
 
