@@ -315,7 +315,7 @@ Sets the default logging level for each internal component. These can be changed
 
 ### Inputs
 
-The `inputs` key is a list/array of dicts/objects and it should contain one or more entries specifying the inputs to be used. Each such entry will have an `input_type` key/property with the remaining keys/properties depending on that setting (which, for readability, are referenced below as `inputs.<input_type>.*`).
+The `inputs` key is a list/array of dicts/objects containing one or more entries specifying the inputs to be used. Each such entry must have a `type` key/property, with the remaining keys/properties depending on that setting (which, for readability, are referenced below as `inputs.<type>.*`); additionally, each entry can be individually enabled/disabled depending on the boolean value of the `enabled` key/property.
 
 Limitation: the `web` input needs to be declared before `agd`, if used: otherwise, AGD threshold web based management does not operate properly.
 
@@ -361,7 +361,7 @@ Limitation: the `web` input needs to be declared before `agd`, if used: otherwis
 
 | setting                          | description                                                     |
 |----------------------------------|-----------------------------------------------------------------|
-| inputs.agd.source                | Input sensor source name: one of `arduino` or `audio`.          |
+| inputs.agd.source                | Input sensor source name: one of `arduino`, `audio` or `hid`.   |
 | inputs.agd.buffer_size           | Input processor buffer size.                                    |
 | inputs.agd.thresholds            | Input processor thresholds: adjusts "input sensor" responsiveness. |
 
