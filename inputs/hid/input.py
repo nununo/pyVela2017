@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------
 # vim: ts=4:sw=4:et
 # ----------------------------------------------------------------------------
-# inputs/usbhid/input.py
+# inputs/hid/input.py
 # ----------------------------------------------------------------------------
 
 """
@@ -17,7 +17,7 @@ from . import reader
 
 
 
-_log = logger.Logger(namespace='inputs.usbhid')
+_log = logger.Logger(namespace='inputs.hid')
 
 
 
@@ -69,7 +69,7 @@ class USBHIDInput(input_base.InputBase):
 
         value = self._reading
         if value is not None:
-            self._wiring.usbhid(value)
+            self._wiring.hid(value)
         self._send_reading_later()
 
 
@@ -81,5 +81,5 @@ class USBHIDInput(input_base.InputBase):
 
 
 # ----------------------------------------------------------------------------
-# inputs/usbhid/input.py
+# inputs/hid/input.py
 # ----------------------------------------------------------------------------

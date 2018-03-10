@@ -145,29 +145,29 @@ At least the `inputs` entry should be reviewed:
 * If using a "wind sensor":
   * Ensure that `inputs.agd.source` is set to `arduino`.
   * Remove the `audio` input entry.
-  * Remove the `usbhid` input entry.
+  * Remove the `hid` input entry.
   * Review the `input.arduino.*` settings.
   * For details about building a "wind sensor", see the section *About the "wind sensor"*, below.
 
 * If using an "audio sensor":
   * Ensure that `inputs.agd.source` is set to `audio`.
   * Remove the `arduino` input entry.
-  * Remove the `usbhid` input entry.
+  * Remove the `hid` input entry.
   * Review the `input.audio.*` settings.
   * For details about setting up and testing an "audio sensor", see the section *About the "audio sensor"*, below.
 
 * If using a USB HID input:
-  * Ensure that `inputs.agd.source` is set to `usbhid`.
+  * Ensure that `inputs.agd.source` is set to `hid`.
   * Remove the `arduino` input entry.
   * Remove the `audio` input entry.
-  * Review the `input.usbhid.*` settings
+  * Review the `input.hid.*` settings.
   * For details about setting up and testing a USB HID device, see the section *About USB HID devices*, below.
 
 
 * If no input sensor is used:
   * Remove the `arduino` input entry.
   * Remove the `audio` input entry.
-  * Remove the `usbhid` input entry.
+  * Remove the `hid` input entry.
   * Remove the `agd` input entry.
 
 * About the web based input:
@@ -306,11 +306,11 @@ Here's a rundown on each available setting and its purpose:
 | inputs.audio.rate                | Audio capture rate, to be used in `arecord`'s `--rate` option.  |
 | inputs.audio.buffer_time         | Audio capture buffer size, to be used in `arecord`'s `--buffer-size` option. |
 | inputs.audio.respawn_delay       | Delay, in seconds, to wait for `arecord` process re-spawn (no re-spawns will be attempted if negative). |
-| inputs.usbhid.device_file        | Absolute path to a USB HID input event device file.             |
-| inputs.usbhid.reading_event_code | The event code to track readings from (see *About USB HID devices*, below). |
-| inputs.usbhid.reading_scale      | Reading multiplier (defaults to 1).                             |
-| inputs.usbhid.reading_offset     | Offset added to each reading (defaults to 0).                   |
-| inputs.usbhid.period             | How often, in seconds, to generate readings to AGD (defaults to 0.1). |
+| inputs.hid.device_file           | Absolute path to a USB HID input event device file.             |
+| inputs.hid.reading_event_code    | The event code to track readings from (see *About USB HID devices*, below). |
+| inputs.hid.reading_scale         | Reading multiplier (defaults to 1).                             |
+| inputs.hid.reading_offset        | Offset added to each reading (defaults to 0).                   |
+| inputs.hid.period                | How often, in seconds, to generate readings to AGD (defaults to 0.1). |
 | inputs.agd.source                | Input sensor source name: one of `arduino` or `audio`.          |
 | inputs.agd.buffer_size           | Input processor buffer size.                                    |
 | inputs.agd.thresholds            | Input processor thresholds: adjusts "input sensor" responsiveness. |
@@ -412,7 +412,7 @@ Device capabilities:
     Code BTN_MIDDLE 274
 ```
 
-Observe the lines under `EV_REL` containing `REL_X`, `REL_Y`: two good candidates to be used in `inputs.usbhid.reading_event_code`, tracking, respectively, the horizontal or vertical mouse movement.
+Observe the lines under `EV_REL` containing `REL_X`, `REL_Y`: two good candidates to be used in `inputs.hid.reading_event_code`, tracking, respectively, the horizontal or vertical mouse movement.
 
 
 If instead the gamepad was selected, one could obtain:
@@ -472,7 +472,7 @@ Device capabilities:
     Code MSC_SCAN 4
 ```
 
-In this case, under `EV_ABS`, entries like `ABS_X`, `ABS_Y`, `ABS_Z` and `ABS_RZ` are found: these correspond to each of the two axes in the two analog sticks in the gamepad: any is a good candidate to be used in `inputs.usbhid.reading_event_code`.
+In this case, under `EV_ABS`, entries like `ABS_X`, `ABS_Y`, `ABS_Z` and `ABS_RZ` are found: these correspond to each of the two axes in the two analog sticks in the gamepad: any is a good candidate to be used in `inputs.hid.reading_event_code`.
 
 
 

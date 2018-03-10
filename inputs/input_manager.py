@@ -16,7 +16,7 @@ from . import arduino
 from . import audio
 from . import network
 from . import web
-from . import usbhid
+from . import hid
 
 
 
@@ -26,7 +26,7 @@ _INPUT_CLASSES = {
     'agd': agd.Input,
     'arduino': arduino.Input,
     'audio': audio.Input,
-    'usbhid': usbhid.Input,
+    'hid': hid.Input,
     'network': network.Input,
     'web': web.Input,
 }
