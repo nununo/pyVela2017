@@ -287,10 +287,10 @@ Configuration Reference
 -----------------------
 When running, the configuration is sourced at startup from the file `settings.json`. As its name implies, it is a JSON formatted file containing all the configurable settings.
 
-Here's a rundown on the available setting, grouped by key:
+Here's a rundown on the available settings, grouped by key:
 
 
-**Environment**
+### Environment
 
 Defines necessary paths for spawning a private DBus daemon and OMXPlayers.
 
@@ -302,7 +302,7 @@ Defines necessary paths for spawning a private DBus daemon and OMXPlayers.
 
 
 
-**Logging**
+### Logging
 
 Sets the default logging level for each internal component. These can be changed at run-time via the web interface.
 
@@ -313,19 +313,15 @@ Sets the default logging level for each internal component. These can be changed
 
 
 
-**Inputs**
+### Inputs
 
-The `inputs` key is a list/array of dicts/objects and it should contain one or more entries specifying the inputs to be used.
+The `inputs` key is a list/array of dicts/objects and it should contain one or more entries specifying the inputs to be used. Each such entry will have an `input_type` key/property with the remaining keys/properties depending on that setting (which, for readability, are referenced below as `inputs.<input_type>.*`).
 
-Each such entry will have an `input_type` key/property with the remaining keys/properties depending on that setting.
-
-Keep in mind that the `web` input needs to be declared first, if used.
+Limitation: the `web` input needs to be declared before `agd`, if used: otherwise, AGD threshold web based management does not operate properly.
 
 
 
-**Input: "wind sensor"**
-
-Where `input_type` is set to `arduino`.
+### Input: "wind sensor"
 
 | setting                          | description                                                     |
 |----------------------------------|-----------------------------------------------------------------|
@@ -334,9 +330,7 @@ Where `input_type` is set to `arduino`.
 
 
 
-**Input: "audio sensor"**
-
-Where `input_type` is set to `audio`.
+### Input: "audio sensor"
 
 | setting                          | description                                                     |
 |----------------------------------|-----------------------------------------------------------------|
@@ -351,9 +345,7 @@ Where `input_type` is set to `audio`.
 
 
 
-**Input: USB HID device**
-
-Where `input_type` is set to `hid`.
+### Input: USB HID device
 
 | setting                          | description                                                     |
 |----------------------------------|-----------------------------------------------------------------|
@@ -365,9 +357,7 @@ Where `input_type` is set to `hid`.
 
 
 
-**Input processing: AGD**
-
-Where `input_type` is set to `agd`.
+### Input processing: AGD
 
 | setting                          | description                                                     |
 |----------------------------------|-----------------------------------------------------------------|
@@ -377,9 +367,7 @@ Where `input_type` is set to `agd`.
 
 
 
-**Input: Network**
-
-Where `input_type` is set to `network`.
+### Input: Network
 
 | setting                          | description                                                     |
 |----------------------------------|-----------------------------------------------------------------|
@@ -387,9 +375,7 @@ Where `input_type` is set to `network`.
 
 
 
-**Input: Web**
-
-Where `input_type` is set to `web`.
+### Input: Web
 
 | setting                          | description                                                     |
 |----------------------------------|-----------------------------------------------------------------|
@@ -398,7 +384,7 @@ Where `input_type` is set to `web`.
 
 
 
-**Video files**
+### Video files
 
 | setting                          | description                                                     |
 |----------------------------------|-----------------------------------------------------------------|
