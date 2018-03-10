@@ -16,6 +16,8 @@
         "inputs.arduino": "warn",
         "inputs.audio": "warn",
         "inputs.audio.proc": "warn",
+        "inputs.hid": "warn",
+        "inputs.hid.reader": "warn",
         "inputs.network": "warn",
         "inputs.web": "warn",
         "txdbus": "warn",
@@ -48,6 +50,15 @@
             "rate": 8000,
             "buffer_time": 200000,
             "respawn_delay": 1
+        },
+        {
+            "input_type": "hid",
+            "device_file": "/dev/input/event0",
+            "reading_event_name": "ABS_Y",
+            "reading_scale": 1,
+            "reading_offset": 0,
+            "period": 0.1
+
         },
         {
             "input_type": "network",
