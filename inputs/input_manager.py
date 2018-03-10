@@ -65,7 +65,10 @@ class InputManager(object):
 
         _log.info('starting')
         for input_item in self._settings['inputs']:
-            input_type = input_item.pop('input_type', None)
+            input_type = input_item.pop('type', None)
+            enabled = input_item.pop('enabled', False)
+            if not enabled:
+                continue
             try:
                 input_class = _INPUT_CLASSES[input_type]
             except KeyError:

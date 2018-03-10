@@ -25,23 +25,27 @@
     },
     "inputs": [
         {
-            "input_type": "web",
+            "type": "web",
+            "enabled": true,
             "interface": "0.0.0.0",
             "port": 8080
         },
         {
-            "input_type": "agd",
+            "type": "agd",
+            "enabled": false,
             "buffer_size": 25,
             "thresholds": [7, 20, 30],
             "source": "arduino"
         },
         {
-            "input_type": "arduino",
+            "type": "arduino",
+            "enabled": false,
             "device_file": "/dev/ttyACM0",
             "baud_rate": 9600
         },
         {
-            "input_type": "audio",
+            "type": "audio",
+            "enabled": false,
             "nice_bin": "/usr/bin/nice",
             "arecord_bin": "/usr/bin/arecord",
             "device": "hw:CARD=H2300,DEV=0",
@@ -52,16 +56,18 @@
             "respawn_delay": 1
         },
         {
-            "input_type": "hid",
+            "type": "hid",
+            "enabled": false,
             "device_file": "/dev/input/event0",
-            "reading_event_name": "ABS_Y",
+            "reading_event_code": "ABS_Y",
             "reading_scale": 1,
             "reading_offset": 0,
             "period": 0.1
 
         },
         {
-            "input_type": "network",
+            "type": "network",
+            "enabled": false,
             "port": 10000
         }
     ],
