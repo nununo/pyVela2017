@@ -27,11 +27,16 @@ class InputDeviceReader(object):
 
     """
     Twisted IReadDescritor implementation that reads events from the USB HID
-    HID device file, integrating evdev's InputDevice file descriptor into the
-    reactor and using the InputDevice's read_one() method.
+    device file, integrating evdev's InputDevice file descriptor into the
+    reactor and using the InputDevice's read_one() method to complete reads.
 
     Events matching `reading_event_code` will be passed to the `event_callback`.
     """
+
+    # Mostly adapted from glyph's answer at:
+    # (glyph is the creator of Twisted, integrating his response is solid!)
+    #
+    # https://stackoverflow.com/questions/28449455/integrating-hid-access-with-evdev-on-linux-with-python-twisted
 
     def __init__(self, reactor, device_file, reading_event_code, event_callback):
 
@@ -44,7 +49,7 @@ class InputDeviceReader(object):
 
     def fileno(self):
         """
-        Twisted requires this to return the open UNIX file descriptor.
+        Twisted requires this to return the open file descriptor.
         """
         return self._device.fileno()
 
@@ -58,7 +63,7 @@ class InputDeviceReader(object):
 
     def doRead(self):
         """
-        Called by Twisted when the UNIX file descriptor as data for reading.
+        Called by Twisted when the file descriptor has data ready for reading.
         """
         event = self._device.read_one()
         _log.debug('event: {e!r}', e=event)
@@ -70,7 +75,7 @@ class InputDeviceReader(object):
 
     def connectionLost(self, reason):
         """
-        Called by Twisted when the file descriptor is closed or becomes unavailable.
+        Called by Twisted when the file descriptor is closed / becomes unavailable.
         """
         _log.warn('connection lost: {r!r}', r=reason)
         self.stop()
@@ -78,7 +83,7 @@ class InputDeviceReader(object):
 
     def start(self):
         """
-        Tell Twisted to start tracking the UNIX file descriptor for reading.
+        Tell Twisted to start tracking the file descriptor for reading.
         """
         self._device.grab()
         self._reactor.addReader(self)
@@ -87,7 +92,7 @@ class InputDeviceReader(object):
 
     def stop(self):
         """
-        Tell Twisted to stop tracking the UNIX file descriptor for reading.
+        Tell Twisted to stop tracking the file descriptor for reading.
         """
         self._reactor.removeReader(self)
         try:
