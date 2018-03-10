@@ -50,9 +50,9 @@ Either input sensor is fed into an input processor, called AGD, that can be tune
 
 Optional Requirements
 ---------------------
-As an alternative to the input sensors above, a USB HID device with some kind of analog-like input can also be used: a mouse, an analog joystick, a gamepad with analog sticks are among the supported devices.
+As an alternative to the input sensors above, a USB HID device with some kind of analog-like input can also be used: a mouse, an analog joystick, a game pad with analog sticks are among the devices that should work.
 
-Like both the "wind sensor" and the "audio sensor", these will produce a stream of readings to be processed by AGD.
+Like both the "wind sensor" and the "audio sensor", the USB HID device input will also produce a stream of readings to be processed by AGD.
 
 
 
@@ -70,33 +70,33 @@ Five input types are supported:
 * A raw TCP network interface.
 
 
-Of these, the last two are mostly used for testing and diagnostics, while the first two support the full natural experience: both the "wind sensor" and the "audio sensor" produce a continuous stream of numeric readings where larger numbers correspond to more wind or more sound, respectively. The USB HID input sits somewhere in between, being mostly useful for testing, but delivering an analog-like experience, also producing a continuous stream of readings.
+Of these, the last two are mostly used for testing and diagnostics, while the first two support the full natural experience: both the "wind sensor" and the "audio sensor" produce a continuous stream of numeric readings where larger numbers correspond to more wind or sound, respectively. The USB HID input sits somewhere in between, being mostly useful for testing, but delivering an analog-like experience, also producing a continuous stream of readings.
 
-Such stream of readings, from either the "wind sensor", the "audio sensor" or the USB HID input, is handled by an internal processing component called AGD which, in turn, triggers video level playing changes, depending on its own settings.
+Such streams of readings, from either the "wind sensor", the "audio sensor" or the USB HID input, are handled by an internal processing component called AGD which, in turn, triggers video level playing changes, depending on its own settings.
 
-AGD keeps track of the latest N readings and calculates a particular form of "aggregated derivative" over those readings: whenever the calculated value rises above a given video level's configurable threshold, AGD triggers that particular video level to start playing.
+AGD keeps track of the latest N readings (configurable) and calculates a particular form of "aggregated derivative" over those readings: whenever the calculated value rises above a given video level's configurable threshold, AGD triggers that particular video level to start playing.
 
 
-An overview of the input chain is depicted below:
+An overview of the input chain is depicted below, triggering current playing video level changes:
 ```
     +-------------------+
-    |    wind sensor    |------+            
-    +-------------------+      |       +---------+
-                               +------>|   AGD   |------+
-    +-------------------+              +---------+      |
-    |    audio sensor   |---X                           |
-    +-------------------+                               |
-                                                        |
-    +-------------------+                               |
-    |      USB HID      |---X                           |
-    +-------------------+                               |
-                                                        |       *- - - - - - - - -*
-    +-------------------+                               +------>| current playing |
-    | web input/monitor |-------------------------------------->|   video level   |
-    +-------------------+                               +------>| change triggers |
-                                                        |       *- - - - - - - - -*
-    +-------------------+                               |
-    |   network input   |-------------------------------+
+    |    wind sensor    |---(bend readings)----------------+
+    +-------------------+                                  |
+                                                           V
+    +-------------------+                             +---------+
+    |    audio sensor   |---(level readings)----X     |   AGD   |
+    +-------------------+                             +---------+
+                                                           |
+    +-------------------+                                  |
+    |      USB HID      |---(analog readings)---X          |
+    +-------------------+                                  |
+                                                           |          *- - - - - - - - -*
+    +-------------------+                                  +--------->| current playing |
+    | web input/monitor |-------------------------------------------->|   video level   |
+    +-------------------+                                  +--------->| change triggers |
+                                                           |          *- - - - - - - - -*
+    +-------------------+                                  |
+    |   network input   |----------------------------------+
     +-------------------+
 ```
 
@@ -223,14 +223,14 @@ Integrating **Candle 2017** with system services, ensuring automatic startup/shu
 
 Using
 -----
-As an interactive art project, using it is about interacting with it. There are currently four possible ways to interact:
+As an interactive art project, using it is about interacting with it. There are currently five possible ways to interact:
 
 
 **"Wind sensor" setup and interaction**
 
 * Requires "wind sensor" to be present.
 * Blow on the sensor and watch the candle react.
-* The *Web based monitoring and control*, described below, is a very useful tool in monitoring the input signal and adjusting the AGD thresholds that trigger different level interactions.
+* *Web based monitoring and control* may be very useful.
 
 
 
@@ -238,7 +238,7 @@ As an interactive art project, using it is about interacting with it. There are 
 
 * Requires the availability of an ALSA supported audio input device.
 * Produce different sound levels (including blowing into the microphone) and watch the candle react.
-* The *Web based monitoring and control*, described below, is a very useful tool in monitoring the input signal and adjusting the AGD thresholds that trigger different level interactions.
+* *Web based monitoring and control* may be very useful.
 
 
 
@@ -246,14 +246,14 @@ As an interactive art project, using it is about interacting with it. There are 
 
 * Requires the availability of supported USB HID input device.
 * Manipulate the device such that it generates the tracked events.
-* The *Web based monitoring and control*, described below, is a very useful tool in monitoring the input signal and adjusting the AGD thresholds that trigger different level interactions.
+* *Web based monitoring and control* may be very useful.
 
 
 
 **Web based monitoring and control**
 
 * Point a web browser to http://\<raspberry-pi-IP\>:\<port\>/, where \<port> is defined by `inputs.web.port` in the configuration (defaults to 8080).
-* Monitor the real-time input sensor RAW value and AGD result in the top left chart.
+* Monitor the real-time input RAW reading value and AGD result in the top left chart.
 * Observe the AGD thresholds, obtained from `inputs.agd.thresholds` in the configuration, and click them to adjust.
 * Track log messages on the top right pane.
 * Use the orange buttons on the bottom to manually trigger video level changes.
@@ -287,17 +287,59 @@ Configuration Reference
 -----------------------
 When running, the configuration is sourced at startup from the file `settings.json`. As its name implies, it is a JSON formatted file containing all the configurable settings.
 
-Here's a rundown on each available setting and its purpose:
+Here's a rundown on the available setting, grouped by key:
+
+
+**Environment**
+
+Defines necessary paths for spawning a private DBus daemon and OMXPlayers.
 
 | setting                          | description                                                     |
 |----------------------------------|-----------------------------------------------------------------|
 | environment.dbus_daemon_bin      | Absolute path to the `dbus-daemon` executable.                  |
 | environment.omxplayer_bin        | Absolute path to the `omxplayer.bin` executable.                |
 | environment.ld_library_path      | Absolute path to the OMXPlayer required shared libraries.       |
+
+
+
+**Logging**
+
+Sets the default logging level for each internal component. These can be changed at run-time via the web interface.
+
+| setting                          | description                                                     |
+|----------------------------------|-----------------------------------------------------------------|
 | loglevel                         | Default log level, one of `debug`, `info`, `warn` or `error`.   |
 | loglevel.*                       | Per component log level.                                        |
+
+
+
+**Inputs**
+
+The `inputs` key is a list/array of dicts/objects and it should contain one or more entries specifying the inputs to be used.
+
+Each such entry will have an `input_type` key/property with the remaining keys/properties depending on that setting.
+
+Keep in mind that the `web` input needs to be declared first, if used.
+
+
+
+**Input: "wind sensor"**
+
+Where `input_type` is set to `arduino`.
+
+| setting                          | description                                                     |
+|----------------------------------|-----------------------------------------------------------------|
 | inputs.arduino.device_file       | Absolute path to the serial device file of the "wind sensor".   |
 | inputs.arduino.baud_rate         | Baud rate of the "wind sensor" communication.                   |
+
+
+
+**Input: "audio sensor"**
+
+Where `input_type` is set to `audio`.
+
+| setting                          | description                                                     |
+|----------------------------------|-----------------------------------------------------------------|
 | inputs.audio.nice_bin            | Absolute path to the `nice` executable.                         |
 | inputs.audio.arecord_bin         | Absolute path to the `arecord` executable.                      |
 | inputs.audio.device              | ALSA device as obtained from the output `arecord -L`.           |
@@ -306,17 +348,60 @@ Here's a rundown on each available setting and its purpose:
 | inputs.audio.rate                | Audio capture rate, to be used in `arecord`'s `--rate` option.  |
 | inputs.audio.buffer_time         | Audio capture buffer size, to be used in `arecord`'s `--buffer-size` option. |
 | inputs.audio.respawn_delay       | Delay, in seconds, to wait for `arecord` process re-spawn (no re-spawns will be attempted if negative). |
+
+
+
+**Input: USB HID device**
+
+Where `input_type` is set to `hid`.
+
+| setting                          | description                                                     |
+|----------------------------------|-----------------------------------------------------------------|
 | inputs.hid.device_file           | Absolute path to a USB HID input event device file.             |
 | inputs.hid.reading_event_code    | The event code to track readings from (see *About USB HID devices*, below). |
 | inputs.hid.reading_scale         | Reading multiplier (defaults to 1).                             |
 | inputs.hid.reading_offset        | Offset added to each reading (defaults to 0).                   |
 | inputs.hid.period                | How often, in seconds, to generate readings to AGD (defaults to 0.1). |
+
+
+
+**Input processing: AGD**
+
+Where `input_type` is set to `agd`.
+
+| setting                          | description                                                     |
+|----------------------------------|-----------------------------------------------------------------|
 | inputs.agd.source                | Input sensor source name: one of `arduino` or `audio`.          |
 | inputs.agd.buffer_size           | Input processor buffer size.                                    |
 | inputs.agd.thresholds            | Input processor thresholds: adjusts "input sensor" responsiveness. |
+
+
+
+**Input: Network**
+
+Where `input_type` is set to `network`.
+
+| setting                          | description                                                     |
+|----------------------------------|-----------------------------------------------------------------|
 | inputs.network.port              | TCP port where raw network connections will be accepted in.     |
+
+
+
+**Input: Web**
+
+Where `input_type` is set to `web`.
+
+| setting                          | description                                                     |
+|----------------------------------|-----------------------------------------------------------------|
 | inputs.web.interface             | IP interface listening for HTTP connections.                    |
 | inputs.web.port                  | TCP port listening HTTP connections.                            |
+
+
+
+**Video files**
+
+| setting                          | description                                                     |
+|----------------------------------|-----------------------------------------------------------------|
 | levels.*.folder                  | Relative path to directory containing that level's video files. |
 | levels.*.fadein                  | Fade in time, in seconds, for this level's video files.         |
 | levels.*.fadeout                 | Fade out time, in seconds, for this level's video files.        |
@@ -345,7 +430,7 @@ About the "audio sensor"
 -----------------------
 The "audio sensor" leverages the `arecord` ALSA utility's capability of monitoring an audio input without actually recording any audio.
 
-Under the hood, **Candle 2017** spawns an `arecord` instance with a command line like:
+Under the hood, an `arecord` instance is spawned with a command line like:
 ```
 $ arecord --device==<device> --channels=<channels> --duration=0 --format <format> --rate=<rate> --buffer-time=<buffer_time> -vvv /dev/null
 ```
@@ -359,19 +444,19 @@ To test and adjust your "audio sensor":
 * Try blowing, speaking, singing or shouting at the microphone and observe the level changes.
 * Use the `alsamixer` utility to adjust the input gain, as needed, being careful enough to select the correct "sound card" and "capturing" view.
 
-Once an apparently usable configuration is found, it can be reflected in the `settings.json` file.
+Once a usable configuration is found, with a solid enough signal, edit the `settings.json` file to include its settings.
 
 
 
 About USB HID devices
 ---------------------
-To identify available devices and supported event names, activate the virtual environment as described in the *Running* section and run:
+To identify available devices and supported event names, activate the virtual environment as described in the *Running* section and execute:
 
 ```
 $ python -m evdev.evtest -c
 ```
 
-It should display a list of devices as in the example below, where a gamepad and a mouse are plugged in:
+It should display a list of input devices as in the example below, where a USB game pad and mouse are plugged in:
 
 ```
 ID  Device               Name                                Phys
@@ -382,7 +467,7 @@ ID  Device               Name                                Phys
 Select devices [0-1]:
 ```
 
-Then, at the prompt, enter the device ID to be used, to obtain a list of capabilities and event names. For example, selecting the mouse gives us:
+Then, at the `Select devices` prompt, enter the device ID to be used to obtain a list of capabilities and event code names. For example, selecting the mouse gives us:
 
 ```
 Device name: Logitech USB-PS/2 Optical Mouse
@@ -412,10 +497,10 @@ Device capabilities:
     Code BTN_MIDDLE 274
 ```
 
-Observe the lines under `EV_REL` containing `REL_X`, `REL_Y`: two good candidates to be used in `inputs.hid.reading_event_code`, tracking, respectively, the horizontal or vertical mouse movement.
+Observe the lines under `EV_REL` containing `REL_X`, `REL_Y`: two good candidates to be used in `inputs.hid.reading_event_code`, tracking, respectively, the relative horizontal or vertical mouse movement.
 
 
-If instead the gamepad was selected, one could obtain:
+If instead the game pad was selected at the `Select devices` prompt, one could obtain:
 
 ```
 Device name: Logitech Logitech RumblePad 2 USB
@@ -472,7 +557,7 @@ Device capabilities:
     Code MSC_SCAN 4
 ```
 
-In this case, under `EV_ABS`, entries like `ABS_X`, `ABS_Y`, `ABS_Z` and `ABS_RZ` are found: these correspond to each of the two axes in the two analog sticks in the gamepad: any is a good candidate to be used in `inputs.hid.reading_event_code`.
+In this case, under `EV_ABS`, entries like `ABS_X`, `ABS_Y`, `ABS_Z` and `ABS_RZ` are found, corresponding to each of the two axes in the two analog sticks in the game pad: good candidates to be used in `inputs.hid.reading_event_code`.
 
 
 
