@@ -72,7 +72,7 @@ class InputDeviceReader(object):
         """
         Called by Twisted when the file descriptor is closed or becomes unavailable.
         """
-        _log.warn('connection lost')
+        _log.warn('connection lost: {r!r}', r=reason)
         self.stop()
 
 
