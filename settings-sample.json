@@ -31,13 +31,6 @@
             "port": 8080
         },
         {
-            "type": "agd",
-            "enabled": false,
-            "buffer_size": 25,
-            "thresholds": [7, 20, 30],
-            "source": "arduino"
-        },
-        {
             "type": "arduino",
             "enabled": false,
             "device_file": "/dev/ttyACM0",
@@ -64,6 +57,13 @@
             "reading_offset": 0,
             "period": 0.1
 
+        },
+        {
+            "type": "agd",
+            "enabled": false,
+            "buffer_size": 25,
+            "thresholds": [7, 20, 30],
+            "source": "arduino"
         },
         {
             "type": "network",
