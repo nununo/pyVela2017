@@ -134,7 +134,7 @@ class PlayerManager(object):
         yield self.players[0].play()
 
         # Ready to respond to change level requests.
-        self._wiring.wire.change_play_level.calls_to(self._change_play_level)
+        self._wiring.change_play_level.wire(self._change_play_level)
 
         self.log.info('started')
 
@@ -229,7 +229,7 @@ class PlayerManager(object):
         self.log.info('stopping')
 
         self._stopping = True
-        self._wiring.unwire.change_play_level.calls_to(self._change_play_level)
+        self._wiring.change_play_level.unwire(self._change_play_level)
         for level, player in self.players.items():
             self.log.info('stopping player level={l!r}', l=level)
             yield player.stop(skip_dbus)

@@ -44,12 +44,11 @@ class AggregatedDerivative(input_base.InputBase):
         self._last_play_level = 0
 
         # Handle the output produced by the selected input `source`.
-        # TODO: wires should allow "wiring.wire[source].calls_to(...)"
-        getattr(wiring.wire, source).calls_to(self._input_received)
+        wiring[source].wire(self._input_received)
 
         # Handle requests to get/set AGD thresholds.
-        wiring.wire.request_agd_thresholds.calls_to(self._notify_agd_thresholds)
-        wiring.wire.set_agd_threshold.calls_to(self._set_threshold)
+        wiring.request_agd_thresholds.wire(self._notify_agd_thresholds)
+        wiring.set_agd_threshold.wire(self._set_threshold)
 
 
     @defer.inlineCallbacks
