@@ -323,7 +323,7 @@ The `inputs` key is a list/array of dicts/objects containing one or more entries
 |----------------------------------|-----------------------------------------------------------------|
 | inputs.audio.nice_bin            | Absolute path to the `nice` executable.                         |
 | inputs.audio.arecord_bin         | Absolute path to the `arecord` executable.                      |
-| inputs.audio.device              | ALSA device as obtained from the output `arecord -L`.           |
+| inputs.audio.device              | ALSA device as obtained from the output of `arecord -L`.           |
 | inputs.audio.channels            | Number of channels to "listen on".                              |
 | inputs.audio.format              | Audio capture format, to be used in `arecord`'s `--format` option. |
 | inputs.audio.rate                | Audio capture rate, to be used in `arecord`'s `--rate` option.  |
@@ -401,7 +401,7 @@ If anyone wants to have a go at it, the general idea, from this project's perspe
 
 About the "audio sensor"
 -----------------------
-The "audio sensor" leverages the `arecord` ALSA utility's capability of monitoring an audio input without actually recording any audio.
+The "audio sensor" leverages the `arecord` ALSA utility's capability of monitoring an audio input without actually recording.
 
 Under the hood, an `arecord` instance is spawned with a command line like:
 ```
@@ -552,7 +552,7 @@ Development Notes
 | `player`          | Video playing code: details below.                                |
 
 
-Both `inputs` and `player` export a single name, `InputManager` and `PlayerManager` respectively, that implement a common interface: 
+Both the `inputs` and `player` packages export a single name each: `InputManager` and `PlayerManager`, respectively, that implement a common interface: 
 
 ```
 def __init__(self, reactor, wiring, settings):
@@ -574,11 +574,16 @@ def stop(self):
     """
 ```
 
-A few notes on this:
+A few high level notes:
 
-* *one note*.
-* *one more note*.
-
+* Making things run is just:
+  * Instantiating one `InputManager` and one `PlayerManager`.
+  * Calling `start` on each.
+* `wiring` is a [Python Wires](https://pypi.python.org/pypi/wires/) instance:
+  * Used as a callable-based event/notification system.
+  * `PlayerManager` handles `wires.change_play_level` calls.
+  * `InputManager` triggers `wires.change_play_level` calls.
+  * Also used for cross-input communication and to push logs to web clients.
 
 
 
@@ -590,7 +595,7 @@ Exports the `PlayerManager` class which handles all video playing:
 * Spawns one OMXPlayer process per level:
   * The level 0 player is spawned such that it plays in a loop.
   * The remaining level players are spawned and paused, ready to fade in and play at any time.
-  * Each OMXPlayer for level N is set to play on visual layer above players for levels <N, such that visual fade ins/outs work effectively.
+  * Each OMXPlayer for level N is set to play on a visual layer above players for levels <N, such that visual fade ins/outs work effectively.
 * OMXPlayer processes are tracked and controlled via the private DBus instance.
 * Handles `wiring.change_play_level` calls in response to input triggered play level changes.
 
