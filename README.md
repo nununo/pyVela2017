@@ -544,6 +544,7 @@ Development Notes
 **Candle 2017** is a [Twisted](http://twistedmatrix.com/) application, with mostly asynchronous code, distributed accross the following top-level components:
 
 | module or package | Description |
+|-------------------|-------------|
 | `candle2017.py`   | Main entry point: loads the settings file, sets up the logging system, creates and starts an *input manager* and a *player manager*; also ensures both are stopped before exiting. |
 | `common`          | Process spawning and tracking code used by `inputs` and `player`. |
 | `inputs`          | Input related code. Details below.                                |
