@@ -43,7 +43,7 @@ class WSProto(websocket.WebSocketServerProtocol):
         log_package.add_observer(self)
 
         # Handle `agd_output` by pushing it as chart data to the client.
-        self.factory.wiring.wire.agd_output.calls_to(self._push_chart_data)
+        self.factory.wiring.agd_output.wire(self._push_chart_data)
 
 
     def onOpen(self):
@@ -53,7 +53,7 @@ class WSProto(websocket.WebSocketServerProtocol):
         _log.warn('{p.host}:{p.port} connected', p=self.transport.getPeer())
 
         # Handle AGD threshold notifications by pushing them to the client.
-        self.factory.wiring.wire.notify_agd_threshold.calls_to(
+        self.factory.wiring.notify_agd_threshold.wire(
             self._push_agd_threshold
         )
 
@@ -126,10 +126,10 @@ class WSProto(websocket.WebSocketServerProtocol):
         log_package.remove_observer(self)
 
         # Can't push chart data to the client anymore.
-        self.factory.wiring.unwire.agd_output.calls_to(self._push_chart_data)
+        self.factory.wiring.agd_output.unwire(self._push_chart_data)
 
         # Can't push threshold updates to the client anymore.
-        self.factory.wiring.unwire.notify_agd_threshold.calls_to(
+        self.factory.wiring.notify_agd_threshold.unwire(
             self._push_agd_threshold
         )
 

@@ -68,9 +68,9 @@ def start_things(reactor, settings):
     log.setup(level=log_level, namespace_levels=log_levels)
 
 
-    # Create a call wiring object and tell it what to with `set_log_level` events.
-    wiring = wires.Wires()
-    wiring.wire.set_log_level.calls_to(log.set_level)
+    # Create a call wiring object and tell it what to with `set_log_level` calls.
+    wiring = wires.Wiring()
+    wiring.set_log_level.wire(log.set_level)
 
 
     # Create the input and player managers.
