@@ -539,6 +539,58 @@ In this case, under `EV_ABS`, entries like `ABS_X`, `ABS_Y`, `ABS_Z` and `ABS_RZ
 Development Notes
 -----------------
 
+### Code Overview
+
+**Candle 2017** is a [Twisted](http://twistedmatrix.com/) application, with mostly asynchronous code, distributed accross the following top-level components:
+
+| module or package | Description |
+| `candle2017.py`   | Main entry point: loads the settings file, sets up the logging system, creates and starts an *input manager* and a *player manager*; also ensures both are stopped before exiting. |
+| `common`          | Process spawning and tracking code used by `inputs` and `player`. |
+| `inputs`          | Input related code. Details below.                                |
+| `log`             | Log setup and management code.                                    |
+| `player`          | Video playing code. Details below.                                |
+
+
+Both `inputs` and `player` export a single name, `InputManager` and `PlayerManager` respectively that implement a common interface: 
+
+* Initialized via `__init__(self, reactor, wiring, settings)`.
+  * `reactor` is the Twisted reactor.
+  * `wiring` is a [Python Wires](https://pypi.python.org/pypi/wires/) instance.
+  * `settings` is a dict built out of the `settings.json` file.
+* Started via `start(self)`.
+  * Returns a Twisted Deferred that fires on success or failure.
+* Stopped via `stop(self)`.
+  * Returns a Twisted Deferred that fires on success or failure.
+
+
+### The `player` package
+
+Exports the `PlayerManager` manager class which handles all video playing:
+
+* Spawns and tracks a private DBus instance process: see `dbus_manager.py`.
+* Spawns one OMXPlayer process per level:
+  * The level 0 player spawned such that it plays in a loop.
+  * The remaining level players are spawned and paused, ready to fade in and play at any time.
+  * Each OMXPlayer for level N is set to play on visual layer above players for smaller levels, such that visual fade ins/outs work effectively.
+* OMXPlayer processes are tracked and controlled via the private DBus instance.
+* Wires `change_play_level` calls in `wiring` to itself to handle input triggered play level changes.
+
+Additional notes:
+
+* When changing play levels in response to input triggering, it just needs to "unpause" the respective level's OMXPlayer.
+* Once a given level's OMXPlayer fades out and its process terminates, `PlayerManager` pre-emptively spawns another one, pausing it, to ensure the fastest possible responst to future `change_play_level` calls.
+
+
+The `OMXPlayer` class in `player.py` encapsulates the full interface to spawning, tracking and controling individual OMXPlayer processes, including play/pause controls and automatic fade in/out on start/stop; like for most of the code, refer to the included comments and docstrings for the nitty gritty details.
+
+
+
+### The `inputs` package
+
+*write me*
+
+
+
 Lint with:
 ```
 $ pylint candle2017 common/ inputs/ player/ log/
