@@ -539,7 +539,9 @@ In this case, under `EV_ABS`, entries like `ABS_X`, `ABS_Y`, `ABS_Z` and `ABS_RZ
 Development Notes
 -----------------
 
-**Candle 2017** is built on top of [Twisted](http://twistedmatrix.com/) with mostly asynchronous code, distributed accross the following top-level components:
+### Code Overview
+
+**Candle 2017** is a [Twisted](http://twistedmatrix.com/) application, with mostly asynchronous code, distributed accross the following top-level components:
 
 | module or package | Description |
 | `candle2017.py`   | Main entry point: loads the settings file, sets up the logging system, creates and starts an *input manager* and a *player manager*; also ensures both are stopped before exiting. |
@@ -560,6 +562,15 @@ Both `inputs` and `player` export a single name, `InputManager` and `PlayerManag
 * Stopped via `stop(self)`.
   * Returns a Twisted Deferred that fires on success or failure.
 
+
+### The `player` package
+
+*write me*
+
+
+### The `inputs` package
+
+*write me*
 
 
 
