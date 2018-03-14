@@ -581,8 +581,8 @@ A few high level notes:
   * Calling `start` on each.
 * `wiring` is a [Python Wires](https://pypi.python.org/pypi/wires/) instance:
   * Used as a callable-based event/notification system.
-  * `PlayerManager` handles `wires.change_play_level` calls.
-  * `InputManager` triggers `wires.change_play_level` calls.
+  * `PlayerManager` handles `wiring.change_play_level` calls.
+  * `InputManager` triggers `wiring.change_play_level` calls.
   * Also used for cross-input communication and to push logs to web clients.
 
 
