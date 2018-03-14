@@ -565,7 +565,24 @@ Both `inputs` and `player` export a single name, `InputManager` and `PlayerManag
 
 ### The `player` package
 
-*write me*
+Exports the `PlayerManager` manager class which handles all video playing:
+
+* Spawns and tracks a private DBus instance process: see `dbus_manager.py`.
+* Spawns one OMXPlayer process per level:
+  * The level 0 player spawned such that it plays in a loop.
+  * The remaining level players are spawned and paused, ready to fade in and play at any time.
+  * Each OMXPlayer for level N is set to play on visual layer above players for smaller levels, such that visual fade ins/outs work effectively.
+* OMXPlayer processes are tracked and controlled via the private DBus instance.
+* Wires `change_play_level` calls in `wiring` to itself to handle input triggered play level changes.
+
+Additional notes:
+
+* When changing play levels in response to input triggering, it just needs to "unpause" the respective level's OMXPlayer.
+* Once a given level's OMXPlayer fades out and its process terminates, `PlayerManager` pre-emptively spawns another one, pausing it, to ensure the fastest possible responst to future `change_play_level` calls.
+
+
+The `OMXPlayer` class in `player.py` encapsulates the full interface to spawning, tracking and controling individual OMXPlayer processes, including play/pause controls and automatic fade in/out on start/stop; like for most of the code, refer to the included comments and docstrings for the nitty gritty details.
+
 
 
 ### The `inputs` package
