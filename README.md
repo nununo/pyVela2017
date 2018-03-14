@@ -539,6 +539,30 @@ In this case, under `EV_ABS`, entries like `ABS_X`, `ABS_Y`, `ABS_Z` and `ABS_RZ
 Development Notes
 -----------------
 
+**Candle 2017** is built on top of [Twisted](http://twistedmatrix.com/) with mostly asynchronous code, distributed accross the following top-level components:
+
+| module or package | Description |
+| `candle2017.py`   | Main entry point: loads the settings file, sets up the logging system, creates and starts an *input manager* and a *player manager*; also ensures both are stopped before exiting. |
+| `common`          | Process spawning and tracking code used by `inputs` and `player`. |
+| `inputs`          | Input related code. Details below.                                |
+| `log`             | Log setup and management code.                                    |
+| `player`          | Video playing code. Details below.                                |
+
+
+Both `inputs` and `player` export a single name, `InputManager` and `PlayerManager` respectively that implement a common interface: 
+
+* Initialized via `__init__(self, reactor, wiring, settings)`.
+  * `reactor` is the Twisted reactor.
+  * `wiring` is a [Python Wires](https://pypi.python.org/pypi/wires/) instance.
+  * `settings` is a dict built out of the `settings.json` file.
+* Started via `start(self)`.
+  * Returns a Twisted Deferred that fires on success or failure.
+* Stopped via `stop(self)`.
+  * Returns a Twisted Deferred that fires on success or failure.
+
+
+
+
 Lint with:
 ```
 $ pylint candle2017 common/ inputs/ player/ log/
