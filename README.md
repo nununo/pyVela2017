@@ -14,19 +14,29 @@ This project is a Python implementation that succeeds in delivering the required
 
 
 
-Linked documentation
---------------------
+Documentation
+-------------
 
-Refer to [Running Candle 2017](README-running.md) to learn everything about the requirements, installation and set up, running, and using **Candle 2017**.
+Refer to [Running Candle 2017](README-running.md) to learn everything about the requirements, installation, configuring, running, and using **Candle 2017**.
 
-For a high level overview of the code see [Candle 2017 Code Overview](README-develop.md).
+For a high level overview of the code see [Candle 2017 Code Overview](README-develop.md), keeping in mind that going through [Running Candle 2017](README-running.md) first is recommended.
 
 
 
 Thanks
 ------
 
-*write me*
+This project wouldn't be possible without using several open source software packages. Here's a thank you note to the projects **Candle 2017** directly depends on; in particular to their authors, maintainers, contributors and sponsors:
+
+* [Python](https://www.python.org/), the language and interpreter.
+* [Twisted](https://twistedmatrix.com/), an event-driven networking engine.
+* [txdbus](https://pypi.python.org/pypi/txdbus), a Twisted based interface to DBus.
+* [autobahn](https://crossbar.io/autobahn/), for its Twisted based WebSocket implementation.
+* [evdev](https://pypi.python.org/pypi/evdev), for its bindings to the Linux input handling subsystem.
+* [omxplayer](https://github.com/popcornmix/omxplayer), a flexible and high-performance Raspberry Pi command line video player.
+* [ALSA](https://www.alsa-project.org/main/index.php/Main_Page), the Advanced Linux Sound Architecture project.
+* [charts.js](https://www.chartjs.org), a simple yet flexible JavaScript charting library.
+* [chartjs-plugin-annotation.js](https://github.com/chartjs/chartjs-plugin-annotation), a charts.js plugin that draws lines and boxes on the chart area.
 
 
 
