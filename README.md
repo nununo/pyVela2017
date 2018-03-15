@@ -689,7 +689,7 @@ About the thresholds:
 
 * Initially sourced from the settings file.
 * Can be monitored and changed at run-time:
-  * Handles `wiring.request_agd_thresholds` calls, responded to with `wiring.notify_agd_thresholds` calls containing the current threshold levels.
+  * Handles `wiring.request_agd_thresholds` calls, responded to with `wiring.notify_agd_threshold` calls containing the current threshold levels.
   * Handles `wiring.set_agd_threshold` calls that change a given level's threshold.
 
 
@@ -700,21 +700,66 @@ This input is a hybrid thing:
 
 * Acts as an input, able to trigger video playing level changes.
 * Acts as a monitoring tool, displaying input readings in a chart, AGD thresholds and logs.
-* Supports changing AGD thresholds setting different log levels at run-time.
+* Supports changing AGD thresholds and setting log levels at run-time.
 
-It is also hybrid in the sense that part of it is written in Python and some web client side code is written in Javascript.
+It is also hybrid in the sense that part of it is written in Python while the web client side code is written in Javascript.
 
 
-At start time:
+Overview:
 
-* Listens on the configured network interface and port.
-* Serves:
-  * The static files under the `web-root` directory, on the `/` path.
-  * WebSocket connections under the `/ws` path.
+* Web clients request the root resource.
+* `index.html` is served including the HTML layout with embedded CSS, containing links to:
+  * A bundled version of the [charts.js](https://www.chartjs.org) Javascript compressed and minified code.
+  * A bundled version of the  [chartjs-plugin-annotation.js](https://github.com/chartjs/chartjs-plugin-annotation) Javascript compressed and minified code.
+  * `index.js`, the Javascript web client code.
+* Once loaded, the client initiates a WebSocket connection to the server.
 
-WebSocket connection life-cycle:
 
-* WebSocket
+The WebSocket connection is used for bidirectional communication:
+
+* Server to client pushes:
+  * Log messages, depending on the log level settings.
+  * Input sensor readings and AGD values, to be displayed in the chart.
+  * AGD threshold levels, to be displayed in the chart.
+
+* Client to server change requests:
+  * Video playing level.
+  * AGD thresholds.
+  * Log levels.
+
+
+WebSocket messages are single JSON objects:
+
+* Server to client pushes:
+  * The `type` property indicates the type of push.
+  * Other properties hold the pushed data.
+
+* Client to server requests:
+  * The `action` property indicates the nature of the request.
+  * Other properties hold request data.
+
+
+Server side WebSocket connection life-cycle:
+
+* At WebSocket connection establishment time, the server side protocol instance:
+  * Adds itself as a Twisted logging observer, to push log messages to the client.
+  * Sets itself to handle `wiring.agd_output` calls, to push raw readings and AGD values to the client.
+  * Sets itself to handle `wiring.notify_agd_threshold` calls, to push AGD threshold values to the client.
+  * Calls `wiring.request_agd_thresholds` asking AGD to notify about the current thresholds.
+
+* For each WebSocket received message:
+  * Video playing level change requests call `wiring.change_play_level`.
+  * AGD threshold change requests call `wiring.set_agd_threshold`.
+  * Log level change requests call `wiring.set_log_level`.
+
+* At WebSocket disconnection time, the server side protocol instance:
+  * Removes itself as a Twisted logging observer.
+  * Stops handling `wiring.agd_output` calls.
+  * Stops handling `wiring.notify_agd_threshold` calls.
+
+
+For more details refer to the included docstrings and comments in either Python or Javascript code.
+
 
 
 
