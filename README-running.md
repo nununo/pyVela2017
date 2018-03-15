@@ -63,7 +63,7 @@ Five input types are supported:
 * An "audio sensor".
 * A USB HID analog-like device.
 * A web based interface.
-* A text line based TCP network interface.
+* A text based TCP network interface.
 
 
 Of these, the last two are mostly used for testing and diagnostics, while the first two support the full natural experience: both the "wind sensor" and the "audio sensor" produce a continuous stream of numeric readings where larger numbers correspond to more wind or sound, respectively. The USB HID input sits somewhere in between, being mostly useful for testing, but delivering an analog-like experience, also producing a continuous stream of readings.
@@ -253,20 +253,22 @@ As an interactive art project, using it is about interacting with it. There are 
 
 
 
-### Raw TCP network control
+### Text based TCP network control
 
-* Use telnet or netcat to establish a TCP connection towards the Raspberry Pi on the TCP port defined by `inputs.network.port` in the configuration (defaults to 10000).
+* Use telnet or netcat to establish a TCP connection towards the Raspberry Pi on the TCP interface/port defined by `inputs.network.interface`/`inputs.network.port` in the configuration.
 * Send commands terminated with CRLF.
 * Commands are digits terminated by CRLF that trigger the respective level videos.
 
 Example triggering a level 1 video:
 
 ```
-$ nc -c <raspberry-pi-IP> <port>
+$ nc -C 127.0.0.1 10000
 1
 <CTRL-C>
 $
 ```
+
+> Note: the netcat example above uses the Raspbian version of netcat where `-C` indicates that text lines should be terminated with a CRLF; other netcat versions, such as the one included in macOS, need a different flag, like `-c`, to attain the same result.
 
 > Important: multiple network connections are accepted simultaneously; no effort to authenticate or limit the amount of connections is made.
 
@@ -358,7 +360,8 @@ The `inputs` key is a list/array of dicts/objects containing one or more entries
 
 | setting                          | description                                                     |
 |----------------------------------|-----------------------------------------------------------------|
-| inputs.network.port              | TCP port where network connections will be accepted in.     |
+| inputs.network.interface         | IP interface accepting network connections. |
+| inputs.network.port              | TCP port accepting network connections.     |
 
 
 
