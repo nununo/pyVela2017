@@ -184,16 +184,16 @@ This input is a hybrid thing:
 * Acts as a monitoring tool, displaying input readings in a chart, AGD thresholds and logs.
 * Supports changing AGD thresholds and setting log levels at run-time.
 
-It is also hybrid in the sense that part of it is written in Python while the web client side code is written in Javascript.
+It is also hybrid in the sense that part of it is written in Python while the web client side code is written in JavaScript.
 
 
 Overview:
 
 * Web clients request the root resource.
 * `index.html` is served including the HTML layout with embedded CSS, containing links to:
-  * A bundled version of the [charts.js](https://www.chartjs.org) Javascript compressed and minified code.
-  * A bundled version of the  [chartjs-plugin-annotation.js](https://github.com/chartjs/chartjs-plugin-annotation) Javascript compressed and minified code.
-  * `index.js`, the Javascript web client code.
+  * A bundled version of the [charts.js](https://www.chartjs.org) JavaScript compressed and minified code.
+  * A bundled version of the  [chartjs-plugin-annotation.js](https://github.com/chartjs/chartjs-plugin-annotation) JavaScript compressed and minified code.
+  * `index.js`, the JavaScript web client code.
 * Once loaded, the client initiates a WebSocket connection to the server.
 
 
@@ -240,7 +240,7 @@ Server side WebSocket connection life-cycle:
   * Stops handling `wiring.notify_agd_threshold` calls.
 
 
-For more details refer to the included docstrings and comments in either Python or Javascript code.
+For more details refer to the included docstrings and comments in either Python or JavaScript code.
 
 
 
@@ -266,7 +266,7 @@ Odds and Ends
 
 [Wires](https://pypi.python.org/pypi/wires) is used as a simple, callable-based, event/notification system to simplify cross-component communication, while striving for very loose coupling between them. It originated in the context of this project, having just recently started a life of its own.
 
-With Wires, cross-component communication of arbitary complexity and topology is made simple, including changing it at runtime.
+With Wires, cross-component communication of arbitrary complexity and topology is made simple, including changing it at run-time.
 
 
 ### Code linting
@@ -276,13 +276,13 @@ The code was continuously linted with:
 $ pylint candle2017 common/ inputs/ player/ log/
 ```
 
-No efforts were made to address or mute some of `pylint`'s recommendations or warnings. In particular:
+No efforts were made to address or mute some of `pylint`'s errors, warnings or recommendations. In particular:
 
-* `Catching too general exception Exception` warnings are actually needed.
-* `Instance of '<ClassName>' has no 'factory' member` results from a `pylint` limitation with regards to the dynamic `factory` attribute added by Twisted to protocol instances.
-* `Method name "<camelCaseNamedMethod>" doesn't conform to snake_case naming style` results from the fact that Twisted predates PEP-8.
+* The `Catching too general exception Exception` warnings are on code that really needs to catch broad exceptions.
+* The `Instance of '<ClassName>' has no 'factory' member` errors result from a `pylint` limitation with regards to the dynamic `factory` attribute added by Twisted to protocol instances.
+* The `Method name "<camelCaseNamedMethod>" doesn't conform to snake_case naming style` convention recommendation results from the fact that Twisted predates PEP-8.
 
-The remaining `pylint` (very minor) complaints could be addressed; but weren't. Linting output was taken as useful advise, not as *strict law*.
+The remaining `pylint` (very minor) outputs could be addressed; but weren't. Linting output was taken as useful advise, not as *strict law*.
 
 
 
