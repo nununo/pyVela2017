@@ -1,7 +1,11 @@
 Running Candle 2017
 ===================
 
-Refer to the top-level [README](README.md) for general project information and references to other documents.
+
+Preamble
+--------
+
+Please refer to the top-level [README](README.md) for general project information and references to other documents.
 
 
 
@@ -185,7 +189,7 @@ Once running:
   * Four `omxplayer.bin` processes.
   * One `arecord` process, if the "audio sensor" is included in the configuration.
 * One of the videos in the videos `0` directory should be playing, in a loop.
-* Log messages will be output to STDERR; learn how to adjust logging levels under *Web based monitoring and control* or *Configuration Reference*.
+* Log messages will be output to STDERR; learn how to adjust logging levels under *Web based monitoring and control* and in the *Configuration Reference*.
 
 Stopping:
 * Hit CTRL-C on the shell that launched the program.
@@ -523,4 +527,10 @@ Device capabilities:
 
 In this case, under `EV_ABS`, entries like `ABS_X`, `ABS_Y`, `ABS_Z` and `ABS_RZ` are found, corresponding to each of the two axes in the two analog sticks in the game pad: good candidates to be used in `inputs.hid.reading_event_code`.
 
+
+
+More
+----
+
+Please refer to the top-level [README](README.md) for general project information and references to other documents.
 

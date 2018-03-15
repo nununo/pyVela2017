@@ -1,7 +1,14 @@
 Candle 2017 Code Overview
 =========================
 
-Refer to the top-level [README](README.md) for general project information and references to other documents.
+Preamble
+--------
+
+Please refer to the top-level [README](README.md) for general project information and references to other documents.
+
+All code is internally documented with both docstrings and comments, while efforts have been made to use consistent and meaningful names all around.
+
+Given that most of **Candle 2017** is about input, output and, generally, system level interactions (spawning processes, sending messages, handling external data and events, etc.) no automated tests are put in place; testing such interactions *is difficult* and error-prone, to say the last; suggestions will be welcomed, however.
 
 
 
@@ -41,7 +48,7 @@ def stop(self):
     """
 ```
 
-A few notes:
+Notes:
 
 * Making things run is just:
   * Instantiating one `InputManager` and one `PlayerManager`.
@@ -241,6 +248,7 @@ For more details refer to the included docstrings and comments in either Python 
 The `inputs.network` package
 ----------------------------
 
+*write me*
 
 
 
@@ -253,5 +261,12 @@ Lint with:
 ```
 $ pylint candle2017 common/ inputs/ player/ log/
 ```
+
+
+
+More
+----
+
+Please refer to the top-level [README](README.md) for general project information and references to other documents.
 
 
