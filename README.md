@@ -629,7 +629,7 @@ Input objects are instances of `InputBase` with a start/stop interface not diffe
 
 ### The `inputs.arduino` "wind sensor" package
 
-On starting:
+At start time:
 
 * Opens the configured serial port.
 * Attaches an instance of `ArduinoProtocol` to it.
@@ -639,7 +639,7 @@ On starting:
 
 ### The `inputs.audio` "audio sensor" package
 
-On starting:
+At start time:
 
 * Spawns an `arecord` process with command line arguments per the configuration.
 * Tracks the process:
@@ -661,7 +661,7 @@ At instantiation time:
 * Each event matching the configuration will have its value stored on the input object via `_store_reading`.
 
 
-On starting:
+At start time:
 
 * Starts the `InputDeviceReader` which will call `_store_reading` asynchronously.
 * Starts the the periodic sending of readings via `_send_reading_later`.
@@ -677,27 +677,44 @@ At instantiation time:
 * Sets itself to handle `wiring.<source>` calls to process "sensor readings".
 * `wiring.<source>` depends on the AGD input configuration from the settings file, where \<source> will be one of `arduino`, `audio` or `hid`, matching the wiring calls on respective inputs.
 
-On each reading:
 
-* Adds it to the number of tracked readings and calculates an aggregated derivative (details in the code docstrings and comments).
-* Calls `wiring.change_play_level` to trigger video playing level changes, depending on the aggregated derivative value and configured thresholds.
-* Calls `wiring.agd_output` with the current raw reading and calculated aggregated derivative: these will be used by the web interface.
+For each reading:
+
+* Updates its aggregated derivative calculation (details in the code docstrings and comments).
+* Depending on the calculated value and level thresholds, calls `wiring.change_play_level` to trigger video playing level changes.
+* Always `wiring.agd_output` with the current raw reading and calculated aggregated derivative (these will be used by the web interface).
 
 
 About the thresholds:
 
-* Sourced from the settings file.
-* Can be monitored and changed via the web interface:
-  * Handles `wiring.request_agd_thresholds` calls.
-  * On such requests, it calls `wiring.notify_agd_thresholds` with the current threshold levels.
-  * Also handles `wiring.set_agd_threshold` to change a given level's threshold at run-time.
+* Initially sourced from the settings file.
+* Can be monitored and changed at run-time:
+  * Handles `wiring.request_agd_thresholds` calls, responded to with `wiring.notify_agd_thresholds` calls containing the current threshold levels.
+  * Handles `wiring.set_agd_threshold` calls that change a given level's threshold.
 
 
 
 ### The `inputs.web` package:
 
-*write me*
+This input is a hybrid thing:
 
+* Acts as an input, able to trigger video playing level changes.
+* Acts as a monitoring tool, displaying input readings in a chart, AGD thresholds and logs.
+* Supports changing AGD thresholds setting different log levels at run-time.
+
+It is also hybrid in the sense that part of it is written in Python and some web client side code is written in Javascript.
+
+
+At start time:
+
+* Listens on the configured network interface and port.
+* Serves:
+  * The static files under the `web-root` directory, on the `/` path.
+  * WebSocket connections under the `/ws` path.
+
+WebSocket connection life-cycle:
+
+* WebSocket
 
 
 
