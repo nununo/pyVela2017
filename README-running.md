@@ -183,9 +183,9 @@ Once running:
 * The Python process running `candle2017.py` should have the following child processes:
   * One `dbus-daemon` process.
   * Four `omxplayer.bin` processes.
-  * One `arecord` process, if the "audio" input is included in the configuration.
+  * One `arecord` process, if the "audio sensor" is included in the configuration.
 * One of the videos in the videos `0` directory should be playing, in a loop.
-* Log messages will be output to STDERR; see below to learn how to adjust logging details.
+* Log messages will be output to STDERR; learn how to adjust logging levels under **Web based monitoring and control** or **Configuration Reference**.
 
 Stopping:
 * Hit CTRL-C on the shell that launched the program.
@@ -206,7 +206,7 @@ Using
 As an interactive art project, using it is about interacting with it. There are currently five possible ways to interact:
 
 
-**"Wind sensor" setup and interaction**
+### "Wind sensor" interaction
 
 * Requires "wind sensor" to be present.
 * Blow on the sensor and watch the candle react.
@@ -214,7 +214,7 @@ As an interactive art project, using it is about interacting with it. There are 
 
 
 
-**"Audio sensor" interaction**
+### "Audio sensor" interaction
 
 * Requires the availability of an ALSA supported audio input device.
 * Produce different sound levels (including blowing into the microphone) and watch the candle react.
@@ -222,7 +222,7 @@ As an interactive art project, using it is about interacting with it. There are 
 
 
 
-**USB HID interaction**
+### USB HID interaction
 
 * Requires the availability of supported USB HID input device.
 * Manipulate the device such that it generates the tracked events.
@@ -230,7 +230,7 @@ As an interactive art project, using it is about interacting with it. There are 
 
 
 
-**Web based monitoring and control**
+### Web based monitoring and control
 
 * Point a web browser to http://\<raspberry-pi-IP\>:\<port\>/, where \<port> is defined by `inputs.web.port` in the configuration (defaults to 8080).
 * Monitor the real-time input RAW reading value and AGD result in the top left chart.
@@ -244,7 +244,7 @@ As an interactive art project, using it is about interacting with it. There are 
 
 
 
-**Raw TCP network control**
+### Raw TCP network control
 
 * Use telnet or netcat to establish a TCP connection towards the Raspberry Pi on the TCP port defined by `inputs.network.port` in the configuration (defaults to 10000).
 * Send commands terminated with CRLF.
