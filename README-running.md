@@ -5,7 +5,7 @@ Running Candle 2017
 Preamble
 --------
 
-Please refer to the top-level [README](README.md) for general project information and references to other documents.
+Please refer to [Candle 2017](README.md) for general project information and references to other documents.
 
 
 
@@ -537,5 +537,5 @@ In this case, under `EV_ABS`, entries like `ABS_X`, `ABS_Y`, `ABS_Z` and `ABS_RZ
 More
 ----
 
-Please refer to the top-level [README](README.md) for general project information and references to other documents.
+Please refer to [Candle 2017](README.md) for general project information and references to other documents.
 

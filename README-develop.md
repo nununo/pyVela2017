@@ -4,7 +4,7 @@ Candle 2017 Code Overview
 Preamble
 --------
 
-Please refer to the top-level [README](README.md) for general project information and references to other documents.
+Please refer to [Candle 2017](README.md) for general project information and references to other documents.
 
 All code is internally documented with both docstrings and comments, while efforts have been made to use consistent and meaningful names all around.
 
@@ -274,6 +274,5 @@ $ pylint candle2017 common/ inputs/ player/ log/
 More
 ----
 
-Please refer to the top-level [README](README.md) for general project information and references to other documents.
-
+Please refer to [Candle 2017](README.md) for general project information and references to other documents.
 
