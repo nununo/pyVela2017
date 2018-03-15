@@ -259,15 +259,30 @@ For each CRLF terminated message:
 
 
 
-Wrapping up
------------
+Odds and Ends
+-------------
 
-*write me*
+### Python Wires
 
-Lint with:
+[Python Wires](https://pypi.python.org/pypi/wires) is used as a simple, callable-based, event/notification system to simplify cross-component communication while striving for very loose coupling among then. It actually originated in the context of this project, having just recently started a life of its own.
+
+With Python Wires cross-component communication of arbitary complexity and topology is made simple, including changing it at runtime.
+
+
+### Code linting
+
+The code was continuously linted with:
 ```
 $ pylint candle2017 common/ inputs/ player/ log/
 ```
+
+No efforts were made to address or mute some of `pylint`'s recommendations or warnings. In particular:
+
+* `Catching too general exception Exception` warnings are actually needed.
+* `Instance of '<ClassName>' has no 'factory' member` results from a `pylint` limitation with regards to the dynamic `factory` attribute added by Twisted to protocol instances.
+* `Method name "<camelCaseNamedMethod>" doesn't conform to snake_case naming style` results from the fact that Twisted predates PEP-8.
+
+The remaining `pylint` (very minor) complaints could be addressed; but weren't. Linting output was taken as useful advise, not as *strict law*.
 
 
 
