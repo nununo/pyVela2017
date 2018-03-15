@@ -11,8 +11,8 @@ Please refer to the top-level [README](README.md) for general project informatio
 
 Minimum Requirements
 --------------------
-* A Raspberry Pi running raspbian.
-* The following raspbian packages:
+* A Raspberry Pi running Raspbian.
+* The following Raspbian packages:
   * Python 3.
   * OMXPlayer.
   * DBus.
@@ -23,6 +23,7 @@ Minimum Requirements
   * Level 2 videos: candle flame flickering, responding to medium blowing.
   * Level 3 videos: candle flame blowing out, responding to strong blowing.
   * Any of these sets can (and should, for a more natural experience) contain multiple files: one will be selected at random from a given level, to be played when the respective interaction is triggered (the exception being level 0 videos whereby one will be selected at startup time and played continuously in a loop).
+* The Raspbian user must belong to the `video` group and, depending on the used input, also to one of the `dialout`, `audio` or `input` groups.
 
 With these in place you will be able to explore **Candle 2017** and trigger candle reactions artificially, either via a web based monitoring and controlling interface or via a simpler network based control interface; for details on this see the *Using* section, below.
 
@@ -102,7 +103,7 @@ Note that AGD will only process one input, either the "wind sensor", the "audio 
 Installation
 ------------
 
-Install the required raspbian packages:
+Install the required Raspbian packages:
 ```
 $ sudo apt-get update
 $ sudo apt-get install python3 python3-virtualenv omxplayer dbus git
@@ -132,8 +133,9 @@ Put the video files in place:
 Configuration
 -------------
 
-Before running, putting a configuration in place that is appropriate to the environment is strictly required. For that, copy `settings-sample.json` to `settings.json` and then edit the copy, as needed.
+First and foremost, ensure that your Raspbian user belongs to the `video` group; if not, add it. This is a required system level configuration that will allow the code to play video.
 
+Then, putting a configuration in place that is appropriate to the environment is strictly required; for that, copy `settings-sample.json` to `settings.json` and then edit the copy, as needed.
 
 If using an input like a "wind sensor", an "audio sensor", or a USB HID device, the `inputs` entry must be reviewed:
 
@@ -141,18 +143,21 @@ If using an input like a "wind sensor", an "audio sensor", or a USB HID device, 
   * Set `inputs.arduino.enabled` to `true` and adjust the other `input.arduino.*` settings.
   * Set `inputs.agd.enabled` to `true`.
   * Set `inputs.agd.source` to `arduino`.
+  * Add your Raspbian user to the `dialout` group.
   * For details about building a "wind sensor", see the section *About the "wind sensor"*, below.
 
 * If using an "audio sensor":
   * Set `inputs.audio.enabled` to `true` and adjust the other `input.audio.*` settings.
   * Set `inputs.agd.enabled` to `true`.
   * Set `inputs.agd.source` to `audio`.
+  * Add your Raspbian user to the `audio` group.
   * For details about setting up and testing an "audio sensor", see the section *About the "audio sensor"*, below.
 
 * If using a USB HID input:
   * Set `inputs.hid.enabled` to `true` and adjust the other `input.hid.*` settings.
   * Set `inputs.agd.enabled` to `true`.
   * Set `inputs.agd.source` to `hid`.
+  * Add your Raspbian user to the `input` group.
   * For details about setting up and testing a USB HID device, see the section *About USB HID devices*, below.
 
 * About the web based input:
