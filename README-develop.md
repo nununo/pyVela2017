@@ -33,7 +33,7 @@ def __init__(self, reactor, wiring, settings):
     """
     Initializer:
     - `reactor` is the Twisted reactor.
-    - `wiring` is a Python Wires instance, used to fire/handle event-like calls.
+    - `wiring` is a Wiring instance, used to fire/handle event-like calls.
     - `settings` is a dict built out of the `settings.json` file.
     """
 
@@ -54,7 +54,7 @@ Notes:
   * Instantiating one `InputManager` and one `PlayerManager`.
   * Calling `start` on each.
 
-* `wiring` is a [Python Wires](https://pypi.python.org/pypi/wires/) instance:
+* `wiring` is a [Wires](https://pypi.python.org/pypi/wires) instance:
   * Used as a callable-based event/notification system.
   * `PlayerManager` handles `wiring.change_play_level` calls.
   * `InputManager` triggers `wiring.change_play_level` calls.
@@ -99,7 +99,7 @@ Exports the `InputManager` class which:
 Input objects are instances of `InputBase` with a start/stop interface not different from the `InputManager`'s; all instances are created with the following initialization arguments:
 
 * `reactor`, the Twisted reactor passed to `InputManager`.
-* `wiring`, the Python Wires instance passed to `InputManager`.
+* `wiring`, the Wiring instance passed to `InputManager`.
 * Other keyword arguments sourced from the `settings` dict passed to `InputManager`.
 
 
@@ -262,11 +262,11 @@ For each CRLF terminated message:
 Odds and Ends
 -------------
 
-### Python Wires
+### Wires
 
-[Python Wires](https://pypi.python.org/pypi/wires) is used as a simple, callable-based, event/notification system to simplify cross-component communication while striving for very loose coupling among then. It actually originated in the context of this project, having just recently started a life of its own.
+[Wires](https://pypi.python.org/pypi/wires) is used as a simple, callable-based, event/notification system to simplify cross-component communication, while striving for very loose coupling between them. It originated in the context of this project, having just recently started a life of its own.
 
-With Python Wires cross-component communication of arbitary complexity and topology is made simple, including changing it at runtime.
+With Wires, cross-component communication of arbitary complexity and topology is made simple, including changing it at runtime.
 
 
 ### Code linting

@@ -41,7 +41,7 @@ This project wouldn't be possible without several open source software packages;
 * [chartjs-plugin-annotation.js](https://github.com/chartjs/chartjs-plugin-annotation), a charts.js plugin that draws lines and boxes on the chart area.
 
 
-> [Python Wires](https://pypi.python.org/pypi/wires/) is also a direct dependency for this project, by one of the authors.
+> For direct dependency completeness, [Wires](https://pypi.python.org/pypi/wires), a Python Callable decoupling library, by one of the authors, is also used.
 
 Lastly, a thank you note to the [Raspberry Pi Foundation](https://www.raspberrypi.org) for the Raspberry Pi.
 
