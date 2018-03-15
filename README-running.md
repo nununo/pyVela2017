@@ -63,7 +63,7 @@ Five input types are supported:
 * An "audio sensor".
 * A USB HID analog-like device.
 * A web based interface.
-* A raw TCP network interface.
+* A text line based TCP network interface.
 
 
 Of these, the last two are mostly used for testing and diagnostics, while the first two support the full natural experience: both the "wind sensor" and the "audio sensor" produce a continuous stream of numeric readings where larger numbers correspond to more wind or sound, respectively. The USB HID input sits somewhere in between, being mostly useful for testing, but delivering an analog-like experience, also producing a continuous stream of readings.
@@ -133,7 +133,7 @@ Put the video files in place:
 Configuration
 -------------
 
-First and foremost, ensure that your Raspbian user belongs to the `video` group; if not, add it. This is a required system level configuration that will allow the code to play video.
+First and foremost, ensure that your Raspbian user belongs to the `video` group; if not, add it. This is a required system level configuration that allows direct console video playing.
 
 Then, putting a configuration in place that is appropriate to the environment is strictly required; for that, copy `settings-sample.json` to `settings.json` and then edit the copy, as needed.
 
@@ -161,12 +161,12 @@ If using an input like a "wind sensor", an "audio sensor", or a USB HID device, 
   * For details about setting up and testing a USB HID device, see the section *About USB HID devices*, below.
 
 * About the web based input:
-  * Not strictly required but its monitoring and diagnosing abilities may prove useful.
+  * While not strictly required, its monitoring and diagnosing abilities may prove useful.
   * Review the `input.web.*` settings.
 
 * About the network input:
-  * Can be disabled.
-  * If enabled, review the `input.network.*` settings.
+  * Enable it, if needed, by setting `inputs.network.enabled` to `true`.
+  * Adjust the other `inputs.network.*` settings.
 
 
 
@@ -358,7 +358,7 @@ The `inputs` key is a list/array of dicts/objects containing one or more entries
 
 | setting                          | description                                                     |
 |----------------------------------|-----------------------------------------------------------------|
-| inputs.network.port              | TCP port where raw network connections will be accepted in.     |
+| inputs.network.port              | TCP port where network connections will be accepted in.     |
 
 
 
