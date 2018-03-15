@@ -248,7 +248,14 @@ For more details refer to the included docstrings and comments in either Python 
 The `inputs.network` package
 ----------------------------
 
-*write me*
+This input is a primitive, yet flexible way of controlling the video playing level.
+
+At start time it listens for TCP connections on the configured network interface/port.
+
+For each CRLF terminated message:
+
+* Parses it as an ASCII integer.
+* Calls `wiring.change_play_level` if a valid integer was obtained.
 
 
 
