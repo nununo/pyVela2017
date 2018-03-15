@@ -194,7 +194,7 @@ Once running:
   * Four `omxplayer.bin` processes.
   * One `arecord` process, if the "audio" input is included in the configuration.
 * One of the videos in the videos `0` directory should be playing, in a loop.
-* Log messages will be output to `stderr`; see below to learn how to adjust logging details.
+* Log messages will be output to STDERR; see below to learn how to adjust logging details.
 
 Stopping:
 * Hit CTRL-C on the shell that launched the program.
@@ -546,9 +546,9 @@ Development Notes
 | module or package | Description |
 |-------------------|-------------|
 | `candle2017.py`   | Main entry point: loads the settings file, sets up the logging system, creates and starts an *input manager* and a *player manager*; ensures both are stopped on exit. |
+| `log`             | Log setup and management code.                                    |
 | `common`          | Process spawning and tracking code used by `inputs` and `player`. |
 | `inputs`          | Input related code: details below.                                |
-| `log`             | Log setup and management code.                                    |
 | `player`          | Video playing code: details below.                                |
 
 
@@ -592,28 +592,121 @@ A few high level notes:
 Exports the `PlayerManager` class which handles all video playing:
 
 * Spawns and tracks a private DBus instance process: see `dbus_manager.py`.
-* Spawns one OMXPlayer process per level:
+* Spawns one OMXPlayer process per level, attached to the private DBus instance:
   * The level 0 player is spawned such that it plays in a loop.
-  * The remaining level players are spawned and paused, ready to fade in and play at any time.
-  * Each OMXPlayer for level N is set to play on a visual layer above players for levels <N, such that visual fade ins/outs work effectively.
-* OMXPlayer processes are tracked and controlled via the private DBus instance.
-* Handles `wiring.change_play_level` calls in response to input triggered play level changes.
-
-Additional notes:
-
-* When changing play levels in response to input triggering, it just needs to "unpause" the respective level's OMXPlayer.
-* Once a given level's OMXPlayer fades out and its process terminates, `PlayerManager` pre-emptively spawns another one, pausing it, to ensure the fastest possible response to future `wiring.change_play_level` calls.
+  * The remaining players are spawned and paused, ready to fade in and play at any time.
+  * Each level N player displays on a visual layer above players for levels <N, such that fade ins/outs work.
+* Player processes are tracked and controlled via the private DBus instance.
 
 
-The `OMXPlayer` class in `player.py` encapsulates the full interface to spawning, tracking and controlling and cleaning up individual OMXPlayer processes, including play/pause controls and automatic fade in/out on start/stop; like for most of the code, refer to the included comments and docstrings for the nitty gritty details.
+OMXPlayer lifecycle:
+
+* `PlayerManager` always keeps a spawned player process per level.
+* When changing play levels in response to input triggering, it "unpauses" the respective level's OMXPlayer.
+* Once a given level's player fades out and its process terminates, a new one is pre-emptively spawned and paused, to ensure the fastest possible response to future play level changes.
+
+
+The `OMXPlayer` class in `player.py` encapsulates the full interface to spawning, tracking, controlling and cleaning up individual OMXPlayer processes, including play/pause controls and automatic fade in/out on start/stop; like for most of the code, refer to the included docstrings and comments for the nitty gritty details.
 
 
 
 ### The `inputs` package
 
+Exports the `InputManager` class which:
+
+* Instantiates and starts configured input objects on `start`.
+* Stops previously started input objects on `stop`.
+
+
+Input objects are instances of `InputBase` with a start/stop interface not different from the `InputManager`'s; all instances are created with the following initialization arguments:
+
+* `reactor`, the Twisted reactor passed to `InputManager`.
+* `wiring`, the Python Wires instance passed to `InputManager`.
+* Other keyword arguments sourced from the `settings` dict passed to `InputManager`.
+
+
+
+### The `inputs.arduino` "wind sensor" package
+
+On starting:
+
+* Opens the configured serial port.
+* Attaching an instance of `ArduinoProtocol` to it.
+* Sets `ArduinoProtocol` to call `wiring.arduino` with each reading.
+
+
+
+### The `inputs.audio` "audio sensor" package
+
+On starting:
+
+* Spawns an `arecord` process with command line arguments per the configuration.
+* Tracks the process:
+  * If it ever stops respawns it, unless configured not to.
+  * Processes its STDERR, parsing each line matching an "audio input level reading".
+  * Calls `wiring.audio` with each reading.
+
+
+
+### The `inputs.hid` package
+
+This input operates at two levels:
+* Tracks the confiured USB HID events asynchronously.
+* Generates a constant stream of readings based on those events.
+
+At instantiation time:
+
+* Creates an `InputDeviceReader` that operates asynchronously, processing all of the configured device's events.
+* Each event matching the configuration will have its value stored on the input object via `_store_reading`.
+
+
+On starting:
+
+* Starts the `InputDeviceReader` which will call `_store_reading` asyncronously.
+* Starts the the periodic sending of readings via `_send_reading_later`.
+
+Much like the other inputs, readings are "sent out" by calling `wiring.hid`.
+
+
+
+### The `inputs.agd` package:
+
+At instantiation time:
+
+* Sets itself to handle `wiring.<source>` calls to process "sensor readings".
+* `wiring.<source>` depends on the AGD input configuration from the settings file, where \<source> will be one of `arduino`, `audio` or `hid`, matching the wiring calls on respective inputs.
+
+On each reading:
+
+* Adds it to the number of tracked readings and calculates an aggregated derivative (details in the code docstrings and comments).
+* Calls `wiring.change_play_level` to trigger video playing level changes, depending on the aggregated derivative value and configured thesholds.
+* Calls `wiring.agd_output` with the current raw reading and calculated aggregated derivative: these will be used by the web interface.
+
+
+About the thresholds:
+
+* Sourced from the settings file.
+* Can be monitored and changed via the web interface:
+  * Handles `wiring.request_agd_thresholds` calls.
+  * On such requests, it calls `wiring.notify_agd_thresholds` with the current threshold levels.
+  * Also handles `wiring.set_agd_threshold` to change a given level's threshold at runtime.
+
+
+
+### The `inputs.web` package:
+
 *write me*
 
 
+
+
+### The `inputs.network` package:
+
+
+
+
+Wrapping up
+===========
 
 Lint with:
 ```
