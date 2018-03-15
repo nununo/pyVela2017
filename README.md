@@ -597,16 +597,17 @@ Exports the `PlayerManager` class which handles all video playing:
   * The remaining players are spawned and paused, ready to fade in and play at any time.
   * Each level N player displays on a visual layer above players for levels <N, such that fade ins/outs work.
 * Player processes are tracked and controlled via the private DBus instance.
+* Playing different level videos in response to input triggers is done by handling calls to `wiring.change_play_level`.
 
 
-OMXPlayer lifecycle:
+OMXPlayer life-cycle:
 
 * `PlayerManager` always keeps a spawned player process per level.
 * When changing play levels in response to input triggering, it "unpauses" the respective level's OMXPlayer.
 * Once a given level's player fades out and its process terminates, a new one is pre-emptively spawned and paused, to ensure the fastest possible response to future play level changes.
 
 
-The `OMXPlayer` class in `player.py` encapsulates the full interface to spawning, tracking, controlling and cleaning up individual OMXPlayer processes, including play/pause controls and automatic fade in/out on start/stop; like for most of the code, refer to the included docstrings and comments for the nitty gritty details.
+The `OMXPlayer` class in `player.py` encapsulates the full interface to spawning, tracking, controlling and cleaning up individual OMXPlayer processes, including play/pause controls and automatic fade in/out on start/stop; like for most of the code, refer to the included docstrings and comments for the nitty-gritty details.
 
 
 
@@ -631,7 +632,7 @@ Input objects are instances of `InputBase` with a start/stop interface not diffe
 On starting:
 
 * Opens the configured serial port.
-* Attaching an instance of `ArduinoProtocol` to it.
+* Attaches an instance of `ArduinoProtocol` to it.
 * Sets `ArduinoProtocol` to call `wiring.arduino` with each reading.
 
 
@@ -642,7 +643,7 @@ On starting:
 
 * Spawns an `arecord` process with command line arguments per the configuration.
 * Tracks the process:
-  * If it ever stops respawns it, unless configured not to.
+  * If it ever stops re-spawns it, unless configured not to.
   * Processes its STDERR, parsing each line matching an "audio input level reading".
   * Calls `wiring.audio` with each reading.
 
@@ -651,7 +652,7 @@ On starting:
 ### The `inputs.hid` package
 
 This input operates at two levels:
-* Tracks the confiured USB HID events asynchronously.
+* Tracks the configured USB HID events asynchronously.
 * Generates a constant stream of readings based on those events.
 
 At instantiation time:
@@ -662,7 +663,7 @@ At instantiation time:
 
 On starting:
 
-* Starts the `InputDeviceReader` which will call `_store_reading` asyncronously.
+* Starts the `InputDeviceReader` which will call `_store_reading` asynchronously.
 * Starts the the periodic sending of readings via `_send_reading_later`.
 
 Much like the other inputs, readings are "sent out" by calling `wiring.hid`.
@@ -679,7 +680,7 @@ At instantiation time:
 On each reading:
 
 * Adds it to the number of tracked readings and calculates an aggregated derivative (details in the code docstrings and comments).
-* Calls `wiring.change_play_level` to trigger video playing level changes, depending on the aggregated derivative value and configured thesholds.
+* Calls `wiring.change_play_level` to trigger video playing level changes, depending on the aggregated derivative value and configured thresholds.
 * Calls `wiring.agd_output` with the current raw reading and calculated aggregated derivative: these will be used by the web interface.
 
 
@@ -689,7 +690,7 @@ About the thresholds:
 * Can be monitored and changed via the web interface:
   * Handles `wiring.request_agd_thresholds` calls.
   * On such requests, it calls `wiring.notify_agd_thresholds` with the current threshold levels.
-  * Also handles `wiring.set_agd_threshold` to change a given level's threshold at runtime.
+  * Also handles `wiring.set_agd_threshold` to change a given level's threshold at run-time.
 
 
 
@@ -705,8 +706,9 @@ About the thresholds:
 
 
 
-Wrapping up
-===========
+### Wrapping up
+
+*write me*
 
 Lint with:
 ```
