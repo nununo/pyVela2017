@@ -185,7 +185,7 @@ Once running:
   * Four `omxplayer.bin` processes.
   * One `arecord` process, if the "audio sensor" is included in the configuration.
 * One of the videos in the videos `0` directory should be playing, in a loop.
-* Log messages will be output to STDERR; learn how to adjust logging levels under **Web based monitoring and control** or **Configuration Reference**.
+* Log messages will be output to STDERR; learn how to adjust logging levels under *Web based monitoring and control* or *Configuration Reference*.
 
 Stopping:
 * Hit CTRL-C on the shell that launched the program.
