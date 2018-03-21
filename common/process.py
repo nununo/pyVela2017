@@ -5,7 +5,7 @@
 # ----------------------------------------------------------------------------
 
 """
-Asyncrounous, Twisted Based, process management.
+Asynchronous, Twisted Based, process management.
 """
 
 from twisted.internet import defer, protocol, error
@@ -28,28 +28,28 @@ class _TrackProcessProtocol(protocol.ProcessProtocol):
 
     def __init__(self, name, out_callable=None, err_callable=None):
 
-        self.log = logger.Logger(namespace=name)
+        self._log = logger.Logger(namespace=name)
         self.started = defer.Deferred()
         self.stopped = defer.Deferred()
         self._out_callable = out_callable
         self._err_callable = err_callable
-        self.pid = None
+        self._pid = None
 
 
     def connectionMade(self):
 
         # Called by Twisted when the process is started.
 
-        self.pid = self.transport.pid
-        self.log.info('process started, PID {p}', p=self.pid)
-        self.started.callback(self.pid)
+        self._pid = self.transport.pid
+        self._log.info('process started, PID {p}', p=self._pid)
+        self.started.callback(self._pid)
 
 
     def outReceived(self, data):
 
         # Called by Twisted when the process writes to its standard output.
 
-        self.log.debug('stdout: {d!r}', d=data)
+        self._log.debug('stdout: {d!r}', d=data)
         if self._out_callable:
             self._out_callable(data)
 
@@ -58,7 +58,7 @@ class _TrackProcessProtocol(protocol.ProcessProtocol):
 
         # Called by Twisted when the process writes to its standard error.
 
-        self.log.debug('stderr: {d!r}', d=data)
+        self._log.debug('stderr: {d!r}', d=data)
         if self._err_callable:
             self._err_callable(data)
 
@@ -70,11 +70,11 @@ class _TrackProcessProtocol(protocol.ProcessProtocol):
         May raise an OSError.
         """
         try:
-            self.log.debug('sending SIGTERM')
+            self._log.debug('sending SIGTERM')
             self.transport.signalProcess('TERM')
-            self.log.debug('sent SIGTERM')
+            self._log.debug('sent SIGTERM')
         except error.ProcessExitedAlready:
-            self.log.debug('already exited')
+            self._log.debug('already exited')
 
 
     def processEnded(self, reason):
@@ -82,7 +82,7 @@ class _TrackProcessProtocol(protocol.ProcessProtocol):
         # Called by Twisted when the process terminates.
 
         exit_code = reason.value.exitCode
-        self.log.info('process ended, exit code {ec}', ec=exit_code)
+        self._log.info('process ended, exit code {ec}', ec=exit_code)
         self.stopped.callback(exit_code)
 
 
