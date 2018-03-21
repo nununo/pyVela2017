@@ -81,7 +81,7 @@ class WSProto(websocket.WebSocketServerProtocol):
         _log.warn('invalid message: {m!r}', m=message)
 
 
-    def _action_change_level(self, message):
+    def _action_change_play_level(self, message):
 
         try:
             level = message['level']

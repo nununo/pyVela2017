@@ -351,9 +351,9 @@ function set_threshold(level, value) {
 
 // level button click handler.
 
-function change_level(level) {
+function change_play_level(level) {
     _socket_send({
-        action: "change_level",
+        action: "change_play_level",
         level: level
     });
 }
