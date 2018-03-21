@@ -22,7 +22,7 @@ _log = logger.Logger(namespace='inputs.arduino')
 class ArduinoProtocol(basic.LineReceiver):
 
     """
-   Arduino serial connection protocol.
+    Arduino serial connection protocol.
     """
 
     # The Arduino serial connection sends a stream of three-byte PDUs:
