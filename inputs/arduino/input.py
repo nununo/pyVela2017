@@ -17,10 +17,6 @@ from . import protocol
 
 
 
-_INPUT_SIZE = 25
-
-
-
 _log = logger.Logger(namespace='inputs.arduino')
 
 
