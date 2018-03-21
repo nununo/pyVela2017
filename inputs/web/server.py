@@ -29,21 +29,13 @@ class WSProto(websocket.WebSocketServerProtocol):
 
     """
     Server side websocket implementation.
-
-    Works along with its factory which tracks the most recent, if any, websocket
-    connection which will be considered the only one that is active and towards
-    which server pushed messages will be sent.
     """
 
     def onConnect(self, request):
 
         # Twisted/Autobahn calls this when a websocket connection is establised.
 
-        # Add self as a log observer to push logs to the client.
-        log_package.add_observer(self)
-
-        # Handle `agd_output` by pushing it as chart data to the client.
-        self.factory.wiring.agd_output.wire(self._push_chart_data)
+        pass
 
 
     def onOpen(self):
@@ -51,6 +43,12 @@ class WSProto(websocket.WebSocketServerProtocol):
         # Twisted/Autobahn calls this when a websocket connection is ready.
 
         _log.warn('{p.host}:{p.port} connected', p=self.transport.getPeer())
+
+        # Add self as a log observer to push logs to the client.
+        log_package.add_observer(self)
+
+        # Handle `agd_output` by pushing it as chart data to the client.
+        self.factory.wiring.agd_output.wire(self._push_chart_data)
 
         # Handle AGD threshold notifications by pushing them to the client.
         self.factory.wiring.notify_agd_threshold.wire(
