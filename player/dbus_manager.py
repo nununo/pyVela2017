@@ -19,6 +19,10 @@ from common import process
 
 
 
+_log = logger.Logger(namespace='player.dbus')
+
+
+
 class DBusManager(object):
 
     """
@@ -28,8 +32,7 @@ class DBusManager(object):
 
     def __init__(self, reactor, settings):
 
-        self.reactor = reactor
-        self.log = logger.Logger(namespace='player.dbus')
+        self._reactor = reactor
 
         # Will be set once the private DBus process is spawned.
         self._dbus_daemon_bin = settings['environment']['dbus_daemon_bin']
@@ -65,27 +68,27 @@ class DBusManager(object):
         if not self._dbus_proto:
             yield self._spawn_dbus_daemon()
 
-        self.log.info('connecting to dbus')
-        self._dbus_conn = yield txdbus_client.connect(self.reactor, bus_address)
-        self.log.info('connected to dbus')
+        _log.info('connecting to dbus')
+        self._dbus_conn = yield txdbus_client.connect(self._reactor, bus_address)
+        _log.info('connected to dbus')
 
         # Track DBus disconnections.
         self._dbus_conn.notifyOnDisconnect(self._dbus_disconnected)
         self._disconnect_callable = disconnect_callable
-        self.log.debug('tracking disconnections')
+        _log.debug('tracking disconnections')
 
         # Use this to track DBus attachments.
-        self.log.debug('getting org.freedesktop.DBus')
+        _log.debug('getting org.freedesktop.DBus')
         dbus_obj = yield self.dbus_conn.getRemoteObject(
             'org.freedesktop.DBus',
             '/org/freedesktop/DBus'
         )
-        self.log.debug('subscribing to NameOwnerChanged signal')
+        _log.debug('subscribing to NameOwnerChanged signal')
         yield dbus_obj.notifyOnSignal(
             'NameOwnerChanged',
             self._dbus_signal_name_owner_changed
         )
-        self.log.debug('subscribed to NameOwnerChanged signal')
+        _log.debug('subscribed to NameOwnerChanged signal')
 
 
     @defer.inlineCallbacks
@@ -97,28 +100,28 @@ class DBusManager(object):
 
         stdout_queue = defer.DeferredQueue()
 
-        self.log.info('spawning dbus daemon {ddb!r}', ddb=self._dbus_daemon_bin)
+        _log.info('spawning dbus daemon {ddb!r}', ddb=self._dbus_daemon_bin)
         self._dbus_proto = process.spawn(
-            self.reactor,
+            self._reactor,
             [self._dbus_daemon_bin, '--session', '--print-address', '--nofork'],
             'player.proc.dbus-daemon',
             out_callable=stdout_queue.put,
         )
-        self.log.debug('waiting for dbus daemon start')
+        _log.debug('waiting for dbus daemon start')
         yield self._dbus_proto.started
-        self.log.debug('dbus daemon started')
+        _log.debug('dbus daemon started')
 
         # Get the first line of output, containing the bus address.
         output_data = None
         try:
             output_deferred = stdout_queue.get()
-            output_deferred.addTimeout(5, self.reactor)
+            output_deferred.addTimeout(5, self._reactor)
             output_data = yield output_deferred
             output_text = output_data.decode('utf-8')
             output_lines = output_text.split('\n')
             bus_address = output_lines[0]
         except Exception as e:
-            self.log.error('bad dbus daemon output {o!r}: {e!r}', o=output_data, e=e)
+            _log.error('bad dbus daemon output {o!r}: {e!r}', o=output_data, e=e)
             raise
         else:
             os.environ['DBUS_SESSION_BUS_ADDRESS'] = bus_address
@@ -129,46 +132,46 @@ class DBusManager(object):
         """
         Ensures the spawned DBus daemon is properly stopped.
         """
-        self.log.info('cleaning up')
+        _log.info('cleaning up')
 
         if not self._dbus_proto:
-            self.log.info('nothing to cleanup')
+            _log.info('nothing to cleanup')
             return
 
-        self.log.info('signalling dbus daemon termination')
+        _log.info('signalling dbus daemon termination')
         try:
             self._dbus_proto.terminate()
         except OSError as e:
-            self.log.warn('signalling dbus daemon failed: {e!r}', e=e)
+            _log.warn('signalling dbus daemon failed: {e!r}', e=e)
             raise
         else:
-            self.log.info('signalled dbus daemon termination')
+            _log.info('signalled dbus daemon termination')
 
-        self.log.debug('waiting for dbus daemon termination')
+        _log.debug('waiting for dbus daemon termination')
         yield self._dbus_proto.stopped
-        self.log.debug('dbus daemon terminated')
+        _log.debug('dbus daemon terminated')
 
-        self.log.info('cleaned up')
+        _log.info('cleaned up')
 
 
     def _dbus_disconnected(self, _dbus_conn, failure):
 
         # Called by txdbus when DBus is disconnected.
 
-        self.log.info('lost connection: {f}', f=failure.value)
+        _log.info('lost connection: {f}', f=failure.value)
         self._dbus_conn = None
 
         # Assume any names being waited on for stopping are gone.
         for name in self._names_stopping:
-            self.log.debug('assuming name {n!r} stopped', n=name)
+            _log.debug('assuming name {n!r} stopped', n=name)
             self._signal_name_change(self._names_stopping, name)
-            self.log.debug('assumed name {n!r} stopped', n=name)
+            _log.debug('assumed name {n!r} stopped', n=name)
 
         if self._disconnect_callable:
             try:
                 self._disconnect_callable()
             except Exception as e:
-                self.log.warn('disconnect callable failed: {e}', e=e)
+                _log.warn('disconnect callable failed: {e}', e=e)
 
 
     def _dbus_signal_name_owner_changed(self, name, old_addr, new_addr):
@@ -178,14 +181,14 @@ class DBusManager(object):
         # `old_addr` will be '' if name just showed up on the bus.
         # `new_addr` will be '' if name is just gone from the bus.
 
-        self.log.debug('name {n!r} owner change: {f!r} to {t!r}', n=name,
+        _log.debug('name {n!r} owner change: {f!r} to {t!r}', n=name,
                        f=old_addr, t=new_addr)
         if not old_addr:
             tracking_dict = self._names_starting
         elif not new_addr:
             tracking_dict = self._names_stopping
         else:
-            self.log.error('unexpected signal data')
+            _log.error('unexpected signal data')
 
         self._signal_name_change(tracking_dict, name)
 
@@ -196,14 +199,14 @@ class DBusManager(object):
 
         d = tracking_dict.get(name)
         if not d:
-            self.log.debug('no deferred for {n!r}', n=name)
+            _log.debug('no deferred for {n!r}', n=name)
             return
 
         try:
             if not d.called:
                 d.callback(None)
         except Exception as e:
-            self.log.error('failed firing {n!r} deferred: {e!r}', n=name, e=e)
+            _log.error('failed firing {n!r} deferred: {e!r}', n=name, e=e)
 
 
     def track_dbus_name(self, name):
@@ -216,7 +219,7 @@ class DBusManager(object):
         # These will fire, respectively, when name shows up/goes away.
         self._names_starting[name] = defer.Deferred()
         self._names_stopping[name] = defer.Deferred()
-        self.log.info('tracking dbus name {n!r}', n=name)
+        _log.info('tracking dbus name {n!r}', n=name)
 
 
     @defer.inlineCallbacks
@@ -225,9 +228,9 @@ class DBusManager(object):
         Returns a deferred that fires when `name` shows up on the bus.
         """
         try:
-            self.log.info('waiting name {n!r} start', n=name)
+            _log.info('waiting name {n!r} start', n=name)
             yield self._names_starting[name]
-            self.log.info('name {n!r} started', n=name)
+            _log.info('name {n!r} started', n=name)
             del self._names_starting[name]
         except KeyError:
             raise RuntimeError('name %r not tracked.' % (name,))
@@ -239,9 +242,9 @@ class DBusManager(object):
         Returns a deferred that fires when `name` goes away from the bus.
         """
         try:
-            self.log.info('waiting name {n!r} stop', n=name)
+            _log.info('waiting name {n!r} stop', n=name)
             yield self._names_stopping[name]
-            self.log.info('name {n!r} stopped', n=name)
+            _log.info('name {n!r} stopped', n=name)
             del self._names_stopping[name]
         except KeyError:
             raise RuntimeError('name %r not tracked.' % (name,))
