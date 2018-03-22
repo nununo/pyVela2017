@@ -194,6 +194,11 @@ class PlayerManager(object):
             _log.info('will not override level 3 player')
             return
 
+        if self._current_player is self._players[new_level]:
+            _log.info('re-triggering level {l!r}', l=new_level)
+            self._current_player.rewind()
+            return
+
         new_player = self._players.get(new_level)
         if new_player:
             new_player.play()
