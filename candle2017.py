@@ -22,7 +22,7 @@ import inputs
 
 
 
-def load_settings(filename='settings.json'):
+def _load_settings(filename='settings.json'):
 
     """
     Returns a dict from the `filename` JSON contents.
@@ -51,10 +51,10 @@ def load_settings(filename='settings.json'):
 
 
 @defer.inlineCallbacks
-def start_things(reactor, settings):
+def _start_things(reactor, settings):
 
     """
-    Asyncronous, Twisted based, main code.
+    Asynchronous, Twisted based, main code.
 
     Sets up all needed objects, some dependent on the `settings` configuration
     dict, and starts the player manager.
@@ -82,7 +82,7 @@ def start_things(reactor, settings):
 
 
     # Before starting, ensure a clean stop.
-    reactor.addSystemEventTrigger('before', 'shutdown', stop_things, startables)
+    reactor.addSystemEventTrigger('before', 'shutdown', _stop_things, startables)
 
 
     # Start all things.
@@ -102,7 +102,7 @@ def start_things(reactor, settings):
 
 
 @defer.inlineCallbacks
-def stop_things(startables):
+def _stop_things(startables):
 
     """
     Asyncronous, Twisted based, cleanup.
@@ -119,7 +119,7 @@ def stop_things(startables):
 
 
 
-def main():
+def _main():
 
     """
     Main entry point.
@@ -127,14 +127,14 @@ def main():
     Loads settings, and drives the main asynchronous code.
     """
 
-    settings = load_settings()
-    task.react(start_things, (settings,))
+    settings = _load_settings()
+    task.react(_start_things, (settings,))
 
 
 
 if __name__ == '__main__':
 
-    sys.exit(main())
+    sys.exit(_main())
 
 
 # ----------------------------------------------------------------------------
