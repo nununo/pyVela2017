@@ -182,7 +182,7 @@ class DBusManager(object):
         # `new_addr` will be '' if name is just gone from the bus.
 
         _log.debug('name {n!r} owner change: {f!r} to {t!r}', n=name,
-                       f=old_addr, t=new_addr)
+                   f=old_addr, t=new_addr)
         if not old_addr:
             tracking_dict = self._names_starting
         elif not new_addr:
@@ -193,7 +193,8 @@ class DBusManager(object):
         self._signal_name_change(tracking_dict, name)
 
 
-    def _signal_name_change(self, tracking_dict, name):
+    @staticmethod
+    def _signal_name_change(tracking_dict, name):
 
         # Fires the associated `name` deferred in `tracking_dict`.
 
