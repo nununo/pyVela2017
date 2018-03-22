@@ -10,6 +10,7 @@ An asyncronous, Twisted/Autobahn based, HTTP/websocket server.
 
 from datetime import datetime
 import json
+import textwrap
 
 from zope.interface import provider
 from twisted import logger
@@ -183,6 +184,17 @@ class WSProto(websocket.WebSocketServerProtocol):
             event.get('log_namespace', '-'),
             logger.formatEvent(event),
         )
+
+        # twisted.logger.formatEvent does not include eventual tracebacks but
+        # we want to show them: borrowed from t.l.formatEventAsClassicLogText
+        if 'log_failure' in event:
+            try:
+                traceback = event['log_failure'].getTraceback()
+            except Exception as e:
+                traceback = 'FAILED GETTING TRACEBACK: %r' % (e,)
+            traceback = textwrap.indent(traceback, 'C ###### ')
+            log_message = '\n'.join((log_message, traceback)).rstrip()
+
 
         self._send_message_dict('log-message', {
             'message': log_message,
