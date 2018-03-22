@@ -43,12 +43,12 @@ class OMXPlayer(object):
         - `fadeout`: fade out duration, in seconds.
         """
 
-        self.filename = filename
-        self.player_mgr = player_mgr
-        self.dbus_mgr = player_mgr.dbus_mgr
-        self.layer = layer
-        self.loop = loop
-        self.alpha = alpha
+        self._filename = filename
+        self._player_mgr = player_mgr
+        self._dbus_mgr = player_mgr.dbus_mgr
+        self._layer = layer
+        self._loop = loop
+        self._alpha = alpha
         self._fadein = fadein
         self._fadeout = fadeout
 
@@ -56,11 +56,11 @@ class OMXPlayer(object):
         self._duration = None
 
         # Use a known name so that we can track omxplayer's DBus presence.
-        self.dbus_player_name = self.generate_player_name(filename)
-        self.log = logger.Logger(namespace='player.each.%s' % (self.dbus_player_name,))
+        self._dbus_player_name = self.generate_player_name(filename)
+        self._log = logger.Logger(namespace='player.each.%s' % (self._dbus_player_name,))
 
-        self._reactor = self.player_mgr.reactor
-        self._dbus_conn = self.dbus_mgr.dbus_conn
+        self._reactor = self._player_mgr.reactor
+        self._dbus_conn = self._dbus_mgr.dbus_conn
 
         # Used to track omxplayer process startup/termination.
         self._process_protocol = None
@@ -78,8 +78,8 @@ class OMXPlayer(object):
     def __repr__(self):
 
         return '<OMXPlayer %r filename=%r>' % (
-            self.dbus_player_name,
-            self.filename,
+            self._dbus_player_name,
+            self._filename,
         )
 
 
@@ -130,11 +130,11 @@ class OMXPlayer(object):
         exit code.
         """
 
-        player_name = self.dbus_player_name
-        self.log.info('spawning')
+        player_name = self._dbus_player_name
+        self._log.info('spawning')
 
         # Ask DBus manager to track this player's name bus presence.
-        self.dbus_mgr.track_dbus_name(player_name)
+        self._dbus_mgr.track_dbus_name(player_name)
 
         self._spawn_process()
 
@@ -142,7 +142,7 @@ class OMXPlayer(object):
         yield self._process_protocol.started
 
         # Wait until the player name shows up on DBus.
-        yield self.dbus_mgr.wait_dbus_name_start(player_name)
+        yield self._dbus_mgr.wait_dbus_name_start(player_name)
 
         # Setup the optional notification of process termination.
         if end_callable:
@@ -150,10 +150,10 @@ class OMXPlayer(object):
 
         yield self._get_dbus_player_object()
 
-        yield self._get_duration()
+        yield self._determine_duration()
 
         # Player is now ready to be controlled.
-        self.log.info('ready')
+        self._log.info('ready')
         self._ready.callback(None)
 
         # Since omxplayer defaults to starting in play mode, ask it to
@@ -166,20 +166,20 @@ class OMXPlayer(object):
 
         # Spawn the omxplayer.bin process.
 
-        args = [self.player_mgr.executable]
-        if self.loop:
+        args = [self._player_mgr.executable]
+        if self._loop:
             args.append('--loop')
-        args.extend(('--dbus_name', str(self.dbus_player_name)))
-        args.extend(('--layer', str(self.layer)))
+        args.extend(('--dbus_name', str(self._dbus_player_name)))
+        args.extend(('--layer', str(self._layer)))
         args.extend(('--orientation', str(180)))
         args.append('--no-osd')
-        args.extend(('--alpha', str(self.alpha)))
-        args.append(str(self.filename))
+        args.extend(('--alpha', str(self._alpha)))
+        args.append(str(self._filename))
 
         self._process_protocol = process.spawn(
             self._reactor,
             args,
-            'player.proc.%s' % (self.dbus_player_name,),
+            'player.proc.%s' % (self._dbus_player_name,),
         )
 
 
@@ -188,7 +188,7 @@ class OMXPlayer(object):
 
         # Get the DBus object for this player.
 
-        self.log.debug('getting dbus object')
+        self._log.debug('getting dbus object')
 
         # Hardcoded data from omxplayer documentation.
         ifaces = [
@@ -196,15 +196,15 @@ class OMXPlayer(object):
             self._OMX_DBUS_PLAYER_INTERFACE,
         ]
         self._dbus_player = yield self._dbus_conn.getRemoteObject(
-            self.dbus_player_name,
+            self._dbus_player_name,
             '/org/mpris/MediaPlayer2',
             interfaces=ifaces,
         )
-        self.log.debug('got dbus object')
+        self._log.debug('got dbus object')
 
 
     @defer.inlineCallbacks
-    def _get_duration(self):
+    def _determine_duration(self):
 
         # Ask omxplayer for the duration of the video file.
 
@@ -212,7 +212,7 @@ class OMXPlayer(object):
             'Get', 'org.mpris.MediaPlayer2.Player', 'Duration',
         )
         self._duration = duration_microsecs / 1000000
-        self.log.debug('duration is {d}s', d=self._duration)
+        self._log.debug('duration is {d}s', d=self._duration)
 
 
     @defer.inlineCallbacks
@@ -228,7 +228,7 @@ class OMXPlayer(object):
         # TODO: Convert this into a decorator?
 
         if not self._ready.called:
-            self.log.info('wait ready: {a}', a=action)
+            self._log.info('wait ready: {a}', a=action)
         yield self._ready
 
 
@@ -249,15 +249,15 @@ class OMXPlayer(object):
         with None, when completed.
         """
 
-        player_name = self.dbus_player_name
+        player_name = self._dbus_player_name
 
-        self.log.info('stopping')
+        self._log.info('stopping')
 
         self._cancel_scheduled_fadeout()
 
         if self._process_protocol.stopped.called:
             # Prevent race condition: do nothing if process is gone.
-            self.log.info('no process to stop', p=player_name)
+            self._log.info('no process to stop', p=player_name)
             exit_code = yield self._process_protocol.stopped
             defer.returnValue(exit_code)
             return
@@ -274,12 +274,12 @@ class OMXPlayer(object):
                 # and prevent exception propagation to caller, letting it assume
                 # stop() completed successfully.
                 stop_via_sigterm = True
-                self.log.warn('stopping failed: {e!r}', e=e)
+                self._log.warn('stopping failed: {e!r}', e=e)
 
         if stop_via_sigterm:
             yield self._stop_via_sigterm()
 
-        self.log.info('stopped')
+        self._log.info('stopped')
 
         defer.returnValue(exit_code)
 
@@ -297,7 +297,7 @@ class OMXPlayer(object):
 
         if not self._stop_in_progress:
             self._stop_in_progress = True
-            self.log.debug('requesting stop')
+            self._log.debug('requesting stop')
             try:
                 # Prevent race condition with timeout: process might have
                 # terminated or DBus may have become unreachable.
@@ -307,19 +307,19 @@ class OMXPlayer(object):
                     timeout=timeout,
                 )
             except error.TimeOut:
-                self.log.info('stop request timed out')
+                self._log.info('stop request timed out')
                 raise
             except Exception as e:
-                self.log.warn('stop request failed: {e!r}', e=e)
+                self._log.warn('stop request failed: {e!r}', e=e)
                 raise
             else:
-                self.log.debug('requested stop')
+                self._log.debug('requested stop')
 
-        player_name = self.dbus_player_name
+        player_name = self._dbus_player_name
 
         if not self._process_protocol.stopped.called:
             # Process still there: wait until it disappears from DBus.
-            yield self.dbus_mgr.wait_dbus_name_stop(player_name)
+            yield self._dbus_mgr.wait_dbus_name_stop(player_name)
 
         # Finally, wait for the actual process to end and get exit code.
         exit_code = yield self._process_protocol.stopped
@@ -331,13 +331,13 @@ class OMXPlayer(object):
 
         # Sends a SIGTERM to the spawned process and waits for it to exit.
 
-        self.log.debug('signalling process termination')
+        self._log.debug('signalling process termination')
         try:
             self._process_protocol.terminate()
         except OSError as e:
-            self.log.warn('signalling process failed: {e!r}', e=e)
+            self._log.warn('signalling process failed: {e!r}', e=e)
         else:
-            self.log.debug('signalled process termination')
+            self._log.debug('signalled process termination')
 
         # Finally, wait for the process to end, discarding the exit code.
         yield self._process_protocol.stopped
@@ -354,12 +354,12 @@ class OMXPlayer(object):
         yield self._wait_ready('play/pause')
 
         # Based on https://github.com/popcornmix/omxplayer
-        self.log.debug('requesting play/pause')
+        self._log.debug('requesting play/pause')
         yield self._dbus_player.callRemote(
             'PlayPause',
             interface='org.mpris.MediaPlayer2.Player'
         )
-        self.log.debug('requested play/pause')
+        self._log.debug('requested play/pause')
 
 
     @defer.inlineCallbacks
@@ -377,7 +377,7 @@ class OMXPlayer(object):
 
         yield self.play_pause()
 
-        if not self.loop:
+        if not self._loop:
             delta_t = self._duration - self._fadeout - 0.1
             self._fadeout_dc = self._reactor.callLater(delta_t, self.fadeout)
 
@@ -430,7 +430,7 @@ class OMXPlayer(object):
             relative_time = 0
             while relative_time < 1:
                 alpha = from_alpha + delta_alpha * relative_time
-                self.log.debug('alpha {s}', s=alpha)
+                self._log.debug('alpha {s}', s=alpha)
                 yield self._set_alpha(round(alpha))
                 yield sleep(delay, self._reactor)
                 relative_time = (time() - start_time) / duration
@@ -449,9 +449,9 @@ class OMXPlayer(object):
 
         yield self._wait_ready('fade in')
 
-        self.log.info('fade in starting')
+        self._log.info('fade in starting')
         result = yield self._fade(self._fadein, 0, 255)
-        self.log.info('fade in completed')
+        self._log.info('fade in completed')
         defer.returnValue(result)
 
 
@@ -465,17 +465,17 @@ class OMXPlayer(object):
         yield self._wait_ready('fade out')
 
         if self._fading_out:
-            self.log.info('fade out in progress')
+            self._log.info('fade out in progress')
             return
 
-        self.log.info('fade out starting')
+        self._log.info('fade out starting')
         self._cancel_scheduled_fadeout()
 
         self._fading_out = True
         result = yield self._fade(self._fadeout, 255, 0)
         self._fading_out = False
 
-        self.log.info('fade out completed')
+        self._log.info('fade out completed')
         defer.returnValue(result)
 
 
@@ -488,23 +488,6 @@ class OMXPlayer(object):
 
         yield self.fadeout()
         yield self.stop()
-
-
-    @defer.inlineCallbacks
-    def action(self, int32):
-
-        """
-        Triggers a generic omxplayer action.
-        Returns a deferred that fires once the action is acknowledged.
-        """
-        yield self._wait_ready('action')
-
-        self.log.debug('requesting action')
-        yield self._dbus_player.callRemote(
-            'Action', int32,
-            interface='org.mpris.MediaPlayer2.Player'
-        )
-        self.log.debug('requested action')
 
 
 # ----------------------------------------------------------------------------
