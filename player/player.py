@@ -112,7 +112,7 @@ class OMXPlayer(object):
         txdbus_interface.Method('PlayPause', arguments='', returns=''),
         txdbus_interface.Method('Stop', arguments='', returns=''),
         txdbus_interface.Method('SetAlpha', arguments='ox', returns='x'),
-        txdbus_interface.Method('Action', arguments='i', returns=''),
+        txdbus_interface.Method('SetPosition', arguments='ox', returns='x'),
     )
 
 
@@ -212,7 +212,7 @@ class OMXPlayer(object):
             'Get', 'org.mpris.MediaPlayer2.Player', 'Duration',
         )
         self._duration = duration_microsecs / 1000000
-        self._log.debug('duration is {d}s', d=self._duration)
+        self._log.debug('duration is {d:.1f}s', d=self._duration)
 
 
     @defer.inlineCallbacks
@@ -378,10 +378,24 @@ class OMXPlayer(object):
         yield self.play_pause()
 
         if not self._loop:
-            delta_t = self._duration - self._fadeout - 0.1
-            self._fadeout_dc = self._reactor.callLater(delta_t, self.fadeout)
+            self._schedule_fadeout()
 
         yield self.fadein()
+
+
+    def _schedule_fadeout(self):
+
+        """
+        Schedules end-of-video automatic fadeout.
+        Assumes video has just started playing from the beginning.
+        """
+
+        self._cancel_scheduled_fadeout()
+
+        delta_t = self._duration - self._fadeout - 0.1
+        self._fadeout_dc = self._reactor.callLater(delta_t, self.fadeout)
+
+        self._log.debug('will fade out in {d:.1f} seconds', d=delta_t)
 
 
     def _cancel_scheduled_fadeout(self):
@@ -395,6 +409,28 @@ class OMXPlayer(object):
                 self._fadeout_dc.cancel()
             except Exception:
                 pass
+
+
+    @defer.inlineCallbacks
+    def rewind(self):
+
+        """
+        Asks the spawned omxplayer to rewind and continue playing from start.
+        Returns a deferred that fires once the command is acknowledged.
+        """
+
+        yield self._wait_ready('rewind')
+
+        # Based on https://github.com/popcornmix/omxplayer
+        self._log.debug('requesting rewind')
+        yield self._dbus_player.callRemote(
+            'SetPosition', '/not/used', 0,
+            interface='org.mpris.MediaPlayer2.Player'
+        )
+        self._log.debug('requested rewind')
+
+        # re-schedule the automatic end-of-video fadeout
+        self._schedule_fadeout()
 
 
     @defer.inlineCallbacks
