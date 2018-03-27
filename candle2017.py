@@ -69,7 +69,7 @@ def _start_things(reactor, settings):
 
 
     # Create a call wiring object and tell it what to with `set_log_level` calls.
-    wiring = wires.Wiring()
+    wiring = wires.Wires()
     wiring.set_log_level.wire(log.set_level)
 
 
