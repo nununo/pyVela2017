@@ -66,9 +66,8 @@ class PlayerManager(object):
         # keys/values: integer levels/list of OMXPlayer instances
         self._players = collections.defaultdict(collections.deque)
 
-        # the player currently running, if not level 0
-        self._current_player = None
-        # the current level, once started
+        self._base_player = None
+        self._current_player = None     # if not level 0
         self._current_level = None
 
         self._update_ld_lib_path()
@@ -133,8 +132,8 @@ class PlayerManager(object):
 
         yield self.dbus_mgr.connect_to_dbus(disconnect_callable=self._dbus_disconnected)
 
-        player = yield self._create_player(level=0)
-        yield player.play()
+        self._base_player = yield self._create_player(level=0)
+        yield self._base_player.play()
         self._current_level = 0
 
         yield self._create_players()
@@ -275,6 +274,11 @@ class PlayerManager(object):
                 _log.info('stopping player level={l!r}', l=level)
                 yield players.popleft().stop(skip_dbus)
                 _log.info('stopped player level={l!r}', l=level)
+        
+        _log.info('stopping base player')
+        yield self._base_player.fadeout_and_stop()
+        _log.info('stopped base player')
+
         _log.info('cleaning up dbus manager')
         yield self.dbus_mgr.cleanup()
         _log.info('cleaned up dbus manager')
