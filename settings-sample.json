@@ -85,8 +85,8 @@
         },
         "2": {
             "folder": "../videos/2",
-            "fadein": 1,
-            "fadeout": 1
+            "fadein": 0.1,
+            "fadeout": 0.5
         },
         "3": {
             "folder": "../videos/3",
