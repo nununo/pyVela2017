@@ -10,7 +10,6 @@ Asyncronous, Twisted based, omxplayer process wrapper.
 """
 
 import os
-import random
 from time import time
 
 from twisted.internet import defer
@@ -83,14 +82,17 @@ class OMXPlayer(object):
         )
 
 
+    _player_id = 0
+
     @staticmethod
     def generate_player_name(filename):
         """
         Generate unique player name.
         """
-        return 'c.p%s-%s' % (
+        OMXPlayer._player_id = (OMXPlayer._player_id + 1) % 1000
+        return 'c.p%s-%03i' % (
             os.path.splitext(os.path.basename(filename))[0],
-            random.randint(10, 99),
+            OMXPlayer._player_id,
         )
 
 
@@ -363,7 +365,7 @@ class OMXPlayer(object):
 
 
     @defer.inlineCallbacks
-    def play(self):
+    def play(self, skip_fadein=False):
 
         """
         To be used right after `spawn`, asks the spawned omxplayer to play.
@@ -380,7 +382,7 @@ class OMXPlayer(object):
         if not self._loop:
             self._schedule_fadeout()
 
-        yield self.fadein()
+        yield self.fadein(immediate=skip_fadein)
 
 
     def _schedule_fadeout(self):
@@ -409,28 +411,6 @@ class OMXPlayer(object):
                 self._fadeout_dc.cancel()
             except Exception:
                 pass
-
-
-    @defer.inlineCallbacks
-    def rewind(self):
-
-        """
-        Asks the spawned omxplayer to rewind and continue playing from start.
-        Returns a deferred that fires once the command is acknowledged.
-        """
-
-        yield self._wait_ready('rewind')
-
-        # Based on https://github.com/popcornmix/omxplayer
-        self._log.debug('requesting rewind')
-        yield self._dbus_player.callRemote(
-            'SetPosition', '/not/used', 0,
-            interface='org.mpris.MediaPlayer2.Player'
-        )
-        self._log.debug('requested rewind')
-
-        # re-schedule the automatic end-of-video fadeout
-        self._schedule_fadeout()
 
 
     @defer.inlineCallbacks
@@ -476,7 +456,7 @@ class OMXPlayer(object):
 
 
     @defer.inlineCallbacks
-    def fadein(self):
+    def fadein(self, immediate=False):
 
         """
         Triggers a fade in of the spawned omxplayer.
@@ -486,7 +466,7 @@ class OMXPlayer(object):
         yield self._wait_ready('fade in')
 
         self._log.info('fade in starting')
-        result = yield self._fade(self._fadein, 0, 255)
+        result = yield self._fade(0 if immediate else self._fadein, 0, 255)
         self._log.info('fade in completed')
         defer.returnValue(result)
 

@@ -8,6 +8,7 @@
 Asyncronous, Twisted based, video playing interface.
 """
 
+import collections
 import os
 import random
 
@@ -59,14 +60,16 @@ class PlayerManager(object):
         self.reactor = reactor
         self.dbus_mgr = DBusManager(reactor, settings)
 
-        # keys/values: integer levels/list of video files
+        # keys/values: integer levels/queue of video files
         self._files = {}
 
-        # keys/values: integer levels/OMXPlayer instances
-        self._players = {}
+        # keys/values: integer levels/list of OMXPlayer instances
+        self._players = collections.defaultdict(collections.deque)
 
         # the player currently running, if not level 0
         self._current_player = None
+        # the current level, once started
+        self._current_level = None
 
         self._update_ld_lib_path()
         self._find_files()
@@ -130,10 +133,11 @@ class PlayerManager(object):
 
         yield self.dbus_mgr.connect_to_dbus(disconnect_callable=self._dbus_disconnected)
 
-        for level in self._files:
-            yield self._create_player(level)
+        player = yield self._create_player(level=0)
+        yield player.play()
+        self._current_level = 0
 
-        yield self._players[0].play()
+        yield self._create_players()
 
         # Ready to respond to change level requests.
         self._wiring.change_play_level.wire(self._change_play_level)
@@ -172,8 +176,28 @@ class PlayerManager(object):
             fadein=self._settings['levels'][str(level)]['fadein'],
             fadeout=self._settings['levels'][str(level)]['fadeout'],
         )
-        self._players[level] = player
         yield player.spawn(end_callable=lambda _: self._player_ended(player, level))
+        return player
+
+
+    @defer.inlineCallbacks
+    def _create_players(self):
+
+        # Populate or re-populate self._players.
+
+        for level in range(1, 4):
+            need_player_count = 2 if level != 3 else 1
+            have_player_count = len(self._players[level])
+            for _ in range(need_player_count-have_player_count):
+                player = yield self._create_player(level)
+                self._players[level].append(player)
+
+
+    def _get_player(self, level):
+
+        # Return the next player for level.
+
+        return self._players[level].popleft()
 
 
     def _change_play_level(self, new_level, comment=''):
@@ -190,27 +214,32 @@ class PlayerManager(object):
             _log.info('will not go to rest ahead of time')
             return
 
-        if self._current_player is self._players[3]:
+        if self._current_level == 3:
             _log.info('will not override level 3 player')
             return
 
-        if self._current_player is self._players[new_level]:
-            _log.info('re-triggering level {l!r}', l=new_level)
-            self._current_player.rewind()
-            return
-
-        new_player = self._players.get(new_level)
-        if new_player:
-            new_player.play()
+        if new_level >= self._current_level:
+            retrigger = new_level == self._current_level
+            new_player = self._get_player(level=new_level)
+            new_player.play(skip_fadein=retrigger)
             if self._current_player:
-                _log.debug('smoothly stopping current player')
-                self._current_player.fadeout_and_stop()
+                if retrigger:
+                    _log.info('re-triggering level {l!r}', l=new_level)
+                    self._current_player.stop()
+                else:
+                    _log.debug('smoothly stopping current player')
+                    self._current_player.fadeout_and_stop()
             else:
                 _log.debug('no current player to smoothly stop')
             self._current_player = new_player
+            self._current_level = new_level
             _log.debug('current player updated')
+            return
+
+        _log.info('will not trigger a lower level')
 
 
+    @defer.inlineCallbacks
     def _player_ended(self, player, level):
 
         # Called when a player for `level` ends (see _create_player), ensures
@@ -219,10 +248,14 @@ class PlayerManager(object):
         _log.info('player level={l!r} ended', l=level)
         if self._stopping:
             return
-        self._create_player(level)
+        if player in self._players[level]:
+            _log.warn('process ended unexpectedly')
+            self._players[level].remove(player)
+        yield self._create_players()
         if player is self._current_player:
             _log.debug('current player set to none')
             self._current_player = None
+        self._current_level = 0
 
 
     @defer.inlineCallbacks
@@ -237,10 +270,11 @@ class PlayerManager(object):
 
         self._stopping = True
         self._wiring.change_play_level.unwire(self._change_play_level)
-        for level, player in self._players.items():
-            _log.info('stopping player level={l!r}', l=level)
-            yield player.stop(skip_dbus)
-            _log.info('stopped player level={l!r}', l=level)
+        for level, players in self._players.items():
+            while players:
+                _log.info('stopping player level={l!r}', l=level)
+                yield players.popleft().stop(skip_dbus)
+                _log.info('stopped player level={l!r}', l=level)
         _log.info('cleaning up dbus manager')
         yield self.dbus_mgr.cleanup()
         _log.info('cleaned up dbus manager')
